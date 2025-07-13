@@ -1,9 +1,13 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import { prisma } from '@/lib/prisma'
 
-// 注意：数据库用户同步现在在前端useUserProfile中处理，确保登录流程不被阻塞
+// 使用数据库session策略，更稳定可靠
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  
   providers: [
     GoogleProvider({
       clientId: process.env.NODE_ENV === 'production' 
@@ -21,68 +25,26 @@ export const authOptions: NextAuthOptions = {
   },
 
   session: {
-    strategy: 'jwt',
+    strategy: 'database',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
   callbacks: {
-    // 🔥 **核心JWT回调** - 极简设计，绝不失败
-    async jwt({ token, user }) {
+    // 🔥 **Session回调** - 数据库策略简化版
+    async session({ session, user }) {
       try {
-        // 1. 基础token设置 - 只设置必需的字段
-        if (user) {
-          token.email = user.email
-          token.name = user.name
-          token.image = user.image
-          token.loginTime = Date.now()
-        }
-
-        // 2. 设置默认订阅信息 - 简单的默认值
-        if (!token.subscriptionType) {
-          token.subscriptionType = 'free'
-          token.subscriptionStatus = 'inactive'
-          token.usageCount = 0
-        }
-
-        // 3. 移除所有数据库操作 - 让前端处理同步
-        // 数据库同步将在useUserProfile中处理
-
-        return token
-      } catch (error) {
-        console.error('JWT回调错误:', error)
-        // 即使出错也要返回基础token，确保登录不失败
-        return {
-          ...token,
-          email: user?.email || token.email,
-          name: user?.name || token.name,
-          image: user?.image || token.image,
-          subscriptionType: 'free',
-          subscriptionStatus: 'inactive',
-          usageCount: 0
-        }
-      }
-    },
-
-    // 🔥 **Session回调** - 安全地传递token信息到session
-    async session({ session, token }) {
-      try {
-        if (token && session.user) {
-          // 基本用户信息 - 确保这些总是存在
-          session.user.email = token.email as string || ''
-          session.user.name = token.name as string || session.user.email || 'User'
-          session.user.image = token.image as string || null
+        if (user && session.user) {
+          // 数据库策略下直接使用user对象
+          session.user.id = user.id
+          session.user.email = user.email || ''
+          session.user.name = user.name || 'User'
+          session.user.image = user.image || null
           
-          // 添加扩展用户信息 - 使用安全的默认值
-          const extendedUser = session.user as typeof session.user & {
-            subscriptionType?: string
-            subscriptionStatus?: string
-            usageCount?: number
-            loginTime?: number
-          }
-          extendedUser.subscriptionType = token.subscriptionType as string || 'free'
-          extendedUser.subscriptionStatus = token.subscriptionStatus as string || 'inactive'
-          extendedUser.usageCount = token.usageCount as number || 0
-          extendedUser.loginTime = token.loginTime as number || Date.now()
+          console.log('✅ 数据库Session创建成功:', {
+            id: user.id,
+            email: user.email,
+            name: user.name
+          })
         }
         return session
       } catch (error) {
