@@ -43,7 +43,9 @@ export function WebVitalsMonitor() {
       const observer = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
           const metricName = entry.name
-          const value = Math.round(entry.value)
+          // 类型转换以访问value属性
+          const measureEntry = entry as PerformanceMeasure
+          const value = Math.round(measureEntry.value || 0)
           
           console.log(`📊 Web Vital - ${metricName}:`, value)
         })
