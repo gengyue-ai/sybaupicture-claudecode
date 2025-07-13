@@ -92,8 +92,9 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     try {
       console.log('🔄 开始后台同步用户数据')
       
-      // 并行获取用户数据
-      const [subscriptionResponse, syncResponse] = await Promise.all([
+      // 并行获取用户数据 - 优先获取最新用量信息
+      const [usageResponse, subscriptionResponse, syncResponse] = await Promise.all([
+        fetch('/api/user/usage?_t=' + Date.now(), { cache: 'no-store' }),
         fetch('/api/subscription?_t=' + Date.now(), { cache: 'no-store' }),
         fetch('/api/user/sync', { 
           method: 'POST',
@@ -104,8 +105,43 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
 
       let profileData: UserProfileData | null = null
 
-      // 优先使用订阅API数据
-      if (subscriptionResponse.ok) {
+      // 🔑 优先使用用量API数据（最准确的实时数据）
+      if (usageResponse.ok) {
+        const usageData = await usageResponse.json()
+        console.log('✅ 用量API数据获取成功:', usageData)
+        
+        // 获取订阅信息作为补充
+        let subscriptionInfo = null
+        if (subscriptionResponse.ok) {
+          const subscriptionData = await subscriptionResponse.json()
+          subscriptionInfo = subscriptionData.subscription
+        }
+        
+        const isActive = subscriptionInfo?.status === 'active' || usageData.isSubscribed
+        const planName = usageData.subscriptionPlan || subscriptionInfo?.plan?.name || 'free'
+        
+        profileData = {
+          name: session.user.name || '',
+          email: session.user.email || '',
+          image: session.user.image || null,
+          isSubscribed: usageData.isSubscribed || false,
+          subscriptionStatus: subscriptionInfo?.status || (usageData.isSubscribed ? 'active' : 'inactive'),
+          subscriptionPlan: planName,
+          usageCount: usageData.usageCount || 0,
+          maxUsage: usageData.maxUsage || 5,
+          stripeCustomerId: subscriptionInfo?.stripeCustomerId || null,
+          planFeatures: {
+            hasWatermark: !usageData.isSubscribed,
+            maxImagesPerMonth: usageData.maxUsage || 5,
+            maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
+            hasPriorityProcessing: usageData.isSubscribed && planName !== 'free'
+          },
+          lastSyncTime: Date.now(),
+          isDataValid: true
+        }
+      }
+      // 备用：使用订阅API数据
+      else if (subscriptionResponse.ok) {
         const subscriptionData = await subscriptionResponse.json()
         console.log('✅ 订阅API数据获取成功:', subscriptionData)
         
