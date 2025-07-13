@@ -96,6 +96,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 检查Stripe是否配置
+    if (!stripe) {
+      console.error('❌ Stripe not configured')
+      return NextResponse.json(
+        { 
+          error: 'Payment system not configured',
+          details: 'Stripe configuration missing',
+          debug: process.env.NODE_ENV === 'development' ? {
+            hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
+            hasSecretKeyProd: !!process.env.STRIPE_SECRET_KEY_PROD,
+            isProduction: process.env.NODE_ENV === 'production'
+          } : undefined
+        },
+        { status: 500 }
+      )
+    }
+
     // 获取价格ID
     const priceId = STRIPE_PRICE_IDS[planType as keyof typeof STRIPE_PRICE_IDS]?.[billingCycle as keyof typeof STRIPE_PRICE_IDS.standard]
 

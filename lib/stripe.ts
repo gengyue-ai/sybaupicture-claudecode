@@ -4,9 +4,9 @@ import { loadStripe } from '@stripe/stripe-js'
 // 检测当前环境
 const isProduction = process.env.NODE_ENV === 'production'
 
-// 服务端Stripe实例
+// 服务端Stripe实例 - 支持多种环境变量名称
 const stripeSecretKey = isProduction 
-  ? process.env.STRIPE_SECRET_KEY_PROD
+  ? (process.env.STRIPE_SECRET_KEY_PROD || process.env.STRIPE_SECRET_KEY)
   : (process.env.STRIPE_SECRET_KEY_DEV || process.env.STRIPE_SECRET_KEY)
 
 let stripe: Stripe | null = null
@@ -25,7 +25,7 @@ export { stripe }
 // 客户端Stripe实例
 export const getStripe = () => {
   const publishableKey = isProduction 
-    ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD
+    ? (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
     : (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   
   if (!publishableKey) {

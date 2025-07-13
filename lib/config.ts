@@ -34,13 +34,13 @@ export const config = {
   
   stripe: {
     secretKey: isProduction
-      ? process.env.STRIPE_SECRET_KEY_PROD!
+      ? (process.env.STRIPE_SECRET_KEY_PROD || process.env.STRIPE_SECRET_KEY)!
       : (process.env.STRIPE_SECRET_KEY_DEV || process.env.STRIPE_SECRET_KEY)!,
     publicKey: isProduction
-      ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD!
+      ? (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)!
       : (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)!,
     webhookSecret: isProduction
-      ? process.env.STRIPE_WEBHOOK_SECRET_PROD!
+      ? (process.env.STRIPE_WEBHOOK_SECRET_PROD || process.env.STRIPE_WEBHOOK_SECRET)!
       : (process.env.STRIPE_WEBHOOK_SECRET_DEV || process.env.STRIPE_WEBHOOK_SECRET)!,
   },
   
@@ -89,7 +89,7 @@ export function validateConfig() {
   
   // 验证Stripe配置
   const stripeKey = isProduction
-    ? process.env.STRIPE_SECRET_KEY_PROD
+    ? (process.env.STRIPE_SECRET_KEY_PROD || process.env.STRIPE_SECRET_KEY)
     : (process.env.STRIPE_SECRET_KEY_DEV || process.env.STRIPE_SECRET_KEY)
     
   if (!stripeKey) {

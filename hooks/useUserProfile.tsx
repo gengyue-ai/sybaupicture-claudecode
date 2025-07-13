@@ -107,23 +107,28 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
       // 优先使用订阅API数据
       if (subscriptionResponse.ok) {
         const subscriptionData = await subscriptionResponse.json()
-        console.log('✅ 订阅API数据获取成功')
+        console.log('✅ 订阅API数据获取成功:', subscriptionData)
+        
+        // 改进数据解析逻辑
+        const subscription = subscriptionData.subscription
+        const isActive = subscription?.status === 'active' || subscription?.isActive
+        const planName = subscription?.plan?.name || subscriptionData.user?.plan?.name || 'free'
         
         profileData = {
           name: session.user.name || '',
           email: session.user.email || '',
           image: session.user.image || null,
-          isSubscribed: subscriptionData.subscription?.isActive || false,
-          subscriptionStatus: subscriptionData.subscription?.plan?.name || 'free',
-          subscriptionPlan: subscriptionData.subscription?.plan?.name || 'free',
+          isSubscribed: isActive || false,
+          subscriptionStatus: subscription?.status || 'inactive',
+          subscriptionPlan: planName,
           usageCount: subscriptionData.usage?.current || 0,
-          maxUsage: subscriptionData.usage?.max || 5,
-          stripeCustomerId: subscriptionData.subscription?.stripeSubscriptionId || null,
+          maxUsage: subscriptionData.usage?.max || (planName === 'standard' ? 50 : planName === 'pro' ? 200 : 5),
+          stripeCustomerId: subscription?.stripeCustomerId || subscriptionData.user?.stripeCustomerId || null,
           planFeatures: {
-            hasWatermark: subscriptionData.subscription?.plan?.hasWatermark || false,
-            maxImagesPerMonth: subscriptionData.usage?.max || 5,
-            maxResolution: subscriptionData.subscription?.plan?.maxResolution || '1024x1024',
-            hasPriorityProcessing: subscriptionData.subscription?.plan?.hasPriorityProcessing || false
+            hasWatermark: !isActive,
+            maxImagesPerMonth: subscriptionData.usage?.max || (planName === 'standard' ? 50 : planName === 'pro' ? 200 : 5),
+            maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
+            hasPriorityProcessing: isActive && planName !== 'free'
           },
           lastSyncTime: Date.now(),
           isDataValid: true
@@ -180,27 +185,31 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }
   }, [session?.user?.email, syncState.isSyncing])
 
-  // 用户登录后立即初始化默认数据，然后开始后台同步
+  // 用户登录后立即初始化并强制同步数据
   useEffect(() => {
     if (status === 'authenticated' && session?.user && !syncState.hasInitialized) {
-      console.log('🔄 用户已登录，初始化默认数据并开始后台同步')
+      console.log('🔄 用户已登录，立即同步真实数据')
       
-      // 立即设置默认数据，让用户可以马上使用
-      const initialProfile: UserProfileData = {
-        ...DEFAULT_PROFILE,
-        name: session.user.name || '',
-        email: session.user.email || '',
-        image: session.user.image || null,
-        isDataValid: false
-      }
+      // 设置初始化状态
+      setSyncState(prev => ({ ...prev, hasInitialized: true, isLoading: true }))
       
-      setProfile(initialProfile)
-      setSyncState(prev => ({ ...prev, hasInitialized: true }))
-      
-      // 立即开始后台同步
-      setTimeout(() => {
-        backgroundSync()
-      }, 100)
+      // 立即开始同步，不使用默认数据
+      backgroundSync().then(() => {
+        console.log('✅ 用户登录后数据同步完成')
+      }).catch(error => {
+        console.error('❌ 用户登录后数据同步失败:', error)
+        // 同步失败时才使用默认数据
+        const fallbackProfile: UserProfileData = {
+          ...DEFAULT_PROFILE,
+          name: session.user.name || '',
+          email: session.user.email || '',
+          image: session.user.image || null,
+          isDataValid: false
+        }
+        setProfile(fallbackProfile)
+      }).finally(() => {
+        setSyncState(prev => ({ ...prev, isLoading: false }))
+      })
     }
     
     // 用户登出时清空数据
