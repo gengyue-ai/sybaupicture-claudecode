@@ -110,7 +110,7 @@ fix-*.js
 *key*
 *token*
 *password*
-*auth*
+auth.json
 credentials.json
 service-account.json
 key.md
