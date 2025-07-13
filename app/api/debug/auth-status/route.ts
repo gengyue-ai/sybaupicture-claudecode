@@ -33,7 +33,7 @@ export async function GET() {
     },
     
     // 简化的问题检查
-    issues: []
+    issues: [] as string[]
   }
   
   // 检查潜在问题
