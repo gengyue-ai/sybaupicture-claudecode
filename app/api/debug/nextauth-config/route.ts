@@ -39,7 +39,7 @@ export async function GET() {
       debug: authOptions.debug,
       
       // 环境变量状态
-      environment: {
+      envVariables: {
         NODE_ENV: process.env.NODE_ENV,
         NEXTAUTH_URL: process.env.NEXTAUTH_URL,
         NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
