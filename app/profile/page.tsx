@@ -42,42 +42,44 @@ export default function ProfilePage() {
       return
     }
 
-    if (status === 'authenticated') {
-      console.log('✅ 用户已认证，立即同步最新数据')
+    if (status === 'authenticated' && userProfile) {
+      console.log('✅ 用户已认证，使用统一数据管理系统的数据')
       
-      // 🔑 关键：用户进入profile页面时立即刷新数据
-      if (!syncState.isSyncing) {
-        refreshData()
-      }
-      
-      if (userProfile) {
-        console.log('✅ 使用统一数据管理系统的数据')
-        
-        // 使用统一数据管理系统的数据
-        setProfile({
-          name: userProfile.name,
-          email: userProfile.email,
-          image: userProfile.image || '',
-          plan: {
-            name: userProfile.subscriptionPlan,
-            hasWatermark: userProfile.planFeatures.hasWatermark
-          },
-          usage: {
-            current: userProfile.usageCount,
-            max: userProfile.maxUsage,
-            remaining: Math.max(0, userProfile.maxUsage - userProfile.usageCount)
-          },
-          createdAt: new Date().toISOString()
-        })
-        setLoading(false)
-      }
+      // 使用统一数据管理系统的数据
+      setProfile({
+        name: userProfile.name,
+        email: userProfile.email,
+        image: userProfile.image || '',
+        plan: {
+          name: userProfile.subscriptionPlan,
+          hasWatermark: userProfile.planFeatures.hasWatermark
+        },
+        usage: {
+          current: userProfile.usageCount,
+          max: userProfile.maxUsage,
+          remaining: Math.max(0, userProfile.maxUsage - userProfile.usageCount)
+        },
+        createdAt: new Date().toISOString()
+      })
+      setLoading(false)
     }
     
     // loading状态不做任何操作，等待认证完成
     if (status === 'loading') {
       console.log('🔄 正在检查用户认证状态...')
     }
-  }, [status, router, userProfile, refreshData, syncState.isSyncing])
+  }, [status, router, userProfile])
+
+  // 🔑 用户进入profile页面时，触发一次数据刷新
+  useEffect(() => {
+    let hasTriggeredRefresh = false
+    
+    if (status === 'authenticated' && !hasTriggeredRefresh) {
+      console.log('🔄 用户进入profile页面，触发数据刷新')
+      hasTriggeredRefresh = true
+      refreshData()
+    }
+  }, [status]) // 只依赖status，避免循环
 
   // 当页面重新获得焦点时自动同步最新数据（用户从其他页面返回时）
   useEffect(() => {
