@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 // 使用数据库session策略，更稳定可靠
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: prisma ? PrismaAdapter(prisma) : undefined,
   
   providers: [
     GoogleProvider({
@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   session: {
-    strategy: 'database',
+    strategy: prisma ? 'database' : 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
