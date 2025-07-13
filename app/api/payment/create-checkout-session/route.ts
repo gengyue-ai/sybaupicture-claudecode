@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
           debug: process.env.NODE_ENV === 'development' ? {
             hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
             hasSecretKeyProd: !!process.env.STRIPE_SECRET_KEY_PROD,
-            isProduction: process.env.NODE_ENV === 'production'
+            nodeEnv: process.env.NODE_ENV
           } : undefined
         },
         { status: 500 }
