@@ -1,8 +1,5 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
 
 // 注意：数据库用户同步现在在前端useUserProfile中处理，确保登录流程不被阻塞
 
@@ -76,10 +73,16 @@ export const authOptions: NextAuthOptions = {
           session.user.image = token.image as string || null
           
           // 添加扩展用户信息 - 使用安全的默认值
-          ;(session.user as any).subscriptionType = token.subscriptionType || 'free'
-          ;(session.user as any).subscriptionStatus = token.subscriptionStatus || 'inactive'
-          ;(session.user as any).usageCount = token.usageCount || 0
-          ;(session.user as any).loginTime = token.loginTime || Date.now()
+          const extendedUser = session.user as typeof session.user & {
+            subscriptionType?: string
+            subscriptionStatus?: string
+            usageCount?: number
+            loginTime?: number
+          }
+          extendedUser.subscriptionType = token.subscriptionType as string || 'free'
+          extendedUser.subscriptionStatus = token.subscriptionStatus as string || 'inactive'
+          extendedUser.usageCount = token.usageCount as number || 0
+          extendedUser.loginTime = token.loginTime as number || Date.now()
         }
         return session
       } catch (error) {
