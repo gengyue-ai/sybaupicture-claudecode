@@ -201,9 +201,9 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         // 同步失败时才使用默认数据
         const fallbackProfile: UserProfileData = {
           ...DEFAULT_PROFILE,
-          name: session.user.name || '',
-          email: session.user.email || '',
-          image: session.user.image || null,
+          name: session.user?.name || '',
+          email: session.user?.email || '',
+          image: session.user?.image || null,
           isDataValid: false
         }
         setProfile(fallbackProfile)
