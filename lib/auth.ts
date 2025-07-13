@@ -1,21 +1,13 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { prisma } from '@/lib/prisma'
 
-// 使用数据库session策略，更稳定可靠
+// 极简配置，确保稳定性
 
 export const authOptions: NextAuthOptions = {
-  adapter: prisma ? PrismaAdapter(prisma) : undefined,
-  
   providers: [
     GoogleProvider({
-      clientId: process.env.NODE_ENV === 'production' 
-        ? process.env.GOOGLE_CLIENT_ID_PROD! 
-        : (process.env.GOOGLE_CLIENT_ID_DEV! || process.env.GOOGLE_CLIENT_ID!),
-      clientSecret: process.env.NODE_ENV === 'production' 
-        ? process.env.GOOGLE_CLIENT_SECRET_PROD! 
-        : (process.env.GOOGLE_CLIENT_SECRET_DEV! || process.env.GOOGLE_CLIENT_SECRET!),
+      clientId: process.env.GOOGLE_CLIENT_ID_PROD!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET_PROD!,
     })
   ],
 
@@ -25,82 +17,35 @@ export const authOptions: NextAuthOptions = {
   },
 
   session: {
-    strategy: prisma ? 'database' : 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    strategy: 'jwt',
+    maxAge: 7 * 24 * 60 * 60, // 7 days - 减少到1周更稳定
   },
 
   callbacks: {
-    // 🔥 **Session回调** - 数据库策略简化版
-    async session({ session, user }) {
-      try {
-        if (user && session.user) {
-          // 数据库策略下直接使用user对象
-          session.user.id = user.id
-          session.user.email = user.email || ''
-          session.user.name = user.name || 'User'
-          session.user.image = user.image || null
-          
-          console.log('✅ 数据库Session创建成功:', {
-            id: user.id,
-            email: user.email,
-            name: user.name
-          })
-        }
-        return session
-      } catch (error) {
-        console.error('Session回调错误:', error)
-        // 返回基础session，确保不失败
-        return session
-      }
-    },
-
-    // 🔥 **重定向回调** - 极简逻辑，始终成功
+    // 极简化设计 - 只做最基本的重定向
     async redirect({ url, baseUrl }) {
-      try {
-        console.log('NextAuth redirect:', { url, baseUrl })
-        
-        // 安全的baseUrl处理
-        const safeBaseUrl = baseUrl || 'https://sybaupicture.com'
-        
-        // 如果没有url或url无效，直接返回首页
-        if (!url) {
-          return safeBaseUrl
-        }
-        
-        // 如果是登录/注册相关页面，始终重定向到首页
-        if (url.includes('/auth/') || url.includes('signin') || url.includes('signout')) {
-          return safeBaseUrl
-        }
-        
-        // 如果是相对路径，组合为完整URL
-        if (url.startsWith('/')) {
-          return safeBaseUrl + url
-        }
-        
-        // 如果是完整URL，检查是否同域
-        try {
-          const targetUrl = new URL(url)
-          const baseUrlObj = new URL(safeBaseUrl)
-          
-          // 同域且不是认证页面，允许跳转
-          if (targetUrl.origin === baseUrlObj.origin && !url.includes('/auth/')) {
-            return url
-          }
-        } catch {
-          // URL解析失败，安全返回首页
-        }
-        
-        // 默认情况：返回首页
-        return safeBaseUrl
-        
-      } catch (error) {
-        console.error('Redirect回调错误:', error)
-        // 任何错误都返回安全的首页
-        return baseUrl || 'https://sybaupicture.com'
+      console.log('NextAuth redirect:', { url, baseUrl })
+      
+      // 硬编码安全重定向
+      if (url?.includes('/auth/') || !url) {
+        return 'https://sybaupicture.com'
       }
+      
+      // 如果是相对路径，组合为完整URL
+      if (url.startsWith('/')) {
+        return 'https://sybaupicture.com' + url
+      }
+      
+      // 如果是同域名，允许
+      if (url.startsWith('https://sybaupicture.com')) {
+        return url
+      }
+      
+      // 默认返回首页
+      return 'https://sybaupicture.com'
     }
   },
 
-  // 关闭调试模式
-  debug: false,
+  // 开启调试模式来查看问题
+  debug: true,
 }
