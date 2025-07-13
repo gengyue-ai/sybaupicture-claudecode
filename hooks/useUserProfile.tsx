@@ -185,31 +185,49 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     }
   }, [session?.user?.email, syncState.isSyncing])
 
-  // 用户登录后立即初始化并强制同步数据
+  // 用户登录后立即显示基本信息，然后异步同步详细数据
   useEffect(() => {
     if (status === 'authenticated' && session?.user && !syncState.hasInitialized) {
-      console.log('🔄 用户已登录，立即同步真实数据')
+      console.log('🔄 用户已登录，立即显示基本信息')
       
-      // 设置初始化状态
-      setSyncState(prev => ({ ...prev, hasInitialized: true, isLoading: true }))
+      // 立即设置基本用户信息 - 不等待任何同步
+      const basicProfile: UserProfileData = {
+        name: session.user.name || session.user.email?.split('@')[0] || '',
+        email: session.user.email || '',
+        image: session.user.image || null,
+        isSubscribed: (session.user as any).subscriptionStatus === 'active',
+        subscriptionStatus: (session.user as any).subscriptionStatus || 'inactive', 
+        subscriptionPlan: (session.user as any).subscriptionType || 'free',
+        usageCount: (session.user as any).usageCount || 0,
+        maxUsage: 5, // 默认值，后续同步时更新
+        stripeCustomerId: null,
+        planFeatures: {
+          hasWatermark: (session.user as any).subscriptionStatus !== 'active',
+          maxImagesPerMonth: 5,
+          maxResolution: '1024x1024',
+          hasPriorityProcessing: false
+        },
+        lastSyncTime: Date.now(),
+        isDataValid: false // 标记为需要后续同步
+      }
       
-      // 立即开始同步，不使用默认数据
-      backgroundSync().then(() => {
-        console.log('✅ 用户登录后数据同步完成')
-      }).catch(error => {
-        console.error('❌ 用户登录后数据同步失败:', error)
-        // 同步失败时才使用默认数据
-        const fallbackProfile: UserProfileData = {
-          ...DEFAULT_PROFILE,
-          name: session.user?.name || '',
-          email: session.user?.email || '',
-          image: session.user?.image || null,
-          isDataValid: false
-        }
-        setProfile(fallbackProfile)
-      }).finally(() => {
-        setSyncState(prev => ({ ...prev, isLoading: false }))
+      setProfile(basicProfile)
+      setSyncState(prev => ({ ...prev, hasInitialized: true }))
+      
+      console.log('✅ 基本用户信息已显示:', {
+        name: basicProfile.name,
+        email: basicProfile.email,
+        plan: basicProfile.subscriptionPlan
       })
+      
+      // 异步进行详细数据同步 - 不阻塞用户体验
+      setTimeout(() => {
+        backgroundSync().then(() => {
+          console.log('✅ 详细数据同步完成')
+        }).catch(error => {
+          console.warn('⚠️ 详细数据同步失败，使用基本信息:', error)
+        })
+      }, 500) // 稍微延迟，让用户先看到基本信息
     }
     
     // 用户登出时清空数据

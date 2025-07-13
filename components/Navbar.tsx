@@ -142,16 +142,14 @@ export default function Navbar() {
           size="sm"
           onClick={() => {
             console.log('🔄 导航栏登录按钮点击')
-            const currentPath = pathname
-            let callbackUrl = '/'
+            // 简化重定向逻辑 - 直接回到当前页面
+            const callbackUrl = pathname === '/auth/signin' ? '/' : pathname
             
-            // 根据当前路径设置正确的回调URL
-            if (currentPath.startsWith('/zh')) {
-              callbackUrl = '/zh'
-            }
-            
-            // 直接使用signIn，让NextAuth处理重定向
-            signIn('google', { callbackUrl })
+            console.log('登录重定向URL:', callbackUrl)
+            signIn('google', { 
+              callbackUrl,
+              redirect: true 
+            })
           }}
           className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 flex items-center space-x-2"
         >
@@ -355,12 +353,14 @@ export default function Navbar() {
                     onClick={() => {
                       console.log('移动端登录按钮被点击')
                       setIsMenuOpen(false)
-                      const currentPath = pathname
-                      let callbackUrl = '/'
-                      if (currentPath.startsWith('/zh')) {
-                        callbackUrl = '/zh'
-                      }
-                      signIn('google', { callbackUrl })
+                      // 简化重定向逻辑 - 直接回到当前页面
+                      const callbackUrl = pathname === '/auth/signin' ? '/' : pathname
+                      
+                      console.log('移动端登录重定向URL:', callbackUrl)
+                      signIn('google', { 
+                        callbackUrl,
+                        redirect: true 
+                      })
                     }}
                   >
                     <UserCircle className="h-5 w-5" />
