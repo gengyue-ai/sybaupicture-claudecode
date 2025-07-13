@@ -11,10 +11,11 @@ export function PerformanceMonitor() {
       const observer = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
           if (entry.entryType === 'navigation') {
+            const navEntry = entry as PerformanceNavigationTiming
             console.log('🚀 Page Load Performance:', {
-              pageLoad: Math.round(entry.loadEventEnd - entry.loadEventStart),
-              domReady: Math.round(entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart),
-              totalTime: Math.round(entry.loadEventEnd - entry.fetchStart)
+              pageLoad: Math.round(navEntry.loadEventEnd - navEntry.loadEventStart),
+              domReady: Math.round(navEntry.domContentLoadedEventEnd - navEntry.domContentLoadedEventStart),
+              totalTime: Math.round(navEntry.loadEventEnd - navEntry.fetchStart)
             })
           }
         })
