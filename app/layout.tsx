@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { Providers } from '@/components/providers'
 import BackgroundUserSync from '@/components/BackgroundUserSync'
+import { AuthStateHandler } from '@/components/AuthStateHandler'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -83,6 +84,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers>
+          <AuthStateHandler />
           <BackgroundUserSync />
           <div className="min-h-screen flex flex-col">
             <Navbar />
