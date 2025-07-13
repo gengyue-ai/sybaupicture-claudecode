@@ -1,0 +1,275 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  password         String?   // 可选,支持第三方登录
+  image            String?
+  emailVerified    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // 订阅相关
+  planId           String?   // 当前套餐ID
+  plan             Plan?     @relation(fields: [planId], references: [id])
+
+  // Stripe相关
+  stripeCustomerId String?   @unique // Stripe客户ID
+
+  // 关联
+  accounts         Account[]
+  sessions         Session[]
+  images           GeneratedImage[]
+  subscriptions    Subscription[]
+  usage            UserUsage[]
+
+  @@map("users")
+}
+
+model GeneratedImage {
+  id              String   @id @default(cuid())
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 图片信息
+  originalUrl     String
+  processedUrl    String
+  thumbnailUrl    String?
+
+  // 处理参数
+  style           String   @default("classic") // classic|exaggerated|minimal
+  intensity       Int      @default(2)         // 1-3
+  styleVersion    String   @default("v2.1.3")
+
+  // 统计数据
+  viewCount       Int      @default(0)
+  shareCount      Int      @default(0)
+  downloadCount   Int      @default(0)
+
+  // 技术数据
+  processingTime  Float?   // 秒
+  fileSize        Int?     // bytes
+  ipHash          String?  // 用户IP哈希(匿名统计)
+
+  // 元数据
+  metadata        String?    // 存储额外的处理信息（JSON字符串）
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("generated_images")
+  @@index([userId])
+  @@index([createdAt])
+  @@index([style])
+  @@index([viewCount])
+}
+
+model Translation {
+  id          String   @id @default(cuid())
+  pagePath    String   // e.g., "/", "/generator", "/about"
+  langCode    String   // e.g., "en", "zh", "es"
+  content     String     // 翻译内容JSON字符串
+  lastUpdated DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  @@unique([pagePath, langCode])
+  @@map("translations")
+  @@index([pagePath])
+  @@index([langCode])
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String?
+  content     String   // Markdown content
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+
+  // SEO
+  seoTitle    String?
+  seoDescription String?
+  keywords    String?
+
+  // 统计
+  viewCount   Int      @default(0)
+  shareCount  Int      @default(0)
+
+  // 时间
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
+  @@index([published])
+  @@index([publishedAt])
+}
+
+// NextAuth 必需表 - 使用标准camelCase字段名
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// 系统配置表
+model SystemConfig {
+  id       String @id @default(cuid())
+  key      String @unique
+  value    String
+  category String @default("general")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+  @@index([category])
+}
+
+// 使用统计表
+model UsageStats {
+  id          String   @id @default(cuid())
+  date        DateTime
+  metric      String   // 指标类型: images_generated, users_active, etc.
+  value       Int
+  metadata    String?
+
+  createdAt   DateTime @default(now())
+
+  @@unique([date, metric])
+  @@map("usage_stats")
+  @@index([date])
+  @@index([metric])
+}
+
+// 套餐定义表 - 使用camelCase字段名
+model Plan {
+  id                      String   @id @default(cuid())
+  name                    String   @unique // "free", "standard", "pro"
+  displayName             String   // "Free", "Standard", "PRO"
+  description             String?
+  price                   Float    // 月费价格
+  yearlyPrice             Float?   // 年费价格
+  currency                String   @default("USD")
+
+  // 功能限制
+  maxImagesPerMonth       Int      // 每月最大生成次数
+  maxResolution           String   // 最大分辨率 "1024x1024"
+  hasWatermark            Boolean  @default(true)
+  hasPriorityProcessing   Boolean  @default(false)
+  hasBatchProcessing      Boolean  @default(false)
+  hasAdvancedFeatures     Boolean  @default(false)
+
+  // 可用样式
+  availableStyles         String   // JSON数组存储可用样式
+
+  isActive                Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  // 关联
+  users                   User[]
+  subscriptions           Subscription[]
+
+  @@map("plans")
+}
+
+// 订阅记录表
+model Subscription {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId            String
+  plan              Plan     @relation(fields: [planId], references: [id])
+
+  // 订阅状态
+  status            String   // "active", "canceled", "past_due", "incomplete"
+
+  // 支付相关
+  stripeSubscriptionId String? @unique
+  stripeCustomerId     String?
+  stripePriceId        String?
+
+  // 计费周期
+  billingCycle      String   // "monthly", "yearly"
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  // 时间戳
+  startedAt         DateTime @default(now())
+  canceledAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("subscriptions")
+  @@index([userId])
+  @@index([status])
+}
+
+// 用户使用统计表
+model UserUsage {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 统计周期
+  month           Int      // 1-12
+  year            Int      // 2024
+
+  // 使用统计
+  imagesGenerated Int      @default(0)
+  lastResetAt     DateTime @default(now())
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, month, year])
+  @@map("user_usage")
+  @@index([userId])
+  @@index([month, year])
+}
