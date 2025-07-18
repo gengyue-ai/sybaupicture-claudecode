@@ -71,14 +71,37 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link href={generateLocalizedLink('/', pathname)} className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 flex items-center justify-center">
+                <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="footerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style={{stopColor:'#1D4ED8', stopOpacity:1}} />
+                      <stop offset="100%" style={{stopColor:'#3B82F6', stopOpacity:1}} />
+                    </linearGradient>
+                  </defs>
+                  {/* 苹果风格的圆角矩形背景 */}
+                  <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#footerLogoGradient)"/>
+                  
+                  {/* Letter S - 正确方向，放大 */}
+                  <path d="M6 20 C6 22, 8 24, 10 24 L12 24 C14 24, 16 22, 16 20 C16 18, 14 16, 12 16 L10 16 C8 16, 6 14, 6 12 C6 10, 8 8, 10 8 L12 8 C14 8, 16 10, 16 12" 
+                        stroke="white" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        fill="none"/>
+                  
+                  {/* Letter P - 放大，增加间距 */}
+                  <path d="M20 8 L20 24 M20 8 L24 8 C26 8, 28 10, 28 12 L28 14 C28 16, 26 18, 24 18 L20 18" 
+                        stroke="white" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        fill="none"/>
+                </svg>
               </div>
               <div>
-                <h3 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <h3 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">
                   Sybau Picture
                 </h3>
-                <p className="text-gray-400 text-sm">AI Meme Generator</p>
+                <p className="text-gray-400 text-sm">AI Image Generator</p>
               </div>
             </Link>
             <p className="text-gray-400 mb-6 leading-relaxed">

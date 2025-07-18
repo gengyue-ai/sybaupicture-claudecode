@@ -1,11 +1,35 @@
-'use client'
-
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, TrendingUp, Heart, Download, Share2, Eye, Star, Sparkles, Zap, Award, Clock, Rocket, Shield, Users, Check } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Sybau创意画廊 - 探索AI生成艺术作品 | Sybau Picture',
+  description: '探索数千个令人惊叹的Sybau风格AI生成作品。发现由全球创作者使用先进AI技术创建的独特艺术作品，体验Stay Young, Beautiful and Unique的创意精神。',
+  keywords: ['Sybau画廊', 'AI艺术', '人工智能生成', '创意作品', 'Sybau风格', 'AI画廊', '数字艺术'],
+  openGraph: {
+    title: 'Sybau创意画廊 - 探索AI生成艺术作品',
+    description: '探索数千个令人惊叹的Sybau风格AI生成作品。发现独特的AI艺术创作。',
+    url: 'https://sybaupicture.com/zh/gallery',
+    images: [
+      {
+        url: '/logo-600x600.svg',
+        width: 600,
+        height: 600,
+        alt: 'Sybau Picture 创意画廊',
+      },
+    ],
+  },
+  alternates: {
+    canonical: '/zh/gallery',
+    languages: {
+      'en-US': '/gallery',
+      'zh-CN': '/zh/gallery',
+    },
+  },
+}
 
 // 静态真实案例数据 - 更新为本地Sybau生成图片
 const mockImages = [
@@ -13,7 +37,7 @@ const mockImages = [
     id: '1',
     title: '幸运女孩肖像',
     description: '展示经典Sybau风格的美丽肖像，温和的AI增强效果',
-    imageUrl: '/images/gallery/lucky-girl.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b2e8e2b2?w=400&h=400&fit=crop',
     likes: 1890,
     downloads: 720,
     views: 25600,
@@ -29,7 +53,7 @@ const mockImages = [
     id: '2',
     title: '自信商业领袖',
     description: '专业肖像，Sybau增强效果，完美适合商务使用',
-    imageUrl: '/images/gallery/business-leader.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
     likes: 1240,
     downloads: 580,
     views: 18400,
@@ -45,7 +69,7 @@ const mockImages = [
     id: '3',
     title: '创意肖像',
     description: '艺术性Sybau风格，捕捉独特的创意表达',
-    imageUrl: '/images/gallery/creative-portrait.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
     likes: 2650,
     downloads: 1120,
     views: 34200,
@@ -61,7 +85,7 @@ const mockImages = [
     id: '4',
     title: '现代风格',
     description: '现代Sybau处理，突出当代风格和表达',
-    imageUrl: '/images/gallery/contemporary-look.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
     likes: 3420,
     downloads: 1680,
     views: 42800,
@@ -77,7 +101,7 @@ const mockImages = [
     id: '5',
     title: '动态表情',
     description: '高强度Sybau创作，捕捉动态情感表达',
-    imageUrl: '/images/gallery/dynamic-expression.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
     likes: 12400,
     downloads: 5680,
     views: 156700,
@@ -93,7 +117,7 @@ const mockImages = [
     id: '6',
     title: '优雅肖像',
     description: '精致Sybau风格，强调优雅和精致',
-    imageUrl: '/images/gallery/elegant-portrait.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
     likes: 5670,
     downloads: 2890,
     views: 78900,

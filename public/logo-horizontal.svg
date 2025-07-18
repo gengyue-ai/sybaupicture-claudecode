@@ -1,0 +1,39 @@
+<svg width="280" height="80" viewBox="0 0 280 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradientH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#007AFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5AC8FA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Logo Icon -->
+  <circle cx="40" cy="40" r="36" fill="white" stroke="#E5E5E7" stroke-width="1" opacity="0.8"/>
+  <circle cx="40" cy="40" r="34" fill="url(#logoGradientH)" opacity="0.05"/>
+  
+  <!-- Letter S - Corrected -->
+  <path d="M24 28 C24 23, 27 19, 32 19 L34 19 C39 19, 43 23, 43 28 C43 33, 39 37, 34 37 L32 37 C27 37, 24 41, 24 46 C24 51, 27 55, 32 55 L34 55 C39 55, 43 51, 43 46" 
+        stroke="url(#logoGradientH)" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        fill="none"
+        opacity="0.9"/>
+  
+  <!-- Letter P -->
+  <path d="M49 19 L49 55 M49 19 L58 19 C63 19, 67 23, 67 28 L67 33 C67 38, 63 42, 58 42 L49 42" 
+        stroke="url(#logoGradientH)" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        fill="none"
+        opacity="0.9"/>
+  
+  <!-- Brand Text -->
+  <text x="100" y="35" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif" font-size="24" font-weight="600" fill="url(#logoGradientH)">
+    Sybau Picture
+  </text>
+  <text x="100" y="55" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif" font-size="14" font-weight="400" fill="#8E8E93">
+    Stay Young, Beautiful &amp; Unique
+  </text>
+  
+  <!-- Connecting element -->
+  <rect x="44" y="36" width="4" height="2" rx="1" fill="url(#logoGradientH)" opacity="0.3"/>
+</svg>

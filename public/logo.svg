@@ -1,0 +1,25 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1D4ED8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 苹果风格的圆角矩形背景 -->
+  <rect x="8" y="8" width="104" height="104" rx="24" fill="url(#logoGradient)"/>
+  
+  <!-- Letter S - 正确方向，放大 -->
+  <path d="M30 75 C30 82, 37 89, 44 89 L52 89 C59 89, 66 82, 66 75 C66 68, 59 61, 52 61 L44 61 C37 61, 30 54, 30 47 C30 40, 37 33, 44 33 L52 33 C59 33, 66 40, 66 47" 
+        stroke="white" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        fill="none"/>
+  
+  <!-- Letter P - 放大，增加间距 -->
+  <path d="M78 33 L78 89 M78 33 L92 33 C99 33, 106 40, 106 47 L106 54 C106 61, 99 68, 92 68 L78 68" 
+        stroke="white" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        fill="none"/>
+</svg>

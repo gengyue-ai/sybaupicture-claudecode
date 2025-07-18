@@ -9,8 +9,8 @@ Sybau Picture is a modern AI image generation platform built with Next.js 14, fe
 ## Core Architecture
 
 ### Environment Management System
-- **Smart Environment Manager**: `lib/env-manager.ts` handles automatic environment detection (development/production)
-- **Configuration Separation**: Different API keys and secrets for dev/prod environments using suffixed environment variables
+- **Smart Environment Manager**: `lib/config.ts` handles automatic environment detection (development/production)
+- **Configuration Separation**: Different API keys and secrets for dev/prod environments using suffixed environment variables  
 - **Command-line Tools**: Chinese command support through `scripts/smart-env.js` for environment switching
 
 ### Authentication & User Management
@@ -74,8 +74,20 @@ npm run db:reset                # Reset database and reseed
 ### Testing Commands
 ```bash
 npm run test                    # Run Jest tests
-npm run test:e2e               # Run Playwright e2e tests
+npm run test:watch             # Run Jest tests in watch mode
 npm run test:coverage          # Generate coverage report
+npm run test:e2e               # Run Playwright e2e tests
+```
+
+### Additional Scripts
+```bash
+# Security and diagnostics
+npm run stripe:check            # Check Stripe configuration
+npm run git:security           # Fix Git security issues
+npm run ai:memory              # Update AI memory
+
+# Database setup
+npm run setup:db               # Complete database setup with seed data
 ```
 
 ## Key Configuration Files
@@ -106,10 +118,11 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV=  # Stripe development public key
 ## Code Architecture Patterns
 
 ### Smart Environment Detection
-The `lib/env-manager.ts` module provides:
+The `lib/config.ts` module provides:
 - Automatic environment detection based on NODE_ENV and NEXTAUTH_URL
 - Configuration validation with detailed error reporting
 - Environment-specific service configuration loading
+- Centralized configuration management for all services
 
 ### Authentication Flow
 Located in `lib/auth.ts`:
@@ -201,9 +214,8 @@ Use `npm run start:smart` - automatically detects and resolves port conflicts
 
 - **Internationalization**: The project supports English (default) and Chinese (`/zh` prefix)
 - **Environment Files**: Use `config/env.template` as reference, never commit actual `.env` files
-- **Scripts**: Custom development scripts in `scripts/` directory for environment management
-- **Protection System**: Files in `protection/` directory handle code integrity and security
-- **Documentation**: Comprehensive docs in `docs/` directory including deployment guides
+- **Scripts**: Custom development scripts in `scripts/` directory for environment management and automation
+- **Configuration**: Configuration templates in `config/` directory
 
 ## Multi-language Support
 
@@ -212,3 +224,16 @@ The application supports both English and Chinese:
 - `/zh` prefix serves Chinese content  
 - Language switching in navigation
 - Separate page files for each language in appropriate directories
+
+## Development Utilities
+
+### Smart Scripts
+- **`scripts/smart-env.js`**: Intelligent environment management with Chinese command support
+- **`scripts/smart-startup.js`**: Automatic port conflict detection and resolution
+- **`scripts/check-stripe-config.js`**: Stripe configuration validation
+- **`scripts/git-security-fix.js`**: Git security hardening
+- **`scripts/update-ai-memory.js`**: AI context and memory management
+
+### Configuration Management
+- **`lib/config.ts`**: Centralized configuration with environment-specific fallbacks
+- **`config/env.template`**: Complete environment variable reference and documentation

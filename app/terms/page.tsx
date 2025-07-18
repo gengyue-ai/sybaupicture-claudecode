@@ -1,8 +1,25 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { FileText, Shield, Users, Gavel, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service - Sybau Picture | AI Image Generator',
+  description: 'Read the Terms of Service for Sybau Picture. Understand your rights and responsibilities when using our AI image generation platform.',
+  keywords: ['terms of service', 'legal', 'user agreement', 'AI image generator', 'Sybau Picture'],
+  openGraph: {
+    title: 'Terms of Service - Sybau Picture',
+    description: 'Read the Terms of Service for Sybau Picture AI image generation platform.',
+    url: 'https://sybaupicture.com/terms',
+  },
+  alternates: {
+    canonical: '/terms',
+    languages: {
+      'en-US': '/terms',
+      'zh-CN': '/zh/terms',
+    },
+  },
+}
 
 export default function TermsPage() {
   const termsSections = [

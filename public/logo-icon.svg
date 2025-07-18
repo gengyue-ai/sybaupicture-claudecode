@@ -1,0 +1,31 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradientIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#007AFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5AC8FA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="32" cy="32" r="30" fill="white" stroke="#E5E5E7" stroke-width="1" opacity="0.8"/>
+  <circle cx="32" cy="32" r="28" fill="url(#logoGradientIcon)" opacity="0.05"/>
+  
+  <!-- Letter S - Corrected -->
+  <path d="M16 20 C16 15, 19 11, 24 11 L26 11 C31 11, 35 15, 35 20 C35 25, 31 29, 26 29 L24 29 C19 29, 16 33, 16 38 C16 43, 19 47, 24 47 L26 47 C31 47, 35 43, 35 38" 
+        stroke="url(#logoGradientIcon)" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        fill="none"
+        opacity="0.9"/>
+  
+  <!-- Letter P -->
+  <path d="M41 11 L41 47 M41 11 L50 11 C55 11, 59 15, 59 20 L59 25 C59 30, 55 34, 50 34 L41 34" 
+        stroke="url(#logoGradientIcon)" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        fill="none"
+        opacity="0.9"/>
+  
+  <!-- Connecting element -->
+  <rect x="36" y="28" width="4" height="2" rx="1" fill="url(#logoGradientIcon)" opacity="0.3"/>
+</svg>

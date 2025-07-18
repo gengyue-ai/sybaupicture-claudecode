@@ -3,8 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Shield, Eye, Lock, UserCheck, Database, Globe } from 'lucide-react'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 export default function ZHPrivacyPage() {
   const privacySections = [
@@ -86,8 +84,6 @@ export default function ZHPrivacyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
       <div className="container mx-auto px-4 pt-20 pb-12">
         {/* Header */}
         <div className="text-center mb-12">
@@ -168,8 +164,6 @@ export default function ZHPrivacyPage() {
           </Card>
         </div>
       </div>
-
-      <Footer />
     </div>
   )
 }

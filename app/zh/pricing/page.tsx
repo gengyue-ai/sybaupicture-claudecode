@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Check, X, Star, Sparkles, Zap, Crown, Shield, Users, Rocket } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 const getPricingPlans = (isAnnual: boolean) => [
   {
@@ -106,16 +107,104 @@ const faqs = [
 
 export default function ZHPricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
+  const [userPlan, setUserPlan] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const { data: session, status } = useSession()
   const pricingPlans = getPricingPlans(isAnnual)
   const router = useRouter()
 
-  const handlePlanClick = (planId: string) => {
+  // 🔑 获取用户当前套餐信息
+  useEffect(() => {
+    const fetchUserPlan = async () => {
+      if (status === 'authenticated' && session?.user) {
+        try {
+          const response = await fetch('/api/subscription')
+          if (response.ok) {
+            const data = await response.json()
+            setUserPlan(data.user?.plan?.name || 'free')
+            console.log('✅ 中文定价页面 - 用户套餐:', data.user?.plan?.name)
+          } else {
+            setUserPlan('free')
+          }
+        } catch (error) {
+          console.error('获取用户套餐失败:', error)
+          setUserPlan('free')
+        }
+      } else if (status === 'unauthenticated') {
+        setUserPlan(null) // 未登录用户
+      }
+      setLoading(false)
+    }
+
+    if (status !== 'loading') {
+      fetchUserPlan()
+    }
+  }, [status, session])
+
+  // 🔑 动态更新套餐按钮文本
+  const getButtonText = (planId: string) => {
+    if (loading || status === 'loading') return '加载中...'
+    
+    if (userPlan === planId) {
+      return '当前套餐'
+    }
+    
+    switch (planId) {
+      case 'free':
+        return '免费开始'
+      case 'standard':
+        return userPlan === 'free' ? '升级到标准版' : '选择标准版'
+      case 'pro':
+        return userPlan === 'free' ? '升级到专业版' : userPlan === 'standard' ? '升级到专业版' : '选择专业版'
+      default:
+        return '选择套餐'
+    }
+  }
+
+  const handlePlanClick = async (planId: string) => {
+    // 🔑 如果是当前套餐，不执行任何操作
+    if (userPlan === planId) {
+      return
+    }
+
     if (planId === 'free') {
       // 免费版直接跳转到中文主页使用生成器
       router.push('/zh')
     } else {
-      // 付费版跳转到中文登录页面
-      router.push('/zh/auth/signin?callbackUrl=/zh/pricing')
+      // 🔑 修复：对于付费套餐，检查用户认证状态
+      if (status === 'unauthenticated') {
+        // 用户未登录，跳转到中文登录页面
+        console.log('🔐 用户未登录，重定向到中文登录页面')
+        router.push('/zh/auth/signin?callbackUrl=/zh/pricing')
+        return
+      }
+
+      if (status === 'authenticated' && session?.user) {
+        // 用户已登录，进入购买流程
+        try {
+          const checkoutResponse = await fetch('/api/payment/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              priceId: planId === 'standard' 
+                ? process.env.NEXT_PUBLIC_STRIPE_PRICE_STANDARD_MONTHLY 
+                : process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY 
+            })
+          })
+          
+          if (checkoutResponse.ok) {
+            const { sessionId } = await checkoutResponse.json()
+            // 重定向到Stripe支付页面
+            window.location.href = `https://checkout.stripe.com/pay/${sessionId}`
+          } else {
+            console.error('创建支付会话失败')
+            router.push('/zh/profile')
+          }
+        } catch (error) {
+          console.error('支付流程失败:', error)
+          router.push('/zh/profile')
+        }
+      }
     }
   }
 
@@ -205,11 +294,12 @@ export default function ZHPricingPage() {
                 <CardContent>
                   <Button
                     className={`w-full mb-6 ${plan.popular ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' : ''}`}
-                    variant={plan.buttonVariant}
+                    variant={userPlan === plan.id ? 'outline' : plan.buttonVariant}
                     size="lg"
                     onClick={() => handlePlanClick(plan.id)}
+                    disabled={userPlan === plan.id || loading}
                   >
-                    {plan.buttonText}
+                    {getButtonText(plan.id)}
                   </Button>
 
                   <div className="space-y-4">

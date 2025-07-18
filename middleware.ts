@@ -20,9 +20,10 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
-    pathname.includes('.') ||
     pathname === '/robots.txt' ||
-    pathname === '/sitemap.xml'
+    pathname === '/sitemap.xml' ||
+    pathname === '/ads.txt' ||
+    pathname.includes('.') && !pathname.startsWith('/zh/') && !pathname.startsWith('/en/')
   ) {
     return NextResponse.next()
   }

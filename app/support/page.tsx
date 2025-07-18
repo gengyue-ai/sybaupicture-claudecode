@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { HelpCircle, Search, Mail } from 'lucide-react'
 import Link from 'next/link'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 export default function SupportPage() {
   const faqs = [
@@ -29,7 +27,6 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       <div className="container mx-auto px-4 pt-20 pb-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Support Center</h1>
@@ -82,7 +79,6 @@ export default function SupportPage() {
           </Card>
         </div>
       </div>
-      <Footer />
     </div>
   )
 }

@@ -33,23 +33,25 @@ export default function ZhProfilePage() {
   const router = useRouter()
 
   useEffect(() => {
-    // 🚨 修复：只有在明确未认证时才重定向，避免loading状态误判
+    console.log('🔍 中文Profile页面 - 认证状态:', { status, hasSession: !!session })
+    
+    // 🚨 修复：只有在明确未认证时才重定向，保持中文登录界面
     if (status === 'unauthenticated') {
       console.log('⚠️ 用户未认证，重定向到中文登录页面')
-      router.push('/zh/auth/signin')
+      router.push('/zh/auth/signin?callbackUrl=/zh/profile')
       return
     }
 
-    if (status === 'authenticated') {
-      console.log('✅ 用户已认证，获取用户资料')
+    if (status === 'authenticated' && session?.user) {
+      console.log('✅ 用户已认证，获取用户资料:', session.user.email)
       fetchProfile()
     }
     
-    // loading状态不做任何操作，等待认证完成
+    // loading状态等待认证完成
     if (status === 'loading') {
       console.log('🔄 正在检查用户认证状态...')
     }
-  }, [status, router])
+  }, [status, session, router])
 
   const fetchProfile = async () => {
     try {

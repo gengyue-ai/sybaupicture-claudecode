@@ -122,7 +122,7 @@ export async function getUserPlanFeatures(userId?: string): Promise<PlanFeatures
 
   if (!prisma) {
     console.warn('⚠️  数据库不可用，返回默认套餐特性')
-    return DEFAULT_PLANS.standard // 在数据库不可用时给予更多权限
+    return DEFAULT_PLANS.free // 在数据库不可用时给予免费套餐权限
   }
 
   try {
@@ -132,7 +132,7 @@ export async function getUserPlanFeatures(userId?: string): Promise<PlanFeatures
     })
 
     if (!user?.plan) {
-      return DEFAULT_PLANS.standard // 默认给予标准套餐特性
+      return DEFAULT_PLANS.free // 默认给予免费套餐特性
     }
 
     return {
@@ -146,7 +146,7 @@ export async function getUserPlanFeatures(userId?: string): Promise<PlanFeatures
     }
   } catch (error) {
     console.error('❌ 获取用户套餐特性失败:', error)
-    return DEFAULT_PLANS.standard // 错误时返回标准套餐特性
+    return DEFAULT_PLANS.free // 错误时返回免费套餐特性
   }
 }
 
@@ -165,7 +165,7 @@ export async function canUserGenerateImage(userId: string): Promise<{
   if (!prisma) {
     console.warn('⚠️  数据库不可用，允许生成图片')
     // 数据库不可用时，允许生成图片
-    const maxUsage = DEFAULT_PLANS.standard.maxImagesPerMonth
+    const maxUsage = DEFAULT_PLANS.free.maxImagesPerMonth
     return {
       canGenerate: true,
       currentUsage: 0,
@@ -215,7 +215,7 @@ export async function canUserGenerateImage(userId: string): Promise<{
   } catch (error) {
     console.error('❌ 检查用户使用权限失败:', error)
     // 错误时允许生成图片
-    const maxUsage = DEFAULT_PLANS.standard.maxImagesPerMonth
+    const maxUsage = DEFAULT_PLANS.free.maxImagesPerMonth
     return {
       canGenerate: true,
       currentUsage: 0,
@@ -283,8 +283,8 @@ export async function hasPermission(userId: string, permission: keyof PlanFeatur
  */
 export async function getUserPlanType(userId: string): Promise<PlanType> {
   if (!prisma) {
-    console.warn('⚠️  数据库不可用，返回标准套餐类型')
-    return 'standard'
+    console.warn('⚠️  数据库不可用，返回免费套餐类型')
+    return 'free'
   }
 
   try {
@@ -294,17 +294,17 @@ export async function getUserPlanType(userId: string): Promise<PlanType> {
     })
 
     if (!user?.plan) {
-      return 'standard'
+      return 'free'
     }
 
     // 根据套餐名称确定类型
     const planName = user.plan.name?.toLowerCase()
     if (planName?.includes('pro')) return 'pro'
     if (planName?.includes('standard')) return 'standard'
-    return 'standard'
+    return 'free'
   } catch (error) {
     console.error('❌ 获取用户套餐类型失败:', error)
-    return 'standard'
+    return 'free'
   }
 }
 

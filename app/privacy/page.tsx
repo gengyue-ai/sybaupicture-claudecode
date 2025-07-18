@@ -1,10 +1,25 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Shield, Eye, Lock, UserCheck, Database, Globe } from 'lucide-react'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy - Sybau Picture | AI Image Generator',
+  description: 'Learn how Sybau Picture protects your privacy and handles your data. Our comprehensive privacy policy explains our data collection, usage, and security practices.',
+  keywords: ['privacy policy', 'data protection', 'user privacy', 'AI image generator', 'Sybau Picture'],
+  openGraph: {
+    title: 'Privacy Policy - Sybau Picture',
+    description: 'Learn how Sybau Picture protects your privacy and handles your data.',
+    url: 'https://sybaupicture.com/privacy',
+  },
+  alternates: {
+    canonical: '/privacy',
+    languages: {
+      'en-US': '/privacy',
+      'zh-CN': '/zh/privacy',
+    },
+  },
+}
 
 export default function PrivacyPage() {
   const privacySections = [
@@ -86,8 +101,6 @@ You can control cookies through your browser settings, but disabling them may af
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
       <div className="container mx-auto px-4 pt-20 pb-12">
         {/* Header */}
         <div className="text-center mb-12">
@@ -168,8 +181,6 @@ You can control cookies through your browser settings, but disabling them may af
           </Card>
         </div>
       </div>
-      
-      <Footer />
     </div>
   )
 } 

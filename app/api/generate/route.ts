@@ -118,21 +118,162 @@ export async function POST(request: NextRequest) {
     console.log('Prompt:', prompt)
     console.log('Has image:', !!imageUrl)
 
-    // 🎯 修复：优先保留用户原始prompt，最小化风格干扰
+    // 🎯 修复：中文prompt翻译成英文
+    const translateChineseToEnglish = (chineseText: string): string => {
+      // 扩展的中文到英文翻译词典
+      const translations = {
+        // 人物
+        '老人': 'elderly person',
+        '老爷爷': 'old grandfather',
+        '老奶奶': 'old grandmother',
+        '美女': 'beautiful woman',
+        '帅哥': 'handsome man',
+        '小孩': 'child',
+        '男孩': 'boy',
+        '女孩': 'girl',
+        '婴儿': 'baby',
+        '青年': 'young person',
+        '中年人': 'middle-aged person',
+        
+        // 动作
+        '坐在': 'sitting at',
+        '站在': 'standing at',
+        '躺在': 'lying on',
+        '走在': 'walking on',
+        '跑在': 'running on',
+        '看着': 'looking at',
+        '微笑': 'smiling',
+        '哭泣': 'crying',
+        '思考': 'thinking',
+        
+        // 地点
+        '村口': 'village entrance',
+        '大树下': 'under a big tree',
+        '树下': 'under the tree',
+        '公园里': 'in the park',
+        '家里': 'at home',
+        '学校': 'at school',
+        '办公室': 'in the office',
+        '咖啡厅': 'in a cafe',
+        '餐厅': 'in a restaurant',
+        '海边': 'by the sea',
+        '山上': 'on the mountain',
+        '河边': 'by the river',
+        '桥上': 'on the bridge',
+        '街道': 'street',
+        '广场': 'square',
+        
+        // 物品
+        '猫': 'cat',
+        '狗': 'dog',
+        '鸟': 'bird',
+        '鱼': 'fish',
+        '花': 'flower',
+        '树': 'tree',
+        '房子': 'house',
+        '汽车': 'car',
+        '自行车': 'bicycle',
+        '书': 'book',
+        '电脑': 'computer',
+        '手机': 'mobile phone',
+        
+        // 天气和时间
+        '晴天': 'sunny day',
+        '雨天': 'rainy day',
+        '雪天': 'snowy day',
+        '夕阳': 'sunset',
+        '日出': 'sunrise',
+        '月亮': 'moon',
+        '星星': 'stars',
+        '蓝天': 'blue sky',
+        '白云': 'white clouds',
+        '早晨': 'morning',
+        '中午': 'noon',
+        '晚上': 'evening',
+        '夜晚': 'night',
+        
+        // 风景
+        '风景': 'landscape',
+        '山峰': 'mountain peak',
+        '森林': 'forest',
+        '海滩': 'beach',
+        '湖泊': 'lake',
+        '草地': 'grassland',
+        '花园': 'garden',
+        '城市': 'city',
+        '乡村': 'countryside',
+        '建筑': 'building',
+        
+        // 颜色
+        '红色': 'red',
+        '蓝色': 'blue',
+        '绿色': 'green',
+        '黄色': 'yellow',
+        '白色': 'white',
+        '黑色': 'black',
+        '紫色': 'purple',
+        '粉色': 'pink',
+        '橙色': 'orange',
+        '灰色': 'gray',
+        
+        // 形容词
+        '美丽的': 'beautiful',
+        '可爱的': 'cute',
+        '大的': 'big',
+        '小的': 'small',
+        '高的': 'tall',
+        '矮的': 'short',
+        '胖的': 'fat',
+        '瘦的': 'thin',
+        '年轻的': 'young',
+        '古老的': 'old',
+        '新的': 'new',
+        '旧的': 'old',
+        '干净的': 'clean',
+        '脏的': 'dirty'
+      }
+      
+      let translatedText = chineseText
+      
+      // 对每个中文词汇进行替换
+      Object.entries(translations).forEach(([chinese, english]) => {
+        translatedText = translatedText.replace(new RegExp(chinese, 'g'), english)
+      })
+      
+      return translatedText
+    }
+
     const enhancePrompt = (userPrompt: string, hasImage: boolean) => {
+      // 检测是否包含中文字符
+      const containsChinese = /[\u4e00-\u9fff]/.test(userPrompt)
+      
+      let processedPrompt = userPrompt
+      
+      // 如果包含中文，先翻译成英文
+      if (containsChinese) {
+        console.log('🔤 检测到中文prompt，开始翻译:', userPrompt)
+        processedPrompt = translateChineseToEnglish(userPrompt)
+        console.log('✅ 翻译结果:', processedPrompt)
+        
+        // 如果翻译后仍然包含中文，添加通用英文描述
+        if (/[\u4e00-\u9fff]/.test(processedPrompt)) {
+          processedPrompt = `${processedPrompt}, realistic scene, detailed composition`
+          console.log('⚠️ 部分中文未翻译，添加通用描述:', processedPrompt)
+        }
+      }
+      
       if (!hasImage) {
-        // text-to-image: 优先使用用户原始prompt，只添加基本的质量提升
-        if (userPrompt && userPrompt.trim()) {
-          // 保持用户原始意图，只添加质量和风格标签
-          return `${userPrompt}, high quality, detailed, vibrant colors`
+        // text-to-image: 使用翻译后的prompt
+        if (processedPrompt && processedPrompt.trim()) {
+          return `${processedPrompt}, high quality, detailed, vibrant colors, photorealistic`
         } else {
           return 'Create a high quality, detailed image with vibrant colors'
         }
       } else {
         // image-to-image: 根据用户prompt决定处理方式
-        if (userPrompt && userPrompt.trim() && userPrompt !== 'Transform this image into a Sybau style meme') {
+        if (processedPrompt && processedPrompt.trim() && processedPrompt !== 'Transform this image into a Sybau style meme') {
           // 用户有明确要求，优先执行用户意图
-          return `Transform this image: ${userPrompt}, maintain good composition, high quality`
+          return `Transform this image: ${processedPrompt}, maintain good composition, high quality`
         } else {
           // 没有具体要求，应用默认的Sybau风格转换
           return `Transform this image to Sybau meme style: enhanced expressions, slightly exaggerated features for humor, maintain original pose and background, high quality`

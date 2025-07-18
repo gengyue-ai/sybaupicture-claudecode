@@ -53,7 +53,7 @@ export async function POST() {
       isSubscribed: false,
       subscriptionPlan: 'free',
       subscriptionStatus: 'inactive',
-      maxUsage: 5,
+      maxUsage: 1, // 免费注册用户每月1张图片
       usageCount: 0,
       stripeCustomerId: null
     }
@@ -89,14 +89,41 @@ export async function POST() {
       })
 
       if (!dbUser) {
-        // 创建新用户
+        // 创建新用户并分配默认套餐
         console.log('👤 创建新用户:', session.user.email)
+        
+        // 先确保免费套餐存在
+        const freePlan = await prisma.plan.upsert({
+          where: { name: 'free' },
+          create: {
+            name: 'free',
+            displayName: 'Free',
+            description: 'Free plan with 1 image per month',
+            price: 0,
+            yearlyPrice: 0,
+            maxImagesPerMonth: 1,
+            maxResolution: '1024x1024',
+            hasWatermark: false,
+            hasPriorityProcessing: false,
+            hasBatchProcessing: false,
+            hasAdvancedFeatures: false,
+            availableStyles: JSON.stringify(['classic']),
+          },
+          update: {
+            maxImagesPerMonth: 1,
+            hasWatermark: false,
+            availableStyles: JSON.stringify(['classic']),
+          }
+        })
+        
+        // 创建用户并关联免费套餐
         dbUser = await prisma.user.create({
           data: {
             email: session.user.email,
             name: session.user.name || defaultUserData.name,
             image: session.user.image,
             password: null,
+            planId: freePlan.id, // 分配免费套餐
           },
           include: {
             plan: true,
@@ -112,14 +139,37 @@ export async function POST() {
             }
           }
         })
-        console.log('✅ 新用户创建成功')
+        console.log('✅ 新用户创建成功，已分配免费套餐:', freePlan.name)
       } else {
-        // 更新用户信息（特别是头像）
-        if (session.user.image && session.user.image !== dbUser.image) {
-          console.log('🖼️  更新用户头像')
+        // 检查现有用户是否有套餐，如果没有则分配免费套餐
+        if (!dbUser.planId) {
+          console.log('🔧 现有用户缺少套餐，分配免费套餐:', session.user.email)
+          
+          // 确保免费套餐存在
+          const freePlan = await prisma.plan.upsert({
+            where: { name: 'free' },
+            create: {
+              name: 'free',
+              displayName: 'Free',
+              description: 'Free plan with 1 image per month',
+              price: 0,
+              yearlyPrice: 0,
+              maxImagesPerMonth: 1,
+              maxResolution: '1024x1024',
+              hasWatermark: false,
+              hasPriorityProcessing: false,
+              hasBatchProcessing: false,
+              hasAdvancedFeatures: false,
+              availableStyles: JSON.stringify(['classic']),
+            },
+            update: {}
+          })
+          
+          // 更新用户分配免费套餐
           dbUser = await prisma.user.update({
             where: { email: session.user.email },
             data: {
+              planId: freePlan.id,
               name: session.user.name || dbUser.name,
               image: session.user.image,
               updatedAt: new Date()
@@ -138,6 +188,33 @@ export async function POST() {
               }
             }
           })
+          console.log('✅ 用户免费套餐分配成功')
+        } else {
+          // 更新用户信息（特别是头像）
+          if (session.user.image && session.user.image !== dbUser.image) {
+            console.log('🖼️  更新用户头像')
+            dbUser = await prisma.user.update({
+              where: { email: session.user.email },
+              data: {
+                name: session.user.name || dbUser.name,
+                image: session.user.image,
+                updatedAt: new Date()
+              },
+              include: {
+                plan: true,
+                subscriptions: {
+                  where: { 
+                    status: { in: ['active', 'trialing'] }
+                  },
+                  include: {
+                    plan: true
+                  },
+                  orderBy: { createdAt: 'desc' },
+                  take: 1
+                }
+              }
+            })
+          }
         }
       }
 
