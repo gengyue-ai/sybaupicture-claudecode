@@ -1,13 +1,14 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import { config } from './config'
 
-// 🔧 恢复到最简化配置，确保OAuth正常工作
+// 🔧 使用环境特定配置，修复生产环境OAuth问题
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: config.auth.google.clientId,
+      clientSecret: config.auth.google.clientSecret,
     })
   ],
 
