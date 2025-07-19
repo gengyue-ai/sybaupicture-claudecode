@@ -12,7 +12,7 @@ const mockImages = [
     id: '1',
     title: '幸运女孩肖像',
     description: '展示经典Sybau风格的美丽肖像，温和的AI增强效果',
-    imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b2e8e2b2?w=400&h=400&fit=crop',
+    imageUrl: '/images/gallery/lucky-girl.jpg',
     likes: 1890,
     downloads: 720,
     views: 25600,
@@ -28,7 +28,7 @@ const mockImages = [
     id: '2',
     title: '自信商业领袖',
     description: '专业肖像，Sybau增强效果，完美适合商务使用',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+    imageUrl: '/images/gallery/business-leader.jpg',
     likes: 1240,
     downloads: 580,
     views: 18400,
@@ -44,7 +44,7 @@ const mockImages = [
     id: '3',
     title: '创意肖像',
     description: '艺术性Sybau风格，捕捉独特的创意表达',
-    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+    imageUrl: '/images/gallery/creative-portrait.jpg',
     likes: 2650,
     downloads: 1120,
     views: 34200,
@@ -60,7 +60,7 @@ const mockImages = [
     id: '4',
     title: '现代风格',
     description: '现代Sybau处理，突出当代风格和表达',
-    imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
+    imageUrl: '/images/gallery/contemporary-look.jpg',
     likes: 3420,
     downloads: 1680,
     views: 42800,
@@ -76,7 +76,7 @@ const mockImages = [
     id: '5',
     title: '动态表情',
     description: '高强度Sybau创作，捕捉动态情感表达',
-    imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+    imageUrl: '/images/gallery/dynamic-expression.jpg',
     likes: 12400,
     downloads: 5680,
     views: 156700,
@@ -92,7 +92,7 @@ const mockImages = [
     id: '6',
     title: '优雅肖像',
     description: '精致Sybau风格，强调优雅和精致',
-    imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
+    imageUrl: '/images/gallery/elegant-portrait.jpg',
     likes: 5670,
     downloads: 2890,
     views: 78900,
@@ -182,6 +182,11 @@ export default function GalleryClient() {
                     src={image.imageUrl}
                     alt={image.title}
                     className="w-full h-64 object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'data:image/svg+xml,%3Csvg width="300" height="256" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="100%25" height="100%25" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial, sans-serif" font-size="16" fill="%236b7280" text-anchor="middle" dy=".3em"%3E图片加载中...%3C/text%3E%3C/svg%3E';
+                    }}
                   />
                   <div className="absolute top-2 right-2 flex gap-2">
                     <Badge className="bg-purple-500 text-white">

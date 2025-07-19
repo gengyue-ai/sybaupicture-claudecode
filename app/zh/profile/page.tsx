@@ -9,11 +9,12 @@ import { User, Calendar, CreditCard, Image, Settings, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 interface UserProfile {
   name: string
   email: string
-  image: string
+  image: string | null
   plan: {
     name: string
     hasWatermark: boolean
@@ -28,6 +29,7 @@ interface UserProfile {
 
 export default function ZhProfilePage() {
   const { data: session, status } = useSession()
+  const { profile: userProfile, syncState, refreshData } = useUserProfile()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -44,62 +46,54 @@ export default function ZhProfilePage() {
 
     if (status === 'authenticated' && session?.user) {
       console.log('✅ 用户已认证，获取用户资料:', session.user.email)
-      fetchProfile()
+      if (userProfile) {
+        fetchProfile()
+      } else {
+        // 触发数据刷新
+        refreshData()
+      }
     }
     
     // loading状态等待认证完成
     if (status === 'loading') {
       console.log('🔄 正在检查用户认证状态...')
     }
-  }, [status, session, router])
+  }, [status, session, router, userProfile, refreshData])
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/subscription')
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Profile API response:', data)
-        
-        // 确保plan数据存在
-        const planData = data.user?.plan || {
-          name: 'standard',
-          hasWatermark: false
-        }
-        
+      // 使用和英文版一样的API调用逻辑
+      if (userProfile) {
+        console.log('📊 中文Profile页面使用userProfile数据:', userProfile)
         setProfile({
-          name: session?.user?.name || '',
-          email: session?.user?.email || '',
-          image: session?.user?.image || '',
-          plan: planData,
-          usage: data.usage || { current: 0, max: 60, remaining: 60 },
-          createdAt: data.user?.createdAt || new Date().toISOString()
+          name: userProfile.name,
+          email: userProfile.email,
+          image: userProfile.image,
+          plan: {
+            name: userProfile.subscriptionPlan,
+            hasWatermark: userProfile.planFeatures.hasWatermark
+          },
+          usage: {
+            current: userProfile.usageCount,
+            max: userProfile.maxUsage,
+            remaining: userProfile.maxUsage - userProfile.usageCount
+          },
+          createdAt: new Date().toISOString()
         })
       } else {
-        console.error('Profile API error:', response.status, response.statusText)
-        const errorData = await response.json()
-        console.error('Error details:', errorData)
-        
-        // 设置默认profile数据
+        // 默认数据
+        console.log('📊 中文Profile页面使用默认数据')
         setProfile({
           name: session?.user?.name || '',
           email: session?.user?.email || '',
           image: session?.user?.image || '',
-          plan: { name: 'standard', hasWatermark: false },
-          usage: { current: 0, max: 60, remaining: 60 },
+          plan: { name: 'free', hasWatermark: true },
+          usage: { current: 0, max: 1, remaining: 1 },
           createdAt: new Date().toISOString()
         })
       }
     } catch (error) {
-      console.error('Failed to fetch profile:', error)
-      // 设置默认profile数据
-      setProfile({
-        name: session?.user?.name || '',
-        email: session?.user?.email || '',
-        image: session?.user?.image || '',
-        plan: { name: 'standard', hasWatermark: false },
-        usage: { current: 0, max: 60, remaining: 60 },
-        createdAt: new Date().toISOString()
-      })
+      console.error('Failed to set profile from userProfile:', error)
     } finally {
       setLoading(false)
     }

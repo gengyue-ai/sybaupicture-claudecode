@@ -85,9 +85,23 @@ export async function POST(request: NextRequest) {
       const promptText = formData.get('prompt') as string
       mode = formData.get('mode') as string || 'text-to-image'
 
-      console.log('Mode:', mode)
-      console.log('File uploaded:', file?.name, file?.size)
-      console.log('Prompt text:', promptText)
+      console.log('📝 FormData debug info:', {
+        mode,
+        hasFile: !!file,
+        fileName: file?.name,
+        fileSize: file?.size,
+        promptText,
+        allKeys: Array.from(formData.keys())
+      })
+
+      if (!promptText || promptText.trim() === '') {
+        console.error('❌ Empty prompt received')
+        return NextResponse.json({
+          success: false,
+          error: 'Prompt is required',
+          code: 'MISSING_PROMPT'
+        }, { status: 422 })
+      }
 
       if (mode === 'image-to-image') {
         if (!file) {
@@ -281,25 +295,46 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 根据用户套餐设置图片分辨率和质量
+    const userPlanFeatures = await getUserPlanFeatures(user.id)
+    console.log('User plan features:', userPlanFeatures)
+    
+    // 根据套餐设置分辨率
+    let imageSize = '1024x1024' // 默认分辨率（免费套餐）
+    let useHighQualityModel = false
+    
+    if (userPlanFeatures.hasPriorityProcessing) {
+      imageSize = '1024x1024' // Fal AI Flux 目前最高支持1024x1024
+      useHighQualityModel = true
+      console.log('🔥 PRO用户 - 使用高质量模型和最高分辨率')
+    } else if (userPlanFeatures.maxImagesPerMonth > 1) {
+      imageSize = '1024x1024' // 标准用户也使用1024x1024
+      useHighQualityModel = true
+      console.log('⭐ Standard用户 - 使用高质量模型')
+    } else {
+      console.log('💡 免费用户 - 使用标准模型')
+    }
+
     // 选择合适的模型
-    let model = 'fal-ai/flux/schnell'
+    let model = useHighQualityModel ? 'fal-ai/flux/dev' : 'fal-ai/flux/schnell'
     let input: any = {
       prompt: enhancePrompt(prompt, !!imageUrl),
-      num_inference_steps: 4,
-      guidance_scale: 3.5,
+      image_size: imageSize,
+      num_inference_steps: useHighQualityModel ? 8 : 4,
+      guidance_scale: useHighQualityModel ? 7.5 : 3.5,
       num_images: 1,
       enable_safety_checker: true
     }
 
     // 如果有图片URL，使用图片到图片的模型
     if (imageUrl) {
-      model = 'fal-ai/flux/dev'
+      model = 'fal-ai/flux/dev' // image-to-image 总是使用高质量模型
       input = {
         ...input,
         image_url: imageUrl,
         strength: 0.25,
-        num_inference_steps: 12,
-        guidance_scale: 8.0
+        num_inference_steps: useHighQualityModel ? 12 : 8,
+        guidance_scale: useHighQualityModel ? 8.0 : 6.0
       }
     }
 

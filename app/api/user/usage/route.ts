@@ -57,19 +57,35 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // 🔧 使用统一的套餐特性函数，支持硬编码标准版用户
+    // 🔧 使用统一的套餐特性函数
     const planFeatures = await getUserPlanFeatures(user.id)
     const currentUsage = user.usage[0]?.imagesGenerated || 0
     
-    // 判断订阅状态：数据库有活跃订阅 OR 是硬编码的标准版用户
-    const hasActiveSubscription = user.subscriptions.length > 0 || planFeatures.maxImagesPerMonth > 1
-    const planName = user.subscriptions[0]?.plan?.name || (planFeatures.maxImagesPerMonth === 60 ? 'standard' : 'free')
+    // 🔧 修复：优先使用活跃订阅的套餐信息，这是最准确的数据源
+    const hasActiveSubscription = user.subscriptions.length > 0
+    
+    // 获取用户基本套餐信息作为备用
+    const userPlan = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { plan: true }
+    })
+    
+    // 🎯 关键修复：优先级 - 活跃订阅套餐 > 用户关联套餐 > 免费套餐
+    const effectiveSubscription = user.subscriptions[0] // 第一个就是活跃订阅
+    const planName = effectiveSubscription?.plan?.name || userPlan?.plan?.name || 'free'
+    const effectivePlan = effectiveSubscription?.plan || userPlan?.plan
+    
+    // 🔧 使用有效套餐的实际配额，而不是getUserPlanFeatures的默认值
+    const actualMaxUsage = effectivePlan?.maxImagesPerMonth || planFeatures.maxImagesPerMonth
 
     console.log('💡 Usage API 套餐信息:', {
       userId: user.id,
       email: session.user.email,
+      userPlanId: userPlan?.planId,
+      userPlanName: userPlan?.plan?.name,
       hasActiveSubscription,
-      planName,
+      subscriptionPlanName: user.subscriptions[0]?.plan?.name,
+      finalPlanName: planName,
       maxUsage: planFeatures.maxImagesPerMonth,
       currentUsage
     })
@@ -78,8 +94,8 @@ export async function GET() {
       isSubscribed: hasActiveSubscription,
       subscriptionPlan: planName,
       usageCount: currentUsage,
-      maxUsage: planFeatures.maxImagesPerMonth,
-      remainingUsage: Math.max(0, planFeatures.maxImagesPerMonth - currentUsage)
+      maxUsage: actualMaxUsage,
+      remainingUsage: Math.max(0, actualMaxUsage - currentUsage)
     })
   } catch (error) {
     console.error('Usage API error:', error)

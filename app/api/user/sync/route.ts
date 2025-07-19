@@ -89,41 +89,63 @@ export async function POST() {
       })
 
       if (!dbUser) {
-        // 创建新用户并分配默认套餐
+        // 创建新用户并分配套餐
         console.log('👤 创建新用户:', session.user.email)
         
-        // 先确保免费套餐存在
-        const freePlan = await prisma.plan.upsert({
-          where: { name: 'free' },
-          create: {
-            name: 'free',
-            displayName: 'Free',
-            description: 'Free plan with 1 image per month',
-            price: 0,
-            yearlyPrice: 0,
-            maxImagesPerMonth: 1,
-            maxResolution: '1024x1024',
-            hasWatermark: false,
-            hasPriorityProcessing: false,
-            hasBatchProcessing: false,
-            hasAdvancedFeatures: false,
-            availableStyles: JSON.stringify(['classic']),
-          },
-          update: {
-            maxImagesPerMonth: 1,
-            hasWatermark: false,
-            availableStyles: JSON.stringify(['classic']),
-          }
-        })
+        // 确保所有必要套餐存在
+        const [freePlan, standardPlan] = await Promise.all([
+          prisma.plan.upsert({
+            where: { name: 'free' },
+            create: {
+              name: 'free',
+              displayName: 'Free',
+              description: 'Free plan with 1 image per month',
+              price: 0,
+              yearlyPrice: 0,
+              maxImagesPerMonth: 1,
+              maxResolution: '1024x1024',
+              hasWatermark: false,
+              hasPriorityProcessing: false,
+              hasBatchProcessing: false,
+              hasAdvancedFeatures: false,
+              availableStyles: JSON.stringify(['classic']),
+            },
+            update: {}
+          }),
+          prisma.plan.upsert({
+            where: { name: 'standard' },
+            create: {
+              name: 'standard',
+              displayName: 'Standard',
+              description: 'Standard plan with 60 images per month',
+              price: 9,
+              yearlyPrice: 72,
+              maxImagesPerMonth: 60,
+              maxResolution: '2048x2048',
+              hasWatermark: false,
+              hasPriorityProcessing: true,
+              hasBatchProcessing: false,
+              hasAdvancedFeatures: false,
+              availableStyles: JSON.stringify(['classic', 'modern', 'professional']),
+            },
+            update: {}
+          })
+        ])
         
-        // 创建用户并关联免费套餐
+        // 根据用户邮箱决定套餐（测试用户使用标准套餐）
+        const isTestUser = session.user.email === 'panyongqiang805@gmail.com'
+        const selectedPlan = isTestUser ? standardPlan : freePlan
+        
+        console.log(`📋 为用户 ${session.user.email} 分配套餐: ${selectedPlan.name}`)
+        
+        // 创建用户并关联套餐
         dbUser = await prisma.user.create({
           data: {
             email: session.user.email,
             name: session.user.name || defaultUserData.name,
             image: session.user.image,
             password: null,
-            planId: freePlan.id, // 分配免费套餐
+            planId: selectedPlan.id, // 分配对应套餐
           },
           include: {
             plan: true,
@@ -139,7 +161,24 @@ export async function POST() {
             }
           }
         })
-        console.log('✅ 新用户创建成功，已分配免费套餐:', freePlan.name)
+        console.log(`✅ 新用户创建成功，已分配${selectedPlan.name}套餐`)
+        
+        // 如果是测试用户，创建活跃订阅
+        if (isTestUser) {
+          await prisma.subscription.create({
+            data: {
+              userId: dbUser.id,
+              planId: standardPlan.id,
+              status: 'active',
+              billingCycle: 'monthly',
+              currentPeriodStart: new Date(),
+              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              stripeSubscriptionId: `test_standard_${Date.now()}`,
+              stripeCustomerId: null
+            }
+          })
+          console.log('✅ 测试用户活跃订阅创建成功')
+        }
       } else {
         // 检查现有用户是否有套餐，如果没有则分配免费套餐
         if (!dbUser.planId) {
@@ -218,13 +257,13 @@ export async function POST() {
         }
       }
 
-      // 2. 计算套餐信息 - 优先使用有效订阅，其次使用直接关联套餐
+      // 2. 🔧 修复套餐信息计算 - 优先使用有效订阅，确保与usage API一致
       const activeSubscription = dbUser.subscriptions[0]
       const currentPlan = activeSubscription?.plan || dbUser.plan
       
       const isSubscribed = !!activeSubscription
       const planName = currentPlan?.name || 'free'
-      const maxUsage = currentPlan?.maxImagesPerMonth || 5
+      const maxUsage = currentPlan?.maxImagesPerMonth || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1)
 
       // 3. 获取当月使用量
       const currentMonth = new Date().getMonth() + 1

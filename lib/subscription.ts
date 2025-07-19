@@ -73,7 +73,9 @@ export async function getCurrentUserWithSubscription() {
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    console.log(`🔍 查询用户: ${session.user.email}`)
+    
+    let user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: {
         plan: true,
@@ -93,6 +95,25 @@ export async function getCurrentUserWithSubscription() {
         }
       }
     })
+
+    if (!user) {
+      console.warn(`⚠️ 用户未找到: ${session.user.email}`)
+      console.log('🔄 用户应该在登录时由auth.ts自动创建，如果未创建可能存在同步问题')
+      // 不在这里创建用户，避免竞态条件
+      // 用户创建应该只在 lib/auth.ts 的 signIn 回调中处理
+      return null
+    }
+
+    if (user) {
+      console.log(`✅ 用户数据获取成功:`, {
+        email: user.email,
+        planId: user.planId,
+        planName: user.plan?.name,
+        activeSubscriptions: user.subscriptions?.length,
+        subscriptionPlan: user.subscriptions?.[0]?.plan?.name,
+        usageRecords: user.usage?.length
+      })
+    }
 
     return user
   } catch (error) {
@@ -126,23 +147,43 @@ export async function getUserPlanFeatures(userId?: string): Promise<PlanFeatures
   }
 
   try {
+    // 🔧 关键修复：同时查询用户套餐和活跃订阅，优先使用活跃订阅
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { plan: true }
+      include: { 
+        plan: true,
+        subscriptions: {
+          where: { status: 'active' },
+          include: { plan: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
     })
 
-    if (!user?.plan) {
-      return DEFAULT_PLANS.free // 默认给予免费套餐特性
+    if (!user) {
+      console.log(`💡 用户ID ${userId} 不存在，返回免费套餐特性`)
+      return DEFAULT_PLANS.free
     }
 
+    // 🎯 优先级：活跃订阅套餐 > 用户直接关联套餐 > 免费套餐
+    const effectivePlan = user.subscriptions[0]?.plan || user.plan
+    
+    if (!effectivePlan) {
+      console.log(`💡 用户 ${user.email} 没有有效套餐，返回免费套餐特性`)
+      return DEFAULT_PLANS.free
+    }
+
+    console.log(`✅ 用户 ${user.email} 有效套餐: ${effectivePlan.name} (${effectivePlan.maxImagesPerMonth}张/月)`)
+
     return {
-      maxImagesPerMonth: user.plan.maxImagesPerMonth,
-      maxResolution: user.plan.maxResolution,
-      hasWatermark: user.plan.hasWatermark,
-      hasPriorityProcessing: user.plan.hasPriorityProcessing,
-      hasBatchProcessing: user.plan.hasBatchProcessing,
-      hasAdvancedFeatures: user.plan.hasAdvancedFeatures,
-      availableStyles: JSON.parse(user.plan.availableStyles || '["classic"]')
+      maxImagesPerMonth: effectivePlan.maxImagesPerMonth,
+      maxResolution: effectivePlan.maxResolution,
+      hasWatermark: effectivePlan.hasWatermark,
+      hasPriorityProcessing: effectivePlan.hasPriorityProcessing,
+      hasBatchProcessing: effectivePlan.hasBatchProcessing,
+      hasAdvancedFeatures: effectivePlan.hasAdvancedFeatures,
+      availableStyles: JSON.parse(effectivePlan.availableStyles || '["classic"]')
     }
   } catch (error) {
     console.error('❌ 获取用户套餐特性失败:', error)

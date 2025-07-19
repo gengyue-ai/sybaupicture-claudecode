@@ -252,7 +252,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
 
   const handleGenerate = async () => {
     if (!session) {
-      setError('Please log in using a Google account to start creation')
+      setError('请登录Google账户开始创作。注册即可免费获得每月1张图片额度！')
       return
     }
 
@@ -283,10 +283,10 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
       formData.append('mode', generationMode)
 
       if (generationMode === 'text-to-image') {
-        formData.append('prompt', textPrompt)
+        formData.append('prompt', textPrompt || 'Create a Sybau style image')
       } else {
         formData.append('file', file!)
-        formData.append('prompt', prompt)
+        formData.append('prompt', prompt || 'Transform this image into a Sybau style meme')
       }
 
       formData.append('style', selectedMode)

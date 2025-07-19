@@ -162,49 +162,65 @@ export default function ZHPricingPage() {
   }
 
   const handlePlanClick = async (planId: string) => {
-    // 🔑 如果是当前套餐，不执行任何操作
-    if (userPlan === planId) {
+    if (planId === 'free') {
+      // 免费版：如果未登录引导登录，已登录跳转到中文主页
+      if (!session) {
+        router.push('/zh/auth/signin?callbackUrl=/zh')
+      } else {
+        router.push('/zh')
+      }
       return
     }
 
-    if (planId === 'free') {
-      // 免费版直接跳转到中文主页使用生成器
-      router.push('/zh')
-    } else {
-      // 🔑 修复：对于付费套餐，检查用户认证状态
-      if (status === 'unauthenticated') {
-        // 用户未登录，跳转到中文登录页面
-        console.log('🔐 用户未登录，重定向到中文登录页面')
-        router.push('/zh/auth/signin?callbackUrl=/zh/pricing')
-        return
+    // 🚨 优先检查用户是否已登录 - 这是最重要的
+    if (status === 'loading') {
+      // 如果session还在加载中，显示加载状态
+      setLoading(true)
+      return
+    }
+
+    if (!session) {
+      // 未登录用户必须先登录才能查看套餐信息
+      alert('请先登录以查看您的套餐信息和进行购买')
+      router.push(`/zh/auth/signin?callbackUrl=/zh/pricing?plan=${planId}`)
+      return
+    }
+
+    // 用户已登录后才检查套餐状态
+    if (userPlan === planId) {
+      alert(`您已经是${planId.toUpperCase()}用户，无需重复购买`)
+      return
+    }
+
+    // 用户已登录且未拥有此套餐，进入购买流程
+    setLoading(true)
+    try {
+      const response = await fetch('/api/payment/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planType: planId,
+          billingCycle: isAnnual ? 'yearly' : 'monthly'
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || '创建支付会话失败')
       }
 
-      if (status === 'authenticated' && session?.user) {
-        // 用户已登录，进入购买流程
-        try {
-          const checkoutResponse = await fetch('/api/payment/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              priceId: planId === 'standard' 
-                ? process.env.NEXT_PUBLIC_STRIPE_PRICE_STANDARD_MONTHLY 
-                : process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY 
-            })
-          })
-          
-          if (checkoutResponse.ok) {
-            const { sessionId } = await checkoutResponse.json()
-            // 重定向到Stripe支付页面
-            window.location.href = `https://checkout.stripe.com/pay/${sessionId}`
-          } else {
-            console.error('创建支付会话失败')
-            router.push('/zh/profile')
-          }
-        } catch (error) {
-          console.error('支付流程失败:', error)
-          router.push('/zh/profile')
-        }
+      if (data.url) {
+        // 重定向到Stripe结算页面
+        window.location.href = data.url
+      } else {
+        throw new Error('未收到结算URL')
       }
+    } catch (error) {
+      console.error('支付错误:', error)
+      alert(error instanceof Error ? error.message : '创建支付会话失败，请稍后再试')
+    } finally {
+      setLoading(false)
     }
   }
 

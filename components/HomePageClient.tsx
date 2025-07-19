@@ -323,12 +323,23 @@ export default function HomePageClient() {
     const currentLang = getCurrentLanguage()
 
     if (planType === 'free') {
-      // 免费版直接开始使用
-      return
+      // 免费版：如果未登录引导登录，已登录滚动到生成器
+      if (!session) {
+        const signInPath = currentLang === 'zh' ? '/zh/auth/signin' : '/auth/signin'
+        router.push(signInPath)
+      } else {
+        // 滚动到生成器区域
+        const generatorElement = document.querySelector('#generator-section')
+        if (generatorElement) {
+          generatorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }
     } else {
       // 付费版跳转到对应语言的定价页面
       const pricingPath = currentLang === 'zh' ? '/zh/pricing' : '/pricing'
-      router.push(pricingPath)
+      // 修复套餐ID映射问题：professional -> pro
+      const planId = planType === 'professional' ? 'pro' : planType
+      router.push(`${pricingPath}?plan=${planId}`)
     }
   }
 
@@ -416,7 +427,7 @@ export default function HomePageClient() {
       </section>
 
       {/* Generator Section */}
-      <section className="py-20 bg-white">
+      <section id="generator-section" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-800">

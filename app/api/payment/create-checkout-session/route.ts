@@ -71,14 +71,18 @@ export async function POST(request: NextRequest) {
     // 检查用户是否已经有订阅
     if (activeSubscription) {
       const currentPlan = activeSubscription.plan.name
-      console.log('User current plan:', currentPlan, 'Requested plan:', planType)
+      console.log('💳 Payment request analysis:', {
+        userEmail: user.email,
+        currentPlan,
+        requestedPlan: planType,
+        billingCycle,
+        subscriptionId: activeSubscription.stripeSubscriptionId
+      })
       
-      // 如果用户已经有相同的套餐，不允许重复购买
+      // 如果用户已经有相同的套餐，允许切换计费周期
       if (currentPlan === planType) {
-        return NextResponse.json(
-          { error: `You already have an active ${planType} subscription. Please manage your subscription from the billing portal.` },
-          { status: 400 }
-        )
+        console.log('🔄 Same plan requested - allowing billing cycle change')
+        // 允许在月付和年付之间切换
       }
       
       // 如果用户已经有更高级的套餐，不允许降级
@@ -89,27 +93,39 @@ export async function POST(request: NextRequest) {
         )
       }
       
-      // 允许从 Standard 升级到 PRO，这种情况需要特殊处理
+      // 允许从 Standard 升级到 PRO
       if (currentPlan === 'standard' && planType === 'pro') {
-        console.log('🔄 User upgrading from Standard to PRO - creating upgrade session')
-        // 这里我们创建一个升级会话，Stripe会自动处理按比例计费
+        console.log('✨ User upgrading from Standard to PRO - creating upgrade session')
+      }
+      
+      // 允许免费用户升级到任何付费套餐
+      if (currentPlan === 'free') {
+        console.log(`🚀 Free user upgrading to ${planType}`)
       }
     }
 
     // 检查Stripe是否配置
     if (!stripe) {
       console.error('❌ Stripe not configured')
+      const isProduction = process.env.NODE_ENV === 'production'
+      console.error('🔍 Environment debug:', {
+        NODE_ENV: process.env.NODE_ENV,
+        isProduction,
+        hasStripeDev: !!process.env.STRIPE_SECRET_KEY_DEV,
+        hasStripeProd: !!process.env.STRIPE_SECRET_KEY_PROD,
+        hasStripeGeneric: !!process.env.STRIPE_SECRET_KEY,
+        hasPublishableDev: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV,
+        hasPublishableProd: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD,
+        expectedSecretKey: isProduction ? 'STRIPE_SECRET_KEY_PROD or STRIPE_SECRET_KEY' : 'STRIPE_SECRET_KEY_DEV or STRIPE_SECRET_KEY',
+        expectedPublishableKey: isProduction ? 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD or NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY' : 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV or NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'
+      })
       return NextResponse.json(
         { 
-          error: 'Payment system not configured',
-          details: 'Stripe configuration missing',
-          debug: process.env.NODE_ENV === 'development' ? {
-            hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
-            hasSecretKeyProd: !!process.env.STRIPE_SECRET_KEY_PROD,
-            nodeEnv: process.env.NODE_ENV
-          } : undefined
+          error: 'Payment system temporarily unavailable',
+          details: `Stripe configuration missing for ${isProduction ? 'production' : 'development'} environment. Please contact support.`,
+          code: 'STRIPE_NOT_CONFIGURED'
         },
-        { status: 500 }
+        { status: 503 }
       )
     }
 

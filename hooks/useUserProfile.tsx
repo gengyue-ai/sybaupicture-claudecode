@@ -110,31 +110,25 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         const usageData = await usageResponse.json()
         console.log('✅ 用量API数据获取成功:', usageData)
         
-        // 获取订阅信息作为补充
-        let subscriptionInfo = null
-        if (subscriptionResponse.ok) {
-          const subscriptionData = await subscriptionResponse.json()
-          subscriptionInfo = subscriptionData.subscription
-        }
-        
-        const isActive = subscriptionInfo?.status === 'active' || usageData.isSubscribed
-        const planName = usageData.subscriptionPlan || subscriptionInfo?.plan?.name || 'free'
+        // 🔧 修复：直接使用用量API的数据，不再混合其他数据源
+        const isActive = usageData.isSubscribed
+        const planName = usageData.subscriptionPlan || 'free'
         
         profileData = {
           name: session.user.name || '',
           email: session.user.email || '',
           image: session.user.image || null,
-          isSubscribed: usageData.isSubscribed || false,
-          subscriptionStatus: subscriptionInfo?.status || (usageData.isSubscribed ? 'active' : 'inactive'),
+          isSubscribed: isActive,
+          subscriptionStatus: isActive ? 'active' : 'inactive',
           subscriptionPlan: planName,
           usageCount: usageData.usageCount || 0,
-          maxUsage: usageData.maxUsage || 5,
-          stripeCustomerId: subscriptionInfo?.stripeCustomerId || null,
+          maxUsage: usageData.maxUsage || 1,
+          stripeCustomerId: null, // 从其他API获取
           planFeatures: {
-            hasWatermark: !usageData.isSubscribed,
-            maxImagesPerMonth: usageData.maxUsage || 5,
+            hasWatermark: !isActive,
+            maxImagesPerMonth: usageData.maxUsage || 1,
             maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
-            hasPriorityProcessing: usageData.isSubscribed && planName !== 'free'
+            hasPriorityProcessing: isActive && planName !== 'free'
           },
           lastSyncTime: Date.now(),
           isDataValid: true
@@ -226,21 +220,29 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     if (status === 'authenticated' && session?.user && !syncState.hasInitialized) {
       console.log('🔄 用户已登录，立即显示基本信息')
       
-      // 立即设置基本用户信息 - 不等待任何同步
+      // 立即设置基本用户信息 - 使用默认免费套餐信息，等待API同步
+      const sessionPlan = 'free' // 默认为免费套餐，等待API确认
+      const isSubscribed = false // 默认未订阅，等待API确认
+      
+      console.log('👤 新用户登录，设置默认信息等待API同步:', { userEmail: session.user.email })
+      
+      // 默认免费套餐配额
+      const defaultLimits = { max: 1, resolution: '1024x1024' }
+      
       const basicProfile: UserProfileData = {
         name: session.user.name || session.user.email?.split('@')[0] || '',
         email: session.user.email || '',
         image: session.user.image || null,
-        isSubscribed: (session.user as any).subscriptionStatus === 'active',
-        subscriptionStatus: (session.user as any).subscriptionStatus || 'inactive', 
-        subscriptionPlan: (session.user as any).subscriptionType || 'free',
-        usageCount: (session.user as any).usageCount || 0,
-        maxUsage: 5, // 默认值，后续同步时更新
+        isSubscribed: isSubscribed,
+        subscriptionStatus: 'inactive', 
+        subscriptionPlan: sessionPlan,
+        usageCount: 0, // 需要同步获取
+        maxUsage: defaultLimits.max,
         stripeCustomerId: null,
         planFeatures: {
-          hasWatermark: (session.user as any).subscriptionStatus !== 'active',
-          maxImagesPerMonth: 5,
-          maxResolution: '1024x1024',
+          hasWatermark: false,
+          maxImagesPerMonth: defaultLimits.max,
+          maxResolution: defaultLimits.resolution,
           hasPriorityProcessing: false
         },
         lastSyncTime: Date.now(),
@@ -310,22 +312,22 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
       current: currentProfile.usageCount,
       max: currentProfile.maxUsage,
       plan: currentProfile.subscriptionPlan,
-      isSubscribed: currentProfile.isSubscribed
+      isSubscribed: currentProfile.isSubscribed,
+      status: currentProfile.subscriptionStatus
     })
 
-    // 付费用户通常有更高的限制
-    if (currentProfile.isSubscribed && currentProfile.subscriptionStatus === 'active') {
-      return { allowed: true }
-    }
-
-    // 免费用户检查用量
+    // 🎯 修复：基于用量而非订阅状态判断权限
+    // 任何套餐用户（包括标准版）都基于用量限制判断
     if (currentProfile.usageCount >= currentProfile.maxUsage) {
+      const planName = currentProfile.subscriptionPlan === 'free' ? '免费' : currentProfile.subscriptionPlan.toUpperCase()
       return {
         allowed: false,
-        reason: '免费用户每月限制 ' + currentProfile.maxUsage + ' 张图片，已用完。升级到付费套餐享受更多生成次数！'
+        reason: `${planName}套餐每月限制 ${currentProfile.maxUsage} 张图片，已用完。${currentProfile.subscriptionPlan === 'free' ? '升级到付费套餐享受更多生成次数！' : '请等待下月重置或升级到更高套餐！'}`
       }
     }
 
+    // 有剩余用量，允许生成
+    console.log('✅ 用量检查通过，剩余:', currentProfile.maxUsage - currentProfile.usageCount)
     return { allowed: true }
   }, [profile, refreshData])
 

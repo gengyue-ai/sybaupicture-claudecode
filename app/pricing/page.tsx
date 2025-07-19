@@ -136,33 +136,52 @@ export default function PricingPage() {
 
     // 立即执行，不等待session状态
     fetchUserSubscription()
+    
+    // 检查URL参数中是否有指定的套餐
+    const urlParams = new URLSearchParams(window.location.search)
+    const planParam = urlParams.get('plan')
+    if (planParam && ['standard', 'pro'].includes(planParam)) {
+      // 如果有指定的套餐，可以在这里添加相应的高亮或提示逻辑
+      console.log('用户从首页点击进入，目标套餐:', planParam)
+    }
   }, [])
 
   const handlePlanClick = async (planId: string) => {
     if (planId === 'free') {
-      // 免费版直接跳转到主页使用生成器
-      router.push('/')
+      // 免费版：如果未登录引导登录，已登录跳转到主页使用生成器
+      if (!session) {
+        router.push('/auth/signin?callbackUrl=/')
+      } else {
+        router.push('/')
+      }
       return
     }
 
-    // 检查用户是否已有此套餐
+    // 🚨 优先检查用户是否已登录 - 这是最重要的
+    if (status === 'loading') {
+      // 如果session还在加载中，显示加载状态
+      setLoadingPlan(planId)
+      return
+    }
+
+    if (!session) {
+      // 未登录用户必须先登录才能查看套餐信息
+      toast({
+        title: "需要登录",
+        description: "请先登录以查看您的套餐信息和进行购买",
+        variant: "default"
+      })
+      router.push(`/auth/signin?callbackUrl=/pricing?plan=${planId}`)
+      return
+    }
+
+    // 用户已登录后才检查套餐状态
     if (userSubscription?.plan === planId) {
       toast({
         title: "已拥有此套餐",
         description: `您已经是${planId.toUpperCase()}用户，无需重复购买`,
         variant: "default"
       })
-      return
-    }
-
-    // 检查用户是否已登录
-    if (status === 'loading') {
-      return
-    }
-
-    if (!session) {
-      // 未登录用户跳转到登录页面
-      router.push('/auth/signin?callbackUrl=/pricing')
       return
     }
 
@@ -261,7 +280,7 @@ export default function PricingPage() {
           {pricingPlans.map((plan) => {
             const IconComponent = plan.icon
             
-            // 检查用户是否已有此套餐
+            // 检查用户是否已有此套餐（修复ID映射问题）
             const hasCurrentPlan = userSubscription?.plan === plan.id
             const isUpgrade = userSubscription?.plan && 
               ((userSubscription.plan === 'free' && plan.id !== 'free') ||
@@ -324,8 +343,10 @@ export default function PricingPage() {
                     {loadingPlan === plan.id ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
+                        {status === 'loading' ? 'Loading...' : 'Processing...'}
                       </>
+                    ) : !session && plan.id !== 'free' ? (
+                      `Login to Get ${plan.name}`
                     ) : (
                       buttonText
                     )}
