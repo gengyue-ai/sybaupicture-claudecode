@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getUserPlanFeatures } from '@/lib/subscription'
 
 // 强制动态渲染
 export const dynamic = 'force-dynamic'
@@ -56,17 +57,29 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const hasActiveSubscription = user.subscriptions.length > 0
+    // 🔧 使用统一的套餐特性函数，支持硬编码标准版用户
+    const planFeatures = await getUserPlanFeatures(user.id)
     const currentUsage = user.usage[0]?.imagesGenerated || 0
-    const maxUsage = user.subscriptions[0]?.plan?.maxImagesPerMonth || 5
-    const plan = user.subscriptions[0]?.plan?.name || 'free'
+    
+    // 判断订阅状态：数据库有活跃订阅 OR 是硬编码的标准版用户
+    const hasActiveSubscription = user.subscriptions.length > 0 || planFeatures.maxImagesPerMonth > 1
+    const planName = user.subscriptions[0]?.plan?.name || (planFeatures.maxImagesPerMonth === 60 ? 'standard' : 'free')
+
+    console.log('💡 Usage API 套餐信息:', {
+      userId: user.id,
+      email: session.user.email,
+      hasActiveSubscription,
+      planName,
+      maxUsage: planFeatures.maxImagesPerMonth,
+      currentUsage
+    })
 
     return NextResponse.json({
       isSubscribed: hasActiveSubscription,
-      subscriptionPlan: plan,
+      subscriptionPlan: planName,
       usageCount: currentUsage,
-      maxUsage: maxUsage,
-      remainingUsage: Math.max(0, maxUsage - currentUsage)
+      maxUsage: planFeatures.maxImagesPerMonth,
+      remainingUsage: Math.max(0, planFeatures.maxImagesPerMonth - currentUsage)
     })
   } catch (error) {
     console.error('Usage API error:', error)
