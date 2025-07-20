@@ -30,12 +30,6 @@ export const authOptions: NextAuthOptions = {
       console.log('✅ 用户登录:', user.email)
       return true
     },
-    
-    async signOut({ token, session }) {
-      // 🔧 确保退出时清除所有相关数据
-      console.log('🔄 用户退出登录清理')
-      return true
-    },
     async redirect({ url, baseUrl }) {
       // 🔧 修复重定向逻辑：确保用户能正常返回首页
       console.log('🔄 Redirect callback:', { url, baseUrl })
