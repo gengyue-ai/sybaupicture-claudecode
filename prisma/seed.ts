@@ -26,13 +26,13 @@ async function main() {
       displayName: 'Standard',
       description: 'Best for regular creators',
       price: 9,
-      maxImagesPerMonth: 50,
-      maxResolution: '1024x1024',
+      maxImagesPerMonth: 60,
+      maxResolution: '2048x2048',
       hasWatermark: false,
-      hasPriorityProcessing: true,
+      hasPriorityProcessing: false,
       hasBatchProcessing: false,
-      hasAdvancedFeatures: true,
-      availableStyles: JSON.stringify(['classic', 'exaggerated', 'professional']),
+      hasAdvancedFeatures: false,
+      availableStyles: JSON.stringify(['classic', 'exaggerated', 'minimal', 'professional']),
       isActive: true
     },
     {
@@ -40,13 +40,13 @@ async function main() {
       displayName: 'Professional',
       description: 'For businesses and power users',
       price: 19,
-      maxImagesPerMonth: 200,
-      maxResolution: '2048x2048',
+      maxImagesPerMonth: 180,
+      maxResolution: '4096x4096',
       hasWatermark: false,
       hasPriorityProcessing: true,
-      hasBatchProcessing: true,
+      hasBatchProcessing: false,
       hasAdvancedFeatures: true,
-      availableStyles: JSON.stringify(['classic', 'exaggerated', 'professional']),
+      availableStyles: JSON.stringify(['classic', 'exaggerated', 'minimal', 'professional', 'artistic', 'premium']),
       isActive: true
     }
   ]

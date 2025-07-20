@@ -100,26 +100,24 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
   useEffect(() => {
     // 当从未认证变为已认证时，保持当前的文件状态
     if (status === 'authenticated' && previewUrl && file) {
-      console.log('用户登录完成，保持文件状态:', file.name)
+      // 保持文件状态
     }
-  }, [status, file, previewUrl])
+  }, [status])
 
-  // 🚨 简化版本：只在必要时同步用户数据
+  // 在用户登录时同步数据
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.email) {
-      console.log('🔄 用户已登录，同步用户数据以获取套餐权限')
       refreshData()
     }
-  }, [status, session?.user?.email]) // 保持简单的依赖
+  }, [status, session?.user?.email, refreshData])
 
   // 防止无限加载的超时机制
   useEffect(() => {
     const timer = setTimeout(() => {
       if (status === 'loading') {
-        console.log('Session loading timeout, forcing render')
         setForceRender(true)
       }
-    }, 1000) // 缩短到1秒超时
+    }, 1000) // 1秒超时
 
     return () => clearTimeout(timer)
   }, [status])
@@ -162,34 +160,18 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
 
   // 根据用户套餐过滤可用模式
   const getAvailableModes = () => {
-    console.log('🔍 套餐权限检查:', {
-      isSubscribed,
-      subscriptionPlan,
-      sessionUser: session?.user?.email
-    })
-    
-    // 🎯 临时解决方案：如果是已知的Standard用户，给予完整权限
-    const knownStandardUser = session?.user?.email === 'panyongqiang805@gmail.com'
-    if (knownStandardUser) {
-      console.log('✅ 检测到已知Standard用户，给予完整权限')
-      return allModes
-    }
-    
     if (!isSubscribed) {
-      console.log('❌ 用户未订阅，只显示免费模式')
       return allModes.filter(mode => mode.requiredPlan === 'free')
     }
     
     const planHierarchy = { 'free': 0, 'standard': 1, 'pro': 2 }
     const userPlanLevel = planHierarchy[subscriptionPlan as keyof typeof planHierarchy] || 0
-    console.log('✅ 用户套餐级别:', userPlanLevel, '套餐名称:', subscriptionPlan)
     
     const availableModes = allModes.filter(mode => {
       const requiredLevel = planHierarchy[mode.requiredPlan as keyof typeof planHierarchy]
       return userPlanLevel >= requiredLevel
     })
     
-    console.log('🎯 可用模式:', availableModes.map(m => m.id))
     return availableModes
   }
 
@@ -292,23 +274,14 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
       formData.append('style', selectedMode)
       formData.append('intensity', intensity.toString())
 
-      console.log('Sending request to /api/generate')
-      console.log('Form data:', {
-        mode: generationMode,
-        prompt: generationMode === 'text-to-image' ? textPrompt : prompt,
-        hasFile: generationMode === 'image-to-image' ? !!file : false,
-        style: selectedMode,
-        intensity: intensity.toString()
-      })
+      // 准备API请求
 
       const response = await fetch('/api/generate', {
         method: 'POST',
         body: formData
       })
 
-      console.log('Response status:', response.status)
       const data = await response.json()
-      console.log('Response data:', data)
 
       if (response.ok) {
         setGeneratedImage(data.imageUrl)
@@ -316,12 +289,10 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
         // 🎯 更新用量计数
         await updateUsageCount()
       } else {
-        console.error('API Error:', data)
-        setError(data.error || data.details || 'Failed to generate image')
+        setError(data.error || data.details || 'Failed to generate image. Please try again.')
       }
     } catch (error) {
-      console.error('Generation error:', error)
-      setError('Generation failed. Please try again.')
+      setError('Generation failed. Please check your network connection and try again.')
     } finally {
       setIsGenerating(false)
     }
@@ -392,7 +363,6 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
         
         img.src = generatedImage
       } catch (error) {
-        console.error('Download failed:', error)
         // 如果转换失败，直接下载原图
         const link = document.createElement('a')
         link.href = generatedImage

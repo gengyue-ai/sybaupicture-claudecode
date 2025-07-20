@@ -152,11 +152,11 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
           subscriptionStatus: subscription?.status || 'inactive',
           subscriptionPlan: planName,
           usageCount: subscriptionData.usage?.current || 0,
-          maxUsage: subscriptionData.usage?.max || (planName === 'standard' ? 50 : planName === 'pro' ? 200 : 5),
+          maxUsage: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
           stripeCustomerId: subscription?.stripeCustomerId || subscriptionData.user?.stripeCustomerId || null,
           planFeatures: {
             hasWatermark: !isActive,
-            maxImagesPerMonth: subscriptionData.usage?.max || (planName === 'standard' ? 50 : planName === 'pro' ? 200 : 5),
+            maxImagesPerMonth: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
             maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
             hasPriorityProcessing: isActive && planName !== 'free'
           },
@@ -178,11 +178,11 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
             subscriptionStatus: syncData.user.subscriptionStatus || 'inactive',
             subscriptionPlan: syncData.user.subscriptionPlan || 'free',
             usageCount: syncData.user.usageCount || 0,
-            maxUsage: syncData.user.maxUsage || 5,
+            maxUsage: syncData.user.maxUsage || 1,
             stripeCustomerId: syncData.user.stripeCustomerId || null,
             planFeatures: {
               hasWatermark: !syncData.user.isSubscribed,
-              maxImagesPerMonth: syncData.user.maxUsage || 5,
+              maxImagesPerMonth: syncData.user.maxUsage || 1,
               maxResolution: '1024x1024',
               hasPriorityProcessing: syncData.user.isSubscribed
             },
@@ -302,32 +302,18 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
 
     // 如果数据无效，尝试刷新
     if (!profile.isDataValid) {
-      console.log('🔄 数据无效，尝试刷新')
       await refreshData()
     }
 
-    const currentProfile = profile
-
-    console.log('🔍 检查用量权限:', {
-      current: currentProfile.usageCount,
-      max: currentProfile.maxUsage,
-      plan: currentProfile.subscriptionPlan,
-      isSubscribed: currentProfile.isSubscribed,
-      status: currentProfile.subscriptionStatus
-    })
-
-    // 🎯 修复：基于用量而非订阅状态判断权限
-    // 任何套餐用户（包括标准版）都基于用量限制判断
-    if (currentProfile.usageCount >= currentProfile.maxUsage) {
-      const planName = currentProfile.subscriptionPlan === 'free' ? '免费' : currentProfile.subscriptionPlan.toUpperCase()
+    // 基于用量限制判断权限
+    if (profile.usageCount >= profile.maxUsage) {
+      const planName = profile.subscriptionPlan === 'free' ? '免费' : profile.subscriptionPlan.toUpperCase()
       return {
         allowed: false,
-        reason: `${planName}套餐每月限制 ${currentProfile.maxUsage} 张图片，已用完。${currentProfile.subscriptionPlan === 'free' ? '升级到付费套餐享受更多生成次数！' : '请等待下月重置或升级到更高套餐！'}`
+        reason: `${planName}套餐每月限制 ${profile.maxUsage} 张图片，已用完。${profile.subscriptionPlan === 'free' ? '升级到付费套餐享受更多生成次数！' : '请等待下月重置或升级到更高套餐！'}`
       }
     }
 
-    // 有剩余用量，允许生成
-    console.log('✅ 用量检查通过，剩余:', currentProfile.maxUsage - currentProfile.usageCount)
     return { allowed: true }
   }, [profile, refreshData])
 
@@ -361,7 +347,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
   // 便捷访问属性
   const isSubscribed = profile?.isSubscribed || false
   const usageCount = profile?.usageCount || 0
-  const maxUsage = profile?.maxUsage || 5
+  const maxUsage = profile?.maxUsage || 1
   const remainingUsage = Math.max(0, maxUsage - usageCount)
   const subscriptionPlan = profile?.subscriptionPlan || 'free'
 
