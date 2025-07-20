@@ -40,38 +40,48 @@ export function GoogleAdSense() {
 
 // Google Analytics 4 组件
 export function GoogleAnalytics() {
-  useEffect(() => {
-    // 初始化 Google Analytics
-    if (typeof window !== 'undefined' && window.gtag && GA4_MEASUREMENT_ID) {
-      window.gtag('config', GA4_MEASUREMENT_ID, {
-        page_title: document.title,
-        page_location: window.location.href,
-      })
-    }
-  }, [])
-
   if (!GA4_MEASUREMENT_ID) {
+    console.warn('⚠️ GA4_MEASUREMENT_ID 未配置，跳过Google Analytics')
     return null
   }
+
+  // 验证 GA4 ID 格式
+  if (!GA4_MEASUREMENT_ID.startsWith('G-')) {
+    console.error('❌ GA4_MEASUREMENT_ID 格式错误，应该以 G- 开头:', GA4_MEASUREMENT_ID)
+    return null
+  }
+
+  console.log('✅ 初始化 Google Analytics:', GA4_MEASUREMENT_ID)
 
   return (
     <>
       <Script
         strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
+        onLoad={() => {
+          console.log('✅ Google Analytics 脚本加载成功')
+        }}
+        onError={(e) => {
+          console.error('❌ Google Analytics 脚本加载失败:', e)
+        }}
       />
       <Script
         id="google-analytics"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA4_MEASUREMENT_ID}', {
-              page_title: document.title,
-              page_location: window.location.href,
-            });
+            try {
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA4_MEASUREMENT_ID}', {
+                page_title: document.title,
+                page_location: window.location.href
+              });
+              console.log('✅ Google Analytics 配置完成:', '${GA4_MEASUREMENT_ID}');
+            } catch (error) {
+              console.error('❌ Google Analytics 初始化失败:', error);
+            }
           `,
         }}
       />

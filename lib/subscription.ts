@@ -98,10 +98,40 @@ export async function getCurrentUserWithSubscription() {
 
     if (!user) {
       console.warn(`⚠️ 用户未找到: ${session.user.email}`)
-      console.log('🔄 用户应该在登录时由auth.ts自动创建，如果未创建可能存在同步问题')
-      // 不在这里创建用户，避免竞态条件
-      // 用户创建应该只在 lib/auth.ts 的 signIn 回调中处理
-      return null
+      
+      // 尝试创建缺失的用户记录
+      try {
+        console.log('🔄 创建缺失的用户记录...')
+        user = await prisma.user.create({
+          data: {
+            email: session.user.email,
+            name: session.user.name || '',
+            image: session.user.image || null,
+            planId: 'free',
+          },
+          include: {
+            plan: true,
+            subscriptions: {
+              where: { status: 'active' },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              include: {
+                plan: true
+              }
+            },
+            usage: {
+              where: {
+                month: new Date().getMonth() + 1,
+                year: new Date().getFullYear()
+              }
+            }
+          }
+        })
+        console.log('✅ 用户记录创建成功:', user.email)
+      } catch (error) {
+        console.error('❌ 用户记录创建失败:', error)
+        return null
+      }
     }
 
     if (user) {
@@ -203,9 +233,10 @@ export async function canUserGenerateImage(userId: string): Promise<{
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
 
+  console.log(`🔍 检查用户生成权限:`, { userId, currentMonth, currentYear })
+
   if (!prisma) {
-    console.warn('⚠️  数据库不可用，允许生成图片')
-    // 数据库不可用时，允许生成图片
+    console.warn('⚠️ 数据库不可用，使用默认免费套餐限制')
     const maxUsage = DEFAULT_PLANS.free.maxImagesPerMonth
     return {
       canGenerate: true,
@@ -216,8 +247,12 @@ export async function canUserGenerateImage(userId: string): Promise<{
   }
 
   try {
-    // 获取用户套餐
+    // 获取用户套餐特性
     const features = await getUserPlanFeatures(userId)
+    console.log(`📋 用户套餐特性:`, {
+      userId,
+      maxImagesPerMonth: features.maxImagesPerMonth
+    })
 
     // 获取当月使用情况
     let usage = await prisma.userUsage.findUnique({
@@ -232,14 +267,32 @@ export async function canUserGenerateImage(userId: string): Promise<{
 
     // 如果没有使用记录，创建一个
     if (!usage) {
-      usage = await prisma.userUsage.create({
-        data: {
+      console.log(`📝 创建新的月度使用记录:`, { userId, currentMonth, currentYear })
+      
+      try {
+        usage = await prisma.userUsage.create({
+          data: {
+            userId,
+            month: currentMonth,
+            year: currentYear,
+            imagesGenerated: 0
+          }
+        })
+        console.log(`✅ 月度使用记录创建成功:`, usage)
+      } catch (createError) {
+        console.error(`❌ 创建月度使用记录失败:`, createError)
+        // 创建失败时使用默认值
+        usage = {
+          id: 'temp',
           userId,
           month: currentMonth,
           year: currentYear,
-          imagesGenerated: 0
+          imagesGenerated: 0,
+          lastResetAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
-      })
+      }
     }
 
     const currentUsage = usage.imagesGenerated
@@ -247,16 +300,31 @@ export async function canUserGenerateImage(userId: string): Promise<{
     const remainingUsage = Math.max(0, maxUsage - currentUsage)
     const canGenerate = currentUsage < maxUsage
 
+    console.log(`📊 用量检查结果:`, {
+      userId,
+      currentUsage,
+      maxUsage,
+      remainingUsage,
+      canGenerate
+    })
+
     return {
       canGenerate,
       currentUsage,
       maxUsage,
       remainingUsage
     }
-  } catch (error) {
-    console.error('❌ 检查用户使用权限失败:', error)
-    // 错误时允许生成图片
+  } catch (error: any) {
+    console.error('❌ 检查用户使用权限失败:', {
+      userId,
+      error: error.message,
+      code: error.code
+    })
+    
+    // 错误时使用保守的免费套餐限制
     const maxUsage = DEFAULT_PLANS.free.maxImagesPerMonth
+    console.warn(`⚠️ 降级到免费套餐限制:`, { userId, maxUsage })
+    
     return {
       canGenerate: true,
       currentUsage: 0,

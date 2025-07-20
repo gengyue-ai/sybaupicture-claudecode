@@ -17,9 +17,6 @@ export default function BackgroundUserSync() {
     if (!session?.user?.email) return
     
     try {
-      console.log('🔄 后台开始同步用户数据...')
-      
-      // 调用用户同步API
       const response = await fetch('/api/user/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -32,30 +29,24 @@ export default function BackgroundUserSync() {
 
       if (response.ok) {
         const userData = await response.json()
-        console.log('✅ 用户数据同步成功:', userData)
-        
         setSyncStatus({
           isComplete: true,
           userData: userData
         })
       } else {
         const error = await response.text()
-        console.warn('⚠️ 用户数据同步失败，但不影响使用:', error)
-        
         setSyncStatus({
           isComplete: true,
           error: error
         })
       }
     } catch (error) {
-      console.warn('⚠️ 后台同步出错，但不影响使用:', error)
-      
       setSyncStatus({
         isComplete: true,
         error: String(error)
       })
     }
-  }, [session?.user?.email, session?.user?.name, session?.user?.image])
+  }, [session?.user?.email])
 
   useEffect(() => {
     // 只有在用户已登录且还没有同步时才进行同步

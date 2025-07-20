@@ -82,9 +82,14 @@ export async function POST(request: NextRequest) {
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log('✅ Checkout completed for session:', session.id)
 
-  const userId = session.metadata?.userId
-  if (!userId) {
-    console.error('❌ No user ID in session metadata')
+  if (!prisma) {
+    console.error('❌ Database not configured')
+    return
+  }
+
+  const customerEmail = session.customer_details?.email
+  if (!customerEmail) {
+    console.error('❌ No customer email in session')
     return
   }
 
@@ -94,7 +99,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return
   }
 
-  console.log(`🔄 Processing checkout completion for user ${userId}`)
+  try {
+    // 确保用户存在
+    const user = await prisma.user.upsert({
+      where: { email: customerEmail },
+      update: {
+        stripeCustomerId: session.customer as string,
+      },
+      create: {
+        email: customerEmail,
+        name: session.customer_details?.name || '',
+        stripeCustomerId: session.customer as string,
+        planId: 'free', // 默认套餐，将在订阅创建时更新
+      }
+    })
+
+    console.log(`✅ 用户记录已确保存在: ${user.email}`)
+    console.log(`🔄 Processing checkout completion for user ${user.id}`)
+  } catch (error) {
+    console.error('❌ Error handling checkout completion:', error)
+  }
 }
 
 // 处理订阅创建事件

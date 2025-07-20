@@ -7,6 +7,7 @@ import Footer from '@/components/Footer'
 import { Providers } from '@/components/providers'
 import BackgroundUserSync from '@/components/BackgroundUserSync'
 import { AuthStateHandler } from '@/components/AuthStateHandler'
+import { GoogleAnalytics } from '@/components/GoogleAds'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -141,10 +142,9 @@ export default function RootLayout({
             })
           }}
         />
-        
-        {/* AdSense脚本通过组件统一管理 */}
       </head>
       <body className={inter.className}>
+        <GoogleAnalytics />
         <Providers>
           <AuthStateHandler />
           <BackgroundUserSync />
