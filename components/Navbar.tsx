@@ -86,9 +86,24 @@ export default function Navbar() {
   const handleSignOut = async () => {
     setIsSigningOut(true)
     try {
-      await signOut({ callbackUrl: '/' })
+      // 先调用自定义的signout API清除所有cookie
+      await fetch('/api/auth/signout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      
+      // 然后调用NextAuth的signOut，但不重定向
+      await signOut({ 
+        redirect: false
+      })
+      
+      // 最后手动重定向到首页
+      const targetUrl = currentLang === 'zh' ? '/zh' : '/'
+      window.location.href = targetUrl
     } catch (error) {
       console.error('登出错误:', error)
+      // 如果出错，强制刷新页面清除状态
+      window.location.href = currentLang === 'zh' ? '/zh' : '/'
     } finally {
       setIsSigningOut(false)
     }

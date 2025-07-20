@@ -18,11 +18,22 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
 
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
+
   callbacks: {
     async signIn({ user, account, profile }) {
       // 🔧 简化signIn回调，只验证基本信息，不进行数据库操作
       if (!user.email) return false
       console.log('✅ 用户登录:', user.email)
+      return true
+    },
+    
+    async signOut({ token, session }) {
+      // 🔧 确保退出时清除所有相关数据
+      console.log('🔄 用户退出登录清理')
       return true
     },
     async redirect({ url, baseUrl }) {
