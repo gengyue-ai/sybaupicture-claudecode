@@ -39,16 +39,16 @@ const getPricingPlans = (isAnnual: boolean) => [
     name: 'Standard',
     price: isAnnual ? '$6' : '$9',
     originalPrice: isAnnual ? '$9' : null,
-    yearlyPrice: isAnnual ? '$72 per year' : null,
-    period: isAnnual ? 'per month' : 'per month',
-    description: 'Great for regular creators',
+    yearlyPrice: isAnnual ? '$72/year' : null,
+    period: isAnnual ? '/month' : '/month',
+    description: 'Perfect for regular creators',
     badge: null,
     features: [
       '60 images per month',
       'All Sybau styles',
       'High quality (up to 2048x2048)',
       'No watermarks',
-      'Download in multiple formats'
+      'Multiple download formats'
     ],
     limitations: [
       'Monthly usage limit'
@@ -60,23 +60,23 @@ const getPricingPlans = (isAnnual: boolean) => [
   },
   {
     id: 'pro',
-    name: 'PRO',
+    name: 'Professional',
     price: isAnnual ? '$12' : '$19',
     originalPrice: isAnnual ? '$19' : null,
-    yearlyPrice: isAnnual ? '$144 per year' : null,
-    period: isAnnual ? 'per month' : 'per month',
+    yearlyPrice: isAnnual ? '$144/year' : null,
+    period: isAnnual ? '/month' : '/month',
     description: 'For professional creators',
-    badge: 'MOST POPULAR',
+    badge: 'Most Popular',
     features: [
       '180 images per month',
       'All premium Sybau styles',
-      'Ultra-high quality (up to 4096x4096)',
+      'Ultra quality (up to 4096x4096)',
       'No watermarks',
       'Priority processing',
       'Advanced AI features'
     ],
     limitations: [],
-    buttonText: 'Go PRO',
+    buttonText: 'Upgrade to Pro',
     buttonVariant: 'default' as const,
     popular: true,
     icon: Crown
@@ -85,12 +85,12 @@ const getPricingPlans = (isAnnual: boolean) => [
 
 const faqs = [
   {
-    question: 'How does the image limit work?',
-    answer: 'Each plan includes a specific number of images you can generate. Free users get a basic trial quota, Standard users get 60 per month, and PRO users get 180 per month.'
+    question: 'How do image limits work?',
+    answer: 'Each plan includes a specific number of image generation credits. Free users get basic experience quota, Standard users get 60 images per month, and Pro users get 180 images per month.'
   },
   {
-    question: 'Can I upgrade or downgrade my plan?',
-    answer: 'Yes, you can change your plan at any time. Upgrades take effect immediately, and downgrades take effect at the next billing cycle.'
+    question: 'Can I upgrade or downgrade my plan anytime?',
+    answer: 'Yes, you can change your plan at any time. Upgrades take effect immediately, while downgrades will take effect at the next billing cycle.'
   },
   {
     question: 'What happens if I exceed my image limit?',
@@ -102,53 +102,69 @@ const faqs = [
   },
   {
     question: 'Can I cancel my subscription anytime?',
-    answer: 'Yes, you can cancel your subscription at any time. You\'ll continue to have access to your plan features until the end of your billing period.'
+    answer: 'Yes, you can cancel your subscription at any time. You will continue to have access to your plan features until the end of your current billing period.'
   }
 ]
 
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
-  const [userSubscription, setUserSubscription] = useState<{plan: string, isActive: boolean} | null>(null)
-  const [subscriptionLoading, setSubscriptionLoading] = useState(true)
+  const [userPlan, setUserPlan] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const { data: session, status } = useSession()
   const pricingPlans = getPricingPlans(isAnnual)
   const router = useRouter()
-  const { data: session, status } = useSession()
 
-  // 获取用户订阅状态 - 使用快速API优化加载速度
+  // Get user's current plan
   useEffect(() => {
-    const fetchUserSubscription = async () => {
-      try {
-        // 使用快速API，不依赖认证状态检查
-        const response = await fetch('/api/user/subscription-quick')
-        if (response.ok) {
-          const data = await response.json()
-          if (data.isLoggedIn && data.subscription) {
-            setUserSubscription(data.subscription)
+    const fetchUserPlan = async () => {
+      if (status === 'authenticated' && session?.user) {
+        try {
+          const response = await fetch('/api/subscription')
+          if (response.ok) {
+            const data = await response.json()
+            setUserPlan(data.user?.plan?.name || 'free')
+            console.log('✅ Pricing page - User plan:', data.user?.plan?.name)
+          } else {
+            setUserPlan('free')
           }
+        } catch (error) {
+          console.error('Failed to fetch user plan:', error)
+          setUserPlan('free')
         }
-      } catch (error) {
-        console.error('Failed to fetch subscription status:', error)
-      } finally {
-        setSubscriptionLoading(false)
+      } else if (status === 'unauthenticated') {
+        setUserPlan(null) // Unauthenticated user
       }
+      setLoading(false)
     }
 
-    // 立即执行，不等待session状态
-    fetchUserSubscription()
-    
-    // 检查URL参数中是否有指定的套餐
-    const urlParams = new URLSearchParams(window.location.search)
-    const planParam = urlParams.get('plan')
-    if (planParam && ['standard', 'pro'].includes(planParam)) {
-      // 如果有指定的套餐，可以在这里添加相应的高亮或提示逻辑
-      console.log('用户从首页点击进入，目标套餐:', planParam)
+    if (status !== 'loading') {
+      fetchUserPlan()
     }
-  }, [])
+  }, [status, session])
+
+  // Dynamic button text based on user plan
+  const getButtonText = (planId: string) => {
+    if (loading || status === 'loading') return 'Loading...'
+    
+    if (userPlan === planId) {
+      return 'Current Plan'
+    }
+    
+    switch (planId) {
+      case 'free':
+        return 'Get Started Free'
+      case 'standard':
+        return userPlan === 'free' ? 'Upgrade to Standard' : 'Choose Standard'
+      case 'pro':
+        return userPlan === 'free' ? 'Upgrade to Pro' : userPlan === 'standard' ? 'Upgrade to Pro' : 'Choose Pro'
+      default:
+        return 'Choose Plan'
+    }
+  }
 
   const handlePlanClick = async (planId: string) => {
     if (planId === 'free') {
-      // 免费版：如果未登录引导登录，已登录跳转到主页使用生成器
+      // Free plan: redirect to sign in if not logged in, otherwise go to home
       if (!session) {
         router.push('/auth/signin?callbackUrl=/')
       } else {
@@ -157,43 +173,39 @@ export default function PricingPage() {
       return
     }
 
-    // 🚨 优先检查用户是否已登录 - 这是最重要的
+    // Check if user is logged in first
     if (status === 'loading') {
-      // 如果session还在加载中，显示加载状态
-      setLoadingPlan(planId)
+      setLoading(true)
       return
     }
 
     if (!session) {
-      // 未登录用户必须先登录才能查看套餐信息
+      // Unauthenticated users must sign in first
       toast({
-        title: "需要登录",
-        description: "请先登录以查看您的套餐信息和进行购买",
-        variant: "default"
+        title: "Please sign in",
+        description: "You need to sign in to view your plan information and make purchases",
+        variant: "destructive"
       })
       router.push(`/auth/signin?callbackUrl=/pricing?plan=${planId}`)
       return
     }
 
-    // 用户已登录后才检查套餐状态
-    if (userSubscription?.plan === planId) {
+    // Check if user already has this plan
+    if (userPlan === planId) {
       toast({
-        title: "已拥有此套餐",
-        description: `您已经是${planId.toUpperCase()}用户，无需重复购买`,
+        title: "Already subscribed",
+        description: `You are already a ${planId.toUpperCase()} user, no need to purchase again`,
         variant: "default"
       })
       return
     }
 
-    // 开始支付流程
-    setLoadingPlan(planId)
-
+    // User is logged in and doesn't have this plan, proceed to checkout
+    setLoading(true)
     try {
       const response = await fetch('/api/payment/create-checkout-session', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           planType: planId,
           billingCycle: isAnnual ? 'yearly' : 'monthly'
@@ -207,7 +219,7 @@ export default function PricingPage() {
       }
 
       if (data.url) {
-        // 重定向到Stripe结算页面
+        // Redirect to Stripe checkout
         window.location.href = data.url
       } else {
         throw new Error('No checkout URL received')
@@ -215,12 +227,12 @@ export default function PricingPage() {
     } catch (error) {
       console.error('Payment error:', error)
       toast({
-        title: "支付失败",
-        description: error instanceof Error ? error.message : "创建支付会话失败，请稍后再试",
+        title: "Payment Error",
+        description: error instanceof Error ? error.message : 'Failed to create checkout session, please try again',
         variant: "destructive"
       })
     } finally {
-      setLoadingPlan(null)
+      setLoading(false)
     }
   }
 
@@ -231,16 +243,16 @@ export default function PricingPage() {
         <div className="text-center mb-16">
           <Badge className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white px-4 py-2 text-sm font-medium mb-4">
             <Sparkles className="w-4 h-4 mr-2" />
-            Simple, Transparent Pricing
+            Simple & Transparent Pricing
           </Badge>
           <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
             Unlock Sybau AI's Full Potential
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Choose the plan that fits your creative needs. Generate amazing Sybau images with our AI-powered platform.
+            Choose the perfect plan for your creative needs. Generate stunning Sybau images with our AI-powered platform.
           </p>
 
-          {/* Billing Toggle - Fixed overlap issue */}
+          {/* Billing Toggle */}
           <div className="flex items-center justify-center mb-8">
             <div className="bg-white rounded-full p-1 shadow-lg border relative">
               <div className="flex items-center relative">
@@ -262,10 +274,9 @@ export default function PricingPage() {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  Annual
+                  Yearly
                 </button>
               </div>
-              {/* Move the badge outside the button */}
               <div className="absolute -top-2 -right-2">
                 <Badge className="bg-green-500 text-white text-xs px-2 py-1 shadow-lg">
                   Save up to 37%
@@ -279,29 +290,8 @@ export default function PricingPage() {
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {pricingPlans.map((plan) => {
             const IconComponent = plan.icon
-            
-            // 检查用户是否已有此套餐（修复ID映射问题）
-            const hasCurrentPlan = userSubscription?.plan === plan.id
-            const isUpgrade = userSubscription?.plan && 
-              ((userSubscription.plan === 'free' && plan.id !== 'free') ||
-               (userSubscription.plan === 'standard' && plan.id === 'pro'))
-            
-            // 确定按钮文本和状态
-            let buttonText = plan.buttonText
-            let buttonDisabled = loadingPlan === plan.id || subscriptionLoading
-            
-            if (hasCurrentPlan) {
-              buttonText = 'Current Plan'
-              buttonDisabled = true
-            } else if (userSubscription?.plan === 'pro' && plan.id !== 'pro') {
-              buttonText = 'Downgrade'
-              buttonDisabled = true
-            } else if (isUpgrade) {
-              buttonText = plan.id === 'pro' ? 'Upgrade to PRO' : 'Upgrade'
-            }
-            
             return (
-              <Card key={plan.id} className={`relative overflow-hidden ${plan.popular ? 'ring-2 ring-purple-500 shadow-lg scale-105' : ''} ${hasCurrentPlan ? 'ring-2 ring-green-500' : ''}`}>
+              <Card key={plan.id} className={`relative overflow-hidden ${plan.popular ? 'ring-2 ring-purple-500 shadow-lg scale-105' : ''}`}>
                 {plan.badge && (
                   <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 text-sm font-medium">
                     {plan.badge}
@@ -314,11 +304,11 @@ export default function PricingPage() {
                   <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                   <div className="text-4xl font-bold text-gray-900 mb-2">
                     {plan.price}
-                    <span className="text-lg font-normal text-gray-600">/{plan.period}</span>
+                    <span className="text-lg font-normal text-gray-600">{plan.period}</span>
                   </div>
                   {plan.originalPrice && (
                     <div className="text-sm text-gray-500 line-through mb-2">
-                      {plan.originalPrice}/{plan.period}
+                      {plan.originalPrice}{plan.period}
                     </div>
                   )}
                   {plan.yearlyPrice && isAnnual && (
@@ -330,31 +320,19 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent>
                   <Button
-                    className={`w-full mb-6 ${
-                      hasCurrentPlan 
-                        ? 'bg-green-500 hover:bg-green-600 text-white' 
-                        : plan.popular ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' : ''
-                    }`}
-                    variant={hasCurrentPlan ? 'default' : plan.buttonVariant}
+                    className={`w-full mb-6 ${plan.popular ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' : ''}`}
+                    variant={userPlan === plan.id ? 'outline' : plan.buttonVariant}
                     size="lg"
                     onClick={() => handlePlanClick(plan.id)}
-                    disabled={buttonDisabled}
+                    disabled={userPlan === plan.id || loading}
                   >
-                    {loadingPlan === plan.id ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {status === 'loading' ? 'Loading...' : 'Processing...'}
-                      </>
-                    ) : !session && plan.id !== 'free' ? (
-                      `Login to Get ${plan.name}`
-                    ) : (
-                      buttonText
-                    )}
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {getButtonText(plan.id)}
                   </Button>
 
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold text-green-700 mb-2">What's included:</h4>
+                      <h4 className="font-semibold text-green-700 mb-2">Included:</h4>
                       <ul className="space-y-2">
                         {plan.features.map((feature, idx) => (
                           <li key={idx} className="flex items-start">
@@ -385,58 +363,6 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Features Comparison */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Compare All Plans</h2>
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Feature</th>
-                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Free</th>
-                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Standard</th>
-                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Professional</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900">Monthly Images</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">Basic quota</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">60</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">180</td>
-                  </tr>
-                  <tr className="bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">Max Resolution</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">1024x1024</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">2048x2048</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">4096x4096</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900">Watermarks</td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                  </tr>
-                  <tr className="bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">All Sybau Styles</td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900">Priority Processing</td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                  </tr>
-
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         {/* FAQ Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
@@ -456,7 +382,7 @@ export default function PricingPage() {
         <div className="text-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-8 text-white">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Creating?</h2>
           <p className="text-xl mb-6 opacity-90">
-            Join thousands of creators who use Sybau AI to bring their ideas to life.
+            Join thousands of creators using Sybau AI to bring their ideas to life.
           </p>
           <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100" onClick={() => router.push('/')}>
             Get Started Now

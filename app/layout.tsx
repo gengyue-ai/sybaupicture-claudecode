@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 import { Providers } from '@/components/providers'
 import BackgroundUserSync from '@/components/BackgroundUserSync'
 import { AuthStateHandler } from '@/components/AuthStateHandler'
-import { GoogleAnalytics } from '@/components/GoogleAds'
+import { GooglePageAds } from '@/components/GoogleAds'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -87,6 +87,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        
         {/* Favicon */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/logo-icon.svg" />
@@ -144,7 +145,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <GoogleAnalytics />
+        <GooglePageAds />
         <Providers>
           <AuthStateHandler />
           <BackgroundUserSync />

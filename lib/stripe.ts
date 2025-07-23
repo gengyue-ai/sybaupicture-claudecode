@@ -16,6 +16,7 @@ if (stripeSecretKey) {
     apiVersion: '2025-06-30.basil',
     typescript: true
   })
+  console.log('✅ Stripe initialized successfully')
 } else {
   console.warn('⚠️ Stripe Secret Key not configured - payment features will be disabled')
 }

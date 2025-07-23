@@ -5,55 +5,55 @@ const SITE_URL = 'https://sybaupicture.com'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sitemap: MetadataRoute.Sitemap = []
 
-  // 静态页面
+  // 静态页面 - 更新时间和优先级
   const staticPages = [
     {
       url: SITE_URL,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 1,
+      lastModified: new Date('2024-12-21'),
+      changeFrequency: 'daily' as const,
+      priority: 1.0,
     },
     {
       url: `${SITE_URL}/gallery`,
-      lastModified: new Date(),
+      lastModified: new Date('2024-12-21'),
       changeFrequency: 'daily' as const,
-      priority: 0.8,
+      priority: 0.9,
     },
     {
       url: `${SITE_URL}/pricing`,
-      lastModified: new Date(),
+      lastModified: new Date('2024-12-21'),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/help`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
+      lastModified: new Date('2024-12-21'),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
     },
     {
       url: `${SITE_URL}/support`,
-      lastModified: new Date(),
+      lastModified: new Date('2024-12-21'),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/contact`,
+      lastModified: new Date('2024-12-21'),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     },
     {
-      url: `${SITE_URL}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    },
-    {
       url: `${SITE_URL}/privacy`,
-      lastModified: new Date(),
+      lastModified: new Date('2024-12-21'),
       changeFrequency: 'monthly' as const,
-      priority: 0.3,
+      priority: 0.4,
     },
     {
       url: `${SITE_URL}/terms`,
-      lastModified: new Date(),
+      lastModified: new Date('2024-12-21'),
       changeFrequency: 'monthly' as const,
-      priority: 0.3,
+      priority: 0.4,
     },
   ]
 
@@ -75,11 +75,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // 重要页面多语言版本
       const i18nPages = ['gallery', 'pricing', 'help', 'support', 'contact', 'privacy', 'terms']
       i18nPages.forEach(page => {
-        const priority = page === 'gallery' ? 0.7 : 
-                        page === 'pricing' ? 0.8 :
-                        ['help', 'support'].includes(page) ? 0.5 :
-                        ['contact'].includes(page) ? 0.4 : 0.3
-        
+        const priority = page === 'gallery' ? 0.7 :
+          page === 'pricing' ? 0.8 :
+            ['help', 'support'].includes(page) ? 0.5 :
+              ['contact'].includes(page) ? 0.4 : 0.3
+
         sitemap.push({
           url: `${SITE_URL}/${lang}/${page}`,
           lastModified: new Date(),

@@ -165,7 +165,7 @@ export async function POST() {
         
         // 如果是测试用户，创建活跃订阅
         if (isTestUser) {
-          await prisma.subscription.create({
+          const subscription = await prisma.subscription.create({
             data: {
               userId: dbUser.id,
               planId: standardPlan.id,
@@ -178,6 +178,24 @@ export async function POST() {
             }
           })
           console.log('✅ 测试用户活跃订阅创建成功')
+          
+          // 重新获取用户数据，包含新创建的订阅
+          dbUser = await prisma.user.findUnique({
+            where: { id: dbUser.id },
+            include: {
+              plan: true,
+              subscriptions: {
+                where: { 
+                  status: { in: ['active', 'trialing'] }
+                },
+                include: {
+                  plan: true
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 1
+              }
+            }
+          }) || dbUser
         }
       } else {
         // 检查现有用户是否有套餐，如果没有则分配免费套餐
@@ -229,16 +247,57 @@ export async function POST() {
           })
           console.log('✅ 用户免费套餐分配成功')
         } else {
-          // 更新用户信息（特别是头像）
-          if (session.user.image && session.user.image !== dbUser.image) {
-            console.log('🖼️  更新用户头像')
-            dbUser = await prisma.user.update({
-              where: { email: session.user.email },
-              data: {
-                name: session.user.name || dbUser.name,
-                image: session.user.image,
-                updatedAt: new Date()
+          // 🔧 特殊处理：修复panyongqiang805@gmail.com用户的套餐状态
+          const isTestUser = session.user.email === 'panyongqiang805@gmail.com'
+          
+          if (isTestUser && dbUser.subscriptions.length === 0) {
+            console.log('🔧 修复测试用户的订阅状态:', session.user.email)
+            
+            // 确保标准套餐存在
+            const standardPlan = await prisma.plan.upsert({
+              where: { name: 'standard' },
+              create: {
+                name: 'standard',
+                displayName: 'Standard',
+                description: 'Standard plan with 60 images per month',
+                price: 9,
+                yearlyPrice: 72,
+                maxImagesPerMonth: 60,
+                maxResolution: '2048x2048',
+                hasWatermark: false,
+                hasPriorityProcessing: true,
+                hasBatchProcessing: false,
+                hasAdvancedFeatures: false,
+                availableStyles: JSON.stringify(['classic', 'modern', 'professional']),
               },
+              update: {}
+            })
+            
+            // 更新用户套餐为标准版
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { planId: standardPlan.id }
+            })
+            
+            // 创建活跃订阅
+            await prisma.subscription.create({
+              data: {
+                userId: dbUser.id,
+                planId: standardPlan.id,
+                status: 'active',
+                billingCycle: 'monthly',
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                stripeSubscriptionId: `test_standard_fix_${Date.now()}`,
+                stripeCustomerId: null
+              }
+            })
+            
+            console.log('✅ 测试用户订阅状态修复完成')
+            
+            // 重新获取用户数据
+            dbUser = await prisma.user.findUnique({
+              where: { id: dbUser.id },
               include: {
                 plan: true,
                 subscriptions: {
@@ -252,7 +311,33 @@ export async function POST() {
                   take: 1
                 }
               }
-            })
+            }) || dbUser
+          } else {
+            // 更新用户信息（特别是头像）
+            if (session.user.image && session.user.image !== dbUser.image) {
+              console.log('🖼️  更新用户头像')
+              dbUser = await prisma.user.update({
+                where: { email: session.user.email },
+                data: {
+                  name: session.user.name || dbUser.name,
+                  image: session.user.image,
+                  updatedAt: new Date()
+                },
+                include: {
+                  plan: true,
+                  subscriptions: {
+                    where: { 
+                      status: { in: ['active', 'trialing'] }
+                    },
+                    include: {
+                      plan: true
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    take: 1
+                  }
+                }
+              })
+            }
           }
         }
       }

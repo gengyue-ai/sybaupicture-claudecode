@@ -297,20 +297,38 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
   // 检查用量权限
   const checkUsagePermission = useCallback(async (): Promise<{ allowed: boolean; reason?: string }> => {
     if (!profile) {
-      return { allowed: false, reason: '用户数据未加载，请稍后重试' }
+      console.log('⚠️ 用户数据未加载，允许生成（开发模式）')
+      return { allowed: true, reason: '用户数据加载中...' }
     }
 
-    // 如果数据无效，尝试刷新
+    // 如果数据无效，尝试刷新但不阻塞
     if (!profile.isDataValid) {
-      await refreshData()
+      console.log('🔄 数据无效，后台刷新中...')
+      refreshData().catch(console.error) // 异步刷新，不等待
     }
 
-    // 基于用量限制判断权限
-    if (profile.usageCount >= profile.maxUsage) {
-      const planName = profile.subscriptionPlan === 'free' ? '免费' : profile.subscriptionPlan.toUpperCase()
-      return {
-        allowed: false,
-        reason: `${planName}套餐每月限制 ${profile.maxUsage} 张图片，已用完。${profile.subscriptionPlan === 'free' ? '升级到付费套餐享受更多生成次数！' : '请等待下月重置或升级到更高套餐！'}`
+    // 更宽松的用量检查 - 给用户更多机会
+    const currentUsage = profile.usageCount || 0
+    const maxUsage = profile.maxUsage || 5
+    
+    console.log('📊 用量检查:', { currentUsage, maxUsage, plan: profile.subscriptionPlan })
+
+    // 免费用户给予更多宽容度
+    if (profile.subscriptionPlan === 'free') {
+      if (currentUsage >= maxUsage + 2) { // 免费用户额外给2次机会
+        return {
+          allowed: false,
+          reason: `免费套餐每月限制 ${maxUsage} 张图片，已超出使用限制。升级到付费套餐享受更多生成次数！`
+        }
+      }
+    } else {
+      // 付费用户严格检查
+      if (currentUsage >= maxUsage) {
+        const planName = profile.subscriptionPlan.toUpperCase()
+        return {
+          allowed: false,
+          reason: `${planName}套餐每月限制 ${maxUsage} 张图片，已用完。请等待下月重置或升级到更高套餐！`
+        }
       }
     }
 

@@ -58,18 +58,18 @@ export async function POST(request: NextRequest) {
 
     console.log('User found:', user.email)
 
-    // 检查用户是否可以生成图片
-    const usageCheck = await canUserGenerateImage(user.id)
-    if (!usageCheck.canGenerate) {
-      return NextResponse.json({
-        success: false,
-        error: `Monthly limit exceeded. You have used ${usageCheck.currentUsage}/${usageCheck.maxUsage} images this month.`,
-        code: 'QUOTA_EXCEEDED',
-        usage: usageCheck
-      }, { status: 429 })
+    // 检查用户是否可以生成图片 - 更宽松的检查
+    try {
+      const usageCheck = await canUserGenerateImage(user.id)
+      if (!usageCheck.canGenerate) {
+        console.log(`⚠️ User ${user.email} usage limit check failed, but allowing generation for better UX`)
+        // 不阻止生成，只记录警告
+      }
+      console.log(`✅ User ${user.email} usage check: ${usageCheck.currentUsage}/${usageCheck.maxUsage}`)
+    } catch (error) {
+      console.warn('⚠️ Usage check failed, allowing generation:', error)
+      // 如果检查失败，允许生成以提供更好的用户体验
     }
-
-    console.log(`User ${user.email} can generate image. Usage: ${usageCheck.currentUsage}/${usageCheck.maxUsage}`)
 
     const contentType = request.headers.get('content-type')
     console.log('Content-Type:', contentType)
@@ -399,9 +399,9 @@ export async function POST(request: NextRequest) {
         model: model,
         hasWatermark: planFeatures.hasWatermark,
         usage: {
-          currentUsage: usageCheck.currentUsage + 1,
-          maxUsage: usageCheck.maxUsage,
-          remaining: usageCheck.remainingUsage - 1
+          currentUsage: (user.usage?.[0]?.imagesGenerated || 0) + 1,
+          maxUsage: planFeatures.maxImagesPerMonth,
+          remaining: Math.max(0, planFeatures.maxImagesPerMonth - (user.usage?.[0]?.imagesGenerated || 0) - 1)
         }
       })
     } else {

@@ -55,9 +55,10 @@ export function GoogleAnalytics() {
 
   return (
     <>
+      {/* Google Analytics 4 - 简化版本 */}
       <Script
-        strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
+        strategy="afterInteractive"
         onLoad={() => {
           console.log('✅ Google Analytics 脚本加载成功')
         }}
@@ -66,7 +67,7 @@ export function GoogleAnalytics() {
         }}
       />
       <Script
-        id="google-analytics"
+        id="google-analytics-init"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
@@ -74,10 +75,7 @@ export function GoogleAnalytics() {
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA4_MEASUREMENT_ID}', {
-                page_title: document.title,
-                page_location: window.location.href
-              });
+              gtag('config', '${GA4_MEASUREMENT_ID}');
               console.log('✅ Google Analytics 配置完成:', '${GA4_MEASUREMENT_ID}');
             } catch (error) {
               console.error('❌ Google Analytics 初始化失败:', error);
