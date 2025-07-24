@@ -111,24 +111,17 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
     }
   }, [status, session?.user?.email, refreshData])
 
-  // 防止无限加载的超时机制
+  // 防止无限加载的超时机制 - 简化逻辑
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (status === 'loading') {
+    if (status === 'loading') {
+      const timer = setTimeout(() => {
+        console.log('🚨 认证状态超时，强制渲染组件')
         setForceRender(true)
-      }
-    }, 1000) // 1秒超时
+      }, 2000) // 增加到2秒超时
 
-    return () => clearTimeout(timer)
-  }, [status])
-
-  // 检查是否为开发模式
-  const isDevelopmentMode = () => {
-    if (typeof window !== 'undefined') {
-      return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      return () => clearTimeout(timer)
     }
-    return false
-  }
+  }, [status])
 
   // 三种创作模式
   const allModes = [
@@ -233,14 +226,27 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
   }
 
   const handleGenerate = async () => {
+    console.log('🚀 开始生成图片，用户状态:', { 
+      hasSession: !!session, 
+      userEmail: session?.user?.email,
+      mode: generationMode,
+      textPrompt: textPrompt?.substring(0, 50) + '...',
+      hasFile: !!file
+    })
+
     if (!session) {
+      console.error('❌ 用户未登录')
       setError('请登录Google账户开始创作。注册即可免费获得每月1张图片额度！')
       return
     }
 
     // 🎯 按需检查用量权限
+    console.log('🔍 检查用量权限...')
     const permissionResult = await checkUsagePermission()
+    console.log('📊 权限检查结果:', permissionResult)
+    
     if (!permissionResult.allowed) {
+      console.warn('⚠️ 用量权限检查失败:', permissionResult.reason)
       setError(permissionResult.reason || 'Generation limit reached. Please upgrade your plan to continue.')
       return
     }
@@ -276,25 +282,32 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
 
       // 准备API请求
 
+      console.log('📡 发送API请求到 /api/generate')
       const response = await fetch('/api/generate', {
         method: 'POST',
         body: formData
       })
 
+      console.log('📡 API响应状态:', response.status, response.statusText)
       const data = await response.json()
+      console.log('📡 API响应数据:', data)
 
       if (response.ok) {
+        console.log('✅ 图片生成成功:', data.imageUrl)
         setGeneratedImage(data.imageUrl)
         setError(null)
         // 🎯 更新用量计数
         await updateUsageCount()
       } else {
+        console.error('❌ 图片生成失败:', data)
         setError(data.error || data.details || 'Failed to generate image. Please try again.')
       }
     } catch (error) {
+      console.error('💥 图片生成异常:', error)
       setError('Generation failed. Please check your network connection and try again.')
     } finally {
       setIsGenerating(false)
+      console.log('🏁 图片生成流程结束')
     }
   }
 
@@ -387,8 +400,9 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
     }
   }
 
-  // 加载状态 - 带超时保护和开发模式检查
-  if (status === 'loading' && !forceRender && !isDevelopmentMode()) {
+  // 🔧 修复：简化加载状态逻辑，只有在真正需要时才显示加载
+  if (status === 'loading' && !forceRender) {
+    console.log('🔄 组件加载中，等待认证状态确认...')
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         <Card className="border-2 border-purple-200 shadow-lg">
@@ -397,11 +411,22 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
               <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
               <span className="text-lg text-gray-600">加载中...</span>
             </div>
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-500">正在检查登录状态，如果持续加载请刷新页面</p>
+            </div>
           </CardContent>
         </Card>
       </div>
     )
   }
+
+  // 🔧 添加调试信息
+  console.log('🎨 ImageGenerator渲染状态:', { 
+    status, 
+    hasSession: !!session, 
+    userEmail: session?.user?.email,
+    forceRender 
+  })
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
