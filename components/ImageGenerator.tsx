@@ -282,32 +282,31 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
 
       // 准备API请求
 
-      console.log('📡 发送API请求到 /api/generate')
+      // Sending API request
       const response = await fetch('/api/generate', {
         method: 'POST',
         body: formData
       })
 
-      console.log('📡 API响应状态:', response.status, response.statusText)
       const data = await response.json()
-      console.log('📡 API响应数据:', data)
+      // API response received
 
       if (response.ok) {
-        console.log('✅ 图片生成成功:', data.imageUrl)
+        // Image generation successful
         setGeneratedImage(data.imageUrl)
         setError(null)
         // 🎯 更新用量计数
         await updateUsageCount()
       } else {
-        console.error('❌ 图片生成失败:', data)
+        // Image generation failed
         setError(data.error || data.details || 'Failed to generate image. Please try again.')
       }
     } catch (error) {
-      console.error('💥 图片生成异常:', error)
+      // Image generation error
       setError('Generation failed. Please check your network connection and try again.')
     } finally {
       setIsGenerating(false)
-      console.log('🏁 图片生成流程结束')
+      // Generation process completed
     }
   }
 

@@ -18,7 +18,7 @@ async function ensureUserExists(userData: {
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`🔄 尝试创建/更新用户 (${attempt}/${maxRetries}):`, userData.email)
+      // Attempting user sync
       
       // 查找或创建用户
       const user = await prisma.user.upsert({
@@ -44,13 +44,7 @@ async function ensureUserExists(userData: {
         }
       })
 
-      console.log('✅ 用户记录同步成功:', {
-        email: user.email,
-        planId: user.planId,
-        planName: user.plan?.name || 'free',
-        hasActiveSubscription: user.subscriptions.length > 0,
-        attempt: attempt
-      })
+      // User sync successful
 
       return user
     } catch (error: any) {
@@ -64,7 +58,7 @@ async function ensureUserExists(userData: {
       // 如果不是最后一次尝试，等待后重试
       if (attempt < maxRetries) {
         const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000) // 指数退避，最大5秒
-        console.log(`⏳ ${delayMs}ms 后重试...`)
+        // Retrying after delay
         await new Promise(resolve => setTimeout(resolve, delayMs))
       }
     }
@@ -114,7 +108,7 @@ export const authOptions: NextAuthOptions = {
           image: user.image || null
         })
         
-        console.log('✅ 用户登录并同步:', user.email)
+        // User signed in and synced
         return true
       } catch (error) {
         console.error('❌ 用户创建失败:', error)
@@ -124,23 +118,23 @@ export const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       // 🔧 修复重定向逻辑：确保用户能正常返回首页
-      console.log('🔄 Redirect callback:', { url, baseUrl })
+      // Redirect callback
       
       // 如果是相对URL，直接拼接baseUrl
       if (url.startsWith('/')) {
         const redirectUrl = baseUrl + url
-        console.log('✅ Relative URL redirect:', redirectUrl)
+        // Relative URL redirect
         return redirectUrl
       }
       
       // 如果是完整URL且是同域名，允许重定向
       if (url.startsWith(baseUrl)) {
-        console.log('✅ Same domain redirect:', url)
+        // Same domain redirect
         return url
       }
       
       // 默认重定向到首页
-      console.log('🏠 Default redirect to home:', baseUrl)
+      // Default redirect to home
       return baseUrl
     },
 
@@ -171,18 +165,13 @@ export const authOptions: NextAuthOptions = {
             token.subscriptionPlan = dbUser.plan?.name || 'free'
             token.isSubscribed = dbUser.subscriptions.length > 0
             
-            console.log('✅ JWT套餐信息同步:', {
-              email: user.email,
-              planId: dbUser.planId,
-              subscriptionPlan: token.subscriptionPlan,
-              isSubscribed: token.isSubscribed
-            })
+            // JWT plan info synced
           } else {
             // 降级处理：如果用户不存在，使用默认值
             token.planId = 'free'
             token.subscriptionPlan = 'free'
             token.isSubscribed = false
-            console.warn('⚠️ 用户不存在，使用默认套餐信息:', user.email)
+            // User not found, using default plan
           }
         } catch (error) {
           console.error('❌ JWT套餐信息获取失败:', error)
@@ -206,16 +195,11 @@ export const authOptions: NextAuthOptions = {
         ;(session.user as any).subscriptionPlan = token.subscriptionPlan || 'free'
         ;(session.user as any).isSubscribed = token.isSubscribed || false
         
-        console.log('✅ Session套餐信息:', {
-          email: session.user.email,
-          planId: (session.user as any).planId,
-          subscriptionPlan: (session.user as any).subscriptionPlan,
-          isSubscribed: (session.user as any).isSubscribed
-        })
+        // Session plan info loaded
       }
       return session
     }
   },
 
-  debug: true,
+  debug: false,
 }

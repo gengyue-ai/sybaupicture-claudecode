@@ -19,7 +19,7 @@ async function configureFalClient() {
     throw new Error('FAL_KEY environment variable is required')
   }
 
-  console.log('Using Fal API Key:', falKey.substring(0, 10) + '...')
+  // Fal API Key configured
 
   fal.config({
     credentials: falKey
@@ -30,7 +30,7 @@ async function configureFalClient() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== Starting image generation ===')
+    // Starting image generation
 
     // 配置 Fal AI 客户端
     const { fal } = await configureFalClient()
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // 获取用户信息
     const user = await getCurrentUserWithSubscription()
     if (!user) {
-      console.error('User not found for session:', session?.user?.email)
+      // User not found
       return NextResponse.json({
         success: false,
         error: 'User not found',
@@ -56,23 +56,23 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    console.log('User found:', user.email)
+    // User authenticated
 
     // 检查用户是否可以生成图片 - 更宽松的检查
     try {
       const usageCheck = await canUserGenerateImage(user.id)
       if (!usageCheck.canGenerate) {
-        console.log(`⚠️ User ${user.email} usage limit check failed, but allowing generation for better UX`)
+        // Usage limit warning, allowing generation
         // 不阻止生成，只记录警告
       }
-      console.log(`✅ User ${user.email} usage check: ${usageCheck.currentUsage}/${usageCheck.maxUsage}`)
+      // Usage check passed
     } catch (error) {
-      console.warn('⚠️ Usage check failed, allowing generation:', error)
+      // Usage check failed, allowing generation
       // 如果检查失败，允许生成以提供更好的用户体验
     }
 
     const contentType = request.headers.get('content-type')
-    console.log('Content-Type:', contentType)
+    // Processing request content
 
     let prompt = ''
     let imageUrl = ''
@@ -85,17 +85,10 @@ export async function POST(request: NextRequest) {
       const promptText = formData.get('prompt') as string
       mode = formData.get('mode') as string || 'text-to-image'
 
-      console.log('📝 FormData debug info:', {
-        mode,
-        hasFile: !!file,
-        fileName: file?.name,
-        fileSize: file?.size,
-        promptText,
-        allKeys: Array.from(formData.keys())
-      })
+      // Processing form data
 
       if (!promptText || promptText.trim() === '') {
-        console.error('❌ Empty prompt received')
+        // Empty prompt error
         return NextResponse.json({
           success: false,
           error: 'Prompt is required',
@@ -112,7 +105,7 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(bytes)
         const base64 = buffer.toString('base64')
         imageUrl = `data:${file.type};base64,${base64}`
-        console.log('Image converted to base64, length:', base64.length)
+        // Image processed
         prompt = promptText || 'Transform this image into a Sybau style meme'
       } else {
         // text-to-image mode
@@ -129,8 +122,7 @@ export async function POST(request: NextRequest) {
       mode = body.mode || 'text-to-image'
     }
 
-    console.log('Prompt:', prompt)
-    console.log('Has image:', !!imageUrl)
+    // Request parameters processed
 
     // 🎯 修复：中文prompt翻译成英文
     const translateChineseToEnglish = (chineseText: string): string => {
@@ -265,14 +257,14 @@ export async function POST(request: NextRequest) {
       
       // 如果包含中文，先翻译成英文
       if (containsChinese) {
-        console.log('🔤 检测到中文prompt，开始翻译:', userPrompt)
+        // Chinese prompt detected, translating
         processedPrompt = translateChineseToEnglish(userPrompt)
-        console.log('✅ 翻译结果:', processedPrompt)
+        // Translation completed
         
         // 如果翻译后仍然包含中文，添加通用英文描述
         if (/[\u4e00-\u9fff]/.test(processedPrompt)) {
           processedPrompt = `${processedPrompt}, realistic scene, detailed composition`
-          console.log('⚠️ 部分中文未翻译，添加通用描述:', processedPrompt)
+          // Added generic description for untranslated text
         }
       }
       
@@ -297,7 +289,7 @@ export async function POST(request: NextRequest) {
 
     // 根据用户套餐设置图片分辨率和质量
     const userPlanFeatures = await getUserPlanFeatures(user.id)
-    console.log('User plan features:', userPlanFeatures)
+    // User plan retrieved
     
     // 根据套餐设置分辨率
     let imageSize = '1024x1024' // 默认分辨率（免费套餐）
@@ -306,13 +298,13 @@ export async function POST(request: NextRequest) {
     if (userPlanFeatures.hasPriorityProcessing) {
       imageSize = '1024x1024' // Fal AI Flux 目前最高支持1024x1024
       useHighQualityModel = true
-      console.log('🔥 PRO用户 - 使用高质量模型和最高分辨率')
+      // PRO user - high quality model
     } else if (userPlanFeatures.maxImagesPerMonth > 1) {
       imageSize = '1024x1024' // 标准用户也使用1024x1024
       useHighQualityModel = true
-      console.log('⭐ Standard用户 - 使用高质量模型')
+      // Standard user - high quality model
     } else {
-      console.log('💡 免费用户 - 使用标准模型')
+      // Free user - standard model
     }
 
     // 选择合适的模型
@@ -338,28 +330,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('Using model:', model)
-    console.log('Input parameters:', JSON.stringify({...input, image_url: imageUrl ? '[base64 data]' : undefined}, null, 2))
+    // API parameters configured
 
     // 调用真实Fal AI API
-    console.log('🚀 调用真实Fal AI API...')
+    // Calling Fal AI API
     const result = await fal.subscribe(model, {
       input,
       logs: true,
       onQueueUpdate: (update) => {
-        console.log('Queue update:', update)
+        // API queue update
       }
     })
 
-    console.log('Fal AI API result:', JSON.stringify(result, null, 2))
+    // API result received
     const apiResult = result as { images?: Array<{ url: string }> }
 
     if (apiResult.images && apiResult.images.length > 0) {
-      console.log('✅ Image generated successfully!')
+      // Image generation successful
 
       // 记录用户使用情况
       await recordImageGeneration(user.id)
-      console.log(`Recorded image generation for user ${user.email}`)
+      // Usage recorded
 
       // 保存生成的图片到数据库（如果数据库可用）
       if (config.database.url && prisma) {
@@ -381,9 +372,9 @@ export async function POST(request: NextRequest) {
               })
             }
           })
-          console.log('✅ 图片已保存到数据库')
+          // Image saved to database
         } catch (dbError) {
-          console.error('❌ 数据库保存失败:', dbError)
+          // Database save failed
           // 不阻塞图片生成，继续返回结果
         }
       }
@@ -405,7 +396,7 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      console.error('No images generated')
+      // No images generated
       return NextResponse.json({
         success: false,
         error: 'No images were generated'
