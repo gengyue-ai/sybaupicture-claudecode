@@ -16,10 +16,14 @@ async function configureFalClient() {
   const falKey = process.env.FAL_KEY
 
   if (!falKey) {
+    console.error('❌ FAL_KEY环境变量缺失:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasFalKey: !!falKey
+    })
     throw new Error('FAL_KEY environment variable is required')
   }
 
-  // Fal API Key configured
+  console.log('✅ Fal AI配置成功')
 
   fal.config({
     credentials: falKey
@@ -80,21 +84,22 @@ export async function POST(request: NextRequest) {
 
     if (contentType?.includes('multipart/form-data')) {
       // 处理文件上传
-      const formData = await request.formData()
-      const file = formData.get('file') as File
-      const promptText = formData.get('prompt') as string
-      mode = formData.get('mode') as string || 'text-to-image'
+      try {
+        const formData = await request.formData()
+        const file = formData.get('file') as File
+        const promptText = formData.get('prompt') as string
+        mode = formData.get('mode') as string || 'text-to-image'
 
-      // Processing form data
+        console.log('📋 FormData解析结果:', {
+          hasFile: !!file,
+          promptLength: promptText?.length || 0,
+          mode: mode
+        })
 
-      if (!promptText || promptText.trim() === '') {
-        // Empty prompt error
-        return NextResponse.json({
-          success: false,
-          error: 'Prompt is required',
-          code: 'MISSING_PROMPT'
-        }, { status: 422 })
-      }
+        // 为空prompt提供默认值，而不是直接返回错误
+        const finalPromptText = promptText && promptText.trim() !== '' 
+          ? promptText 
+          : 'Create a beautiful AI-generated image'
 
       if (mode === 'image-to-image') {
         if (!file) {
@@ -106,13 +111,18 @@ export async function POST(request: NextRequest) {
         const base64 = buffer.toString('base64')
         imageUrl = `data:${file.type};base64,${base64}`
         // Image processed
-        prompt = promptText || 'Transform this image into a Sybau style meme'
+        prompt = finalPromptText || 'Transform this image into a Sybau style meme'
       } else {
         // text-to-image mode
-        prompt = promptText || 'Create a Sybau style image'
-        if (!prompt.trim()) {
-          throw new Error('Prompt is required for text-to-image mode')
-        }
+        prompt = finalPromptText || 'Create a Sybau style image'
+      }
+      } catch (formDataError) {
+        console.error('❌ FormData解析失败:', formDataError)
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to parse form data',
+          code: 'FORMDATA_PARSE_ERROR'
+        }, { status: 422 })
       }
     } else {
       // 处理 JSON 请求
@@ -333,16 +343,22 @@ export async function POST(request: NextRequest) {
     // API parameters configured
 
     // 调用真实Fal AI API
-    // Calling Fal AI API
+    console.log('🎯 调用Fal AI API:', {
+      model,
+      hasPrompt: !!input.prompt,
+      imageSize: input.image_size,
+      hasImageUrl: !!input.image_url
+    })
+    
     const result = await fal.subscribe(model, {
       input,
       logs: true,
       onQueueUpdate: (update) => {
-        // API queue update
+        console.log('📊 API队列更新:', update)
       }
     })
 
-    // API result received
+    console.log('✅ Fal AI API响应成功')
     const apiResult = result as { images?: Array<{ url: string }> }
 
     if (apiResult.images && apiResult.images.length > 0) {
@@ -406,11 +422,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Image generation error:', error)
     
-    // 返回详细错误信息
+    // 🔒 生产环境安全：不暴露敏感错误信息
+    const isProduction = process.env.NODE_ENV === 'production'
+    
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-      details: error instanceof Error ? error.stack : undefined
+      error: error instanceof Error ? error.message : 'Image generation failed. Please try again.',
+      details: isProduction ? undefined : (error instanceof Error ? error.stack : undefined)
     }, { status: 500 })
   }
 }

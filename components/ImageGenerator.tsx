@@ -107,9 +107,10 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
   // 在用户登录时同步数据
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.email) {
-      refreshData()
+      // 🎯 Ultra-Think根本修复：直接调用，避免依赖refreshData导致循环
+      refreshData().catch(console.error)
     }
-  }, [status, session?.user?.email, refreshData])
+  }, [status, session?.user?.email])
 
   // 防止无限加载的超时机制 - 简化逻辑
   useEffect(() => {

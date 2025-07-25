@@ -5,6 +5,9 @@ import { stripe, createCheckoutSession, createStripeCustomer, STRIPE_PRICE_IDS }
 import { getCurrentUserWithSubscription } from '@/lib/subscription'
 import { prisma } from '@/lib/prisma'
 
+// 环境判断
+const isProduction = process.env.NODE_ENV === 'production'
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -71,17 +74,11 @@ export async function POST(request: NextRequest) {
     // 检查用户是否已经有订阅
     if (activeSubscription) {
       const currentPlan = activeSubscription.plan.name
-      console.log('💳 Payment request analysis:', {
-        userEmail: user.email,
-        currentPlan,
-        requestedPlan: planType,
-        billingCycle,
-        subscriptionId: activeSubscription.stripeSubscriptionId
-      })
+      // Payment request analysis
       
       // 如果用户已经有相同的套餐，允许切换计费周期
       if (currentPlan === planType) {
-        console.log('🔄 Same plan requested - allowing billing cycle change')
+        // Same plan - allowing billing cycle change
         // 允许在月付和年付之间切换
       }
       
@@ -95,30 +92,25 @@ export async function POST(request: NextRequest) {
       
       // 允许从 Standard 升级到 PRO
       if (currentPlan === 'standard' && planType === 'pro') {
-        console.log('✨ User upgrading from Standard to PRO - creating upgrade session')
+        // User upgrading from Standard to PRO
       }
       
       // 允许免费用户升级到任何付费套餐
       if (currentPlan === 'free') {
-        console.log(`🚀 Free user upgrading to ${planType}`)
+        // Free user upgrading
       }
     }
 
     // 检查Stripe是否配置
     if (!stripe) {
-      console.error('❌ Stripe not configured')
-      const isProduction = process.env.NODE_ENV === 'production'
-      console.error('🔍 Environment debug:', {
+      console.error('❌ Stripe配置缺失:', {
         NODE_ENV: process.env.NODE_ENV,
         isProduction,
-        hasStripeDev: !!process.env.STRIPE_SECRET_KEY_DEV,
-        hasStripeProd: !!process.env.STRIPE_SECRET_KEY_PROD,
-        hasStripeGeneric: !!process.env.STRIPE_SECRET_KEY,
-        hasPublishableDev: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV,
-        hasPublishableProd: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD,
-        expectedSecretKey: isProduction ? 'STRIPE_SECRET_KEY_PROD or STRIPE_SECRET_KEY' : 'STRIPE_SECRET_KEY_DEV or STRIPE_SECRET_KEY',
-        expectedPublishableKey: isProduction ? 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD or NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY' : 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV or NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'
+        hasStripeSecretKeyProd: !!process.env.STRIPE_SECRET_KEY_PROD,
+        hasStripeSecretKeyDev: !!process.env.STRIPE_SECRET_KEY_DEV,
+        hasStripeSecretKey: !!process.env.STRIPE_SECRET_KEY
       })
+      
       return NextResponse.json(
         { 
           error: 'Payment system temporarily unavailable',
@@ -132,12 +124,10 @@ export async function POST(request: NextRequest) {
     // 获取价格ID
     const priceId = STRIPE_PRICE_IDS[planType as keyof typeof STRIPE_PRICE_IDS]?.[billingCycle as keyof typeof STRIPE_PRICE_IDS.standard]
 
-    console.log('Payment request:', { planType, billingCycle, priceId })
-    console.log('Available price IDs:', STRIPE_PRICE_IDS)
-    console.log('User info:', { userId: user.id, email: user.email, stripeCustomerId: user.stripeCustomerId })
+    // Payment request processed
 
     if (!priceId) {
-      console.error('Price ID not found:', { planType, billingCycle, availablePrices: STRIPE_PRICE_IDS })
+      // Price ID not found
       return NextResponse.json(
         { error: `Price not found for ${planType} ${billingCycle}` },
         { status: 404 }
@@ -160,11 +150,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 创建结算会话
-    console.log('Creating checkout session for user:', user.email)
+    // Creating checkout session
     
     // 获取正确的基础URL - 优先使用NEXTAUTH_URL，然后是NEXT_PUBLIC_BASE_URL
     const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://sybaupicture.com'
-    console.log('Using base URL for payment:', baseUrl)
+    // Using base URL for payment
     
     const checkoutSession = await createCheckoutSession({
       customerId: stripeCustomerId,
@@ -173,7 +163,7 @@ export async function POST(request: NextRequest) {
       cancelUrl: `${baseUrl}/pricing`,
       userId: user.id
     })
-    console.log('Checkout session created:', checkoutSession.id)
+    // Checkout session created
 
     return NextResponse.json({
       sessionId: checkoutSession.id,
@@ -181,7 +171,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error creating checkout session:', error)
+    // Error creating checkout session
     
     // 提供更详细的错误信息用于调试
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -191,7 +181,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     }
     
-    console.error('Detailed error:', errorDetails)
+    // Detailed error logged
     
     return NextResponse.json(errorDetails, { status: 500 })
   }

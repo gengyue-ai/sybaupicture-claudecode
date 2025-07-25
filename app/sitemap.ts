@@ -5,53 +5,54 @@ const SITE_URL = 'https://sybaupicture.com'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sitemap: MetadataRoute.Sitemap = []
 
-  // 静态页面 - 更新时间和优先级
+  // 静态页面 - 统一更新时间
+  const lastModified = new Date()
   const staticPages = [
     {
       url: SITE_URL,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'daily' as const,
       priority: 1.0,
     },
     {
       url: `${SITE_URL}/gallery`,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'daily' as const,
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/pricing`,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/help`,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'weekly' as const,
-      priority: 0.7,
+      priority: 0.8,
     },
     {
       url: `${SITE_URL}/support`,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     },
     {
       url: `${SITE_URL}/contact`,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     },
     {
       url: `${SITE_URL}/privacy`,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'monthly' as const,
       priority: 0.4,
     },
     {
       url: `${SITE_URL}/terms`,
-      lastModified: new Date('2024-12-21'),
+      lastModified: lastModified,
       changeFrequency: 'monthly' as const,
       priority: 0.4,
     },

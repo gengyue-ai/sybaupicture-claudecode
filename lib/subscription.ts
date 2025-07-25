@@ -57,7 +57,7 @@ export async function getCurrentUserWithSubscription() {
   }
 
   if (!prisma) {
-    console.warn('⚠️  数据库不可用，创建临时用户对象')
+    // 数据库不可用，创建临时用户对象
     // 创建临时用户对象，用于无数据库模式
     return {
       id: `temp-${session.user.email}`,
@@ -73,7 +73,7 @@ export async function getCurrentUserWithSubscription() {
   }
 
   try {
-    console.log(`🔍 查询用户: ${session.user.email}`)
+    // 查询用户
     
     let user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -97,11 +97,11 @@ export async function getCurrentUserWithSubscription() {
     })
 
     if (!user) {
-      console.warn(`⚠️ 用户未找到: ${session.user.email}`)
+      // 用户未找到
       
       // 尝试创建缺失的用户记录
       try {
-        console.log('🔄 创建缺失的用户记录...')
+        // 创建缺失的用户记录
         user = await prisma.user.create({
           data: {
             email: session.user.email,
@@ -127,7 +127,7 @@ export async function getCurrentUserWithSubscription() {
             }
           }
         })
-        console.log('✅ 用户记录创建成功:', user.email)
+        // 用户记录创建成功
       } catch (error) {
         console.error('❌ 用户记录创建失败:', error)
         return null
@@ -135,12 +135,17 @@ export async function getCurrentUserWithSubscription() {
     }
 
     if (user) {
+      // 🎯 Ultra-Think分析：确定用户实际套餐
+      const effectivePlan = user.subscriptions?.[0]?.plan || user.plan
+      const effectivePlanName = effectivePlan?.name || 'free'
+      
       console.log(`✅ 用户数据获取成功:`, {
         email: user.email,
         planId: user.planId,
         planName: user.plan?.name,
         activeSubscriptions: user.subscriptions?.length,
         subscriptionPlan: user.subscriptions?.[0]?.plan?.name,
+        effectivePlanName: effectivePlanName,
         usageRecords: user.usage?.length
       })
     }
@@ -397,17 +402,41 @@ export async function getUserPlanType(userId: string): Promise<PlanType> {
   }
 
   try {
+    // 🎯 Ultra-Think修复：同时检查活跃订阅和直接套餐关联
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { plan: true }
+      include: { 
+        plan: true,
+        subscriptions: {
+          where: { status: 'active' },
+          include: { plan: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
     })
 
-    if (!user?.plan) {
+    if (!user) {
+      return 'free'
+    }
+
+    // 优先级：活跃订阅套餐 > 用户直接关联套餐 > 免费套餐
+    const effectivePlan = user.subscriptions?.[0]?.plan || user.plan
+    
+    if (!effectivePlan) {
       return 'free'
     }
 
     // 根据套餐名称确定类型
-    const planName = user.plan.name?.toLowerCase()
+    const planName = effectivePlan.name?.toLowerCase()
+    console.log(`🔍 用户套餐分析:`, {
+      userId,
+      userEmail: user.email,
+      planName: effectivePlan.name,
+      hasActiveSubscription: !!user.subscriptions?.[0],
+      finalPlanType: planName?.includes('pro') ? 'pro' : planName?.includes('standard') ? 'standard' : 'free'
+    })
+    
     if (planName?.includes('pro')) return 'pro'
     if (planName?.includes('standard')) return 'standard'
     return 'free'

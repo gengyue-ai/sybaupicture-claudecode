@@ -16,9 +16,9 @@ if (stripeSecretKey) {
     apiVersion: '2025-06-30.basil',
     typescript: true
   })
-  console.log('✅ Stripe initialized successfully')
+  // Stripe initialized
 } else {
-  console.warn('⚠️ Stripe Secret Key not configured - payment features will be disabled')
+  // Stripe not configured
 }
 
 export { stripe }
@@ -30,7 +30,7 @@ export const getStripe = () => {
     : (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   
   if (!publishableKey) {
-    console.error('❌ Stripe Publishable Key not configured')
+    // Stripe Publishable Key not configured
     return null
   }
   return loadStripe(publishableKey)
@@ -63,7 +63,7 @@ export async function createStripeCustomer(email: string, name?: string) {
       }
     })
   } catch (error) {
-    console.error('❌ Failed to create Stripe customer:', error)
+    // Failed to create Stripe customer
     throw error
   }
 }
@@ -87,13 +87,7 @@ export async function createCheckoutSession({
   }
   
   try {
-    console.log('🔄 Creating checkout session:', {
-      customerId,
-      priceId,
-      successUrl,
-      cancelUrl,
-      userId
-    })
+    // Creating checkout session
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -119,10 +113,10 @@ export async function createCheckoutSession({
       }
     })
 
-    console.log('✅ Checkout session created:', session.id)
+    // Checkout session created
     return session
   } catch (error) {
-    console.error('❌ Failed to create checkout session:', error)
+    // Failed to create checkout session
     throw error
   }
 }
@@ -139,7 +133,7 @@ export async function createPortalSession(customerId: string, returnUrl: string)
       return_url: returnUrl
     })
   } catch (error) {
-    console.error('❌ Failed to create portal session:', error)
+    // Failed to create portal session
     throw error
   }
 }
@@ -155,7 +149,7 @@ export async function cancelSubscription(subscriptionId: string) {
       cancel_at_period_end: true
     })
   } catch (error) {
-    console.error('❌ Failed to cancel subscription:', error)
+    // Failed to cancel subscription
     throw error
   }
 }
@@ -171,7 +165,7 @@ export async function resumeSubscription(subscriptionId: string) {
       cancel_at_period_end: false
     })
   } catch (error) {
-    console.error('❌ Failed to resume subscription:', error)
+    // Failed to resume subscription
     throw error
   }
 }
@@ -185,7 +179,7 @@ export async function getSubscription(subscriptionId: string) {
   try {
     return await stripe.subscriptions.retrieve(subscriptionId)
   } catch (error) {
-    console.error('❌ Failed to get subscription:', error)
+    // Failed to get subscription
     throw error
   }
 }
@@ -199,7 +193,7 @@ export async function getPrice(priceId: string) {
   try {
     return await stripe.prices.retrieve(priceId)
   } catch (error) {
-    console.error('❌ Failed to get price:', error)
+    // Failed to get price
     throw error
   }
 }
@@ -213,7 +207,7 @@ export async function getProduct(productId: string) {
   try {
     return await stripe.products.retrieve(productId)
   } catch (error) {
-    console.error('❌ Failed to get product:', error)
+    // Failed to get product
     throw error
   }
 }
@@ -231,7 +225,7 @@ export function constructEvent(
   try {
     return stripe.webhooks.constructEvent(payload, signature, secret)
   } catch (error) {
-    console.error('❌ Failed to construct webhook event:', error)
+    // Failed to construct webhook event
     throw error
   }
 }

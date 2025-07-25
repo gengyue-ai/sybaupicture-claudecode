@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, createContext, useContext } from 'react'
+import { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 
 // 用户数据类型定义
@@ -83,10 +83,14 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     hasInitialized: false
   })
 
+  // 同步状态引用，避免循环依赖
+  const isSyncingRef = useRef(false)
+
   // 后台静默同步数据
   const backgroundSync = useCallback(async () => {
-    if (!session?.user?.email || syncState.isSyncing) return
+    if (!session?.user?.email || isSyncingRef.current) return
 
+    isSyncingRef.current = true
     setSyncState(prev => ({ ...prev, isSyncing: true, error: null }))
 
     try {
@@ -207,13 +211,14 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
       console.warn('⚠️ 后台同步异常，不影响用户使用:', error)
       setSyncState(prev => ({ ...prev, error: String(error) }))
     } finally {
+      isSyncingRef.current = false
       setSyncState(prev => ({ 
         ...prev, 
         isSyncing: false, 
         lastSyncTime: Date.now()
       }))
     }
-  }, [session?.user?.email, syncState.isSyncing])
+  }, [session?.user?.email]) // 🎯 Ultra-Think根本修复：移除syncState.isSyncing避免无限循环
 
   // 用户登录后立即显示基本信息，然后异步同步详细数据
   useEffect(() => {
@@ -279,7 +284,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         hasInitialized: false
       })
     }
-  }, [status, session?.user?.email, syncState.hasInitialized, backgroundSync])
+  }, [status, session?.user?.email, syncState.hasInitialized]) // 🎯 Ultra-Think修复：移除backgroundSync避免无限循环
 
   // 手动刷新数据
   const refreshData = useCallback(async () => {
