@@ -240,10 +240,11 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
             })
             
             // 简洁的提示信息
-            toast.error(currentLang === 'zh' ? '用户已存在' : 'User already exists')
+            toast.error(currentLang === 'zh' ? '该邮箱已注册，请直接登录' : 'This email is already registered, please sign in')
             
-            // 显示登录引导
+            // 显示登录引导并停止加载
             setShowUserExistsGuide(true)
+            setIsLoading(false)
             console.log('✅ 已设置showUserExistsGuide为true')
             return
           }
@@ -474,6 +475,7 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
     setCurrentMode(currentMode === 'signin' ? 'signup' : 'signin')
     setName('')
     setPassword('')
+    setShowUserExistsGuide(false) // 切换模式时重置用户存在提示
   }
 
   return (
