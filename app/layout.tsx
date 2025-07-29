@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
+import { Toaster as SonnerToaster } from 'sonner'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { Providers } from '@/components/providers'
@@ -179,6 +180,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <SonnerToaster />
         </Providers>
       </body>
     </html>
