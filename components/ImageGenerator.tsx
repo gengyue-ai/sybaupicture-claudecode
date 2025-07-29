@@ -2,15 +2,20 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+// import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { Upload, Download, Wand2, Sparkles, Loader2, AlertCircle, CheckCircle, X, Type, Image as ImageIcon, LogIn, Crown, Star, Lock, User, RotateCcw } from 'lucide-react'
+import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider'
+import { Upload, Download, Sparkles, Loader2, AlertCircle, X, Type, Image as ImageIcon, Star, Lock, RotateCcw, Zap, Target, ArrowRight, Grid } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useUserProfile } from '@/hooks/useUserProfile'
+import { getTemplateById, categoryInfo, templateData, type TemplateData } from '@/lib/templateData'
+import { getUserAvailableTemplates } from '@/lib/subscription'
+import { useSearchParams, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { SessionUser } from '@/types'
 
 interface ImageGeneratorProps {
   texts: {
@@ -67,12 +72,51 @@ interface ImageGeneratorProps {
     creationPreparation?: string
     creationPreparationDesc?: string
     creationMode?: string
+    // 新增的文本键  
+    textToImage?: string
+    smartRetouch?: string
+    hdEnhance?: string
+    imageEdit?: string
+    textMode?: string
+    imageMode?: string
+    dragImagePlaceholder?: string
+    selectFile?: string
+    styleOptional?: string
+    style?: string
+    intensity?: string
+    generate?: string
+    result?: string
+    random?: string
+    // 新增国际化键
+    templateLibrary?: string
+    processingIntensity?: string
+    uploadImage?: string
+    optionalDescription?: string
+    templatesCount?: string
+    dragOrPaste?: string
+    supportedFormatsDetail?: string
+    imageToImage?: string
+    aiProcessing?: string
+    estimatedTime?: string
+    needUpgrade?: string
+    upgradeNow?: string
   }
 }
 
 export default function ImageGenerator({ texts }: ImageGeneratorProps) {
   const { data: session, status } = useSession()
   const { checkUsagePermission, updateUsageCount, usageCount, maxUsage, subscriptionPlan, isSubscribed, refreshData } = useUserProfile()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  
+  // 模板相关状态
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateData | null>(null)
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false)
+  const [availableTemplates, setAvailableTemplates] = useState<string[]>([])
+  const [isTemplateMode, setIsTemplateMode] = useState(false)
+  const [templateAccessChecking, setTemplateAccessChecking] = useState(false)
+  
+  // 原有状态
   const [file, setFile] = useState<File | null>(null)
   const [prompt, setPrompt] = useState('')
   const [textPrompt, setTextPrompt] = useState('')
@@ -83,9 +127,79 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
   const [selectedMode, setSelectedMode] = useState('classic')
   const [intensity, setIntensity] = useState(3)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [generationMode, setGenerationMode] = useState<'text-to-image' | 'image-to-image'>('text-to-image')
-  const [forceRender, setForceRender] = useState(false)
+  const [generationMode, setGenerationMode] = useState<'text-to-image' | 'image-to-image'>('image-to-image')
+  const [taskType, setTaskType] = useState<'generate' | 'retouch' | 'enhance' | 'edit'>('generate')
+
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // URL参数检测和模板加载
+  useEffect(() => {
+    const templateId = searchParams.get('template')
+    if (templateId) {
+      const template = getTemplateById(templateId)
+      if (template) {
+        setSelectedTemplate(template)
+        setIsTemplateMode(true)
+        
+        // 应用模板设置
+        const currentLang = pathname.startsWith('/zh') ? 'zh' : 'en'
+        setGenerationMode(template.recommendedMode)
+        setSelectedMode(template.optimalSettings.style)
+        setIntensity(template.optimalSettings.intensity)
+        
+        // 设置提示词
+        if (template.recommendedMode === 'image-to-image') {
+          setPrompt(template.prompt[currentLang])
+        } else {
+          setTextPrompt(template.prompt[currentLang])
+        }
+        
+        console.log('✅ 模版加载成功:', {
+          templateId,
+          title: template.title,
+          mode: template.recommendedMode,
+          prompt: template.prompt[currentLang]
+        })
+      } else {
+        console.error('❌ 模版不存在:', templateId)
+        // 如果模版不存在，使用默认的去水印模版
+        const fallbackTemplate = getTemplateById('watermark-removal')
+        if (fallbackTemplate) {
+          setSelectedTemplate(fallbackTemplate)
+          setIsTemplateMode(true)
+          const currentLang = pathname.startsWith('/zh') ? 'zh' : 'en'
+          setGenerationMode(fallbackTemplate.recommendedMode)
+          setSelectedMode(fallbackTemplate.optimalSettings.style)
+          setIntensity(fallbackTemplate.optimalSettings.intensity)
+          if (fallbackTemplate.recommendedMode === 'image-to-image') {
+            setPrompt(fallbackTemplate.prompt[currentLang])
+          } else {
+            setTextPrompt(fallbackTemplate.prompt[currentLang])
+          }
+        }
+      }
+    } else {
+      // 没有模版参数时，设置默认的去水印模版
+      const defaultTemplate = getTemplateById('watermark-removal')
+      if (defaultTemplate) {
+        setSelectedTemplate(defaultTemplate)
+        setIsTemplateMode(true)
+        const currentLang = pathname.startsWith('/zh') ? 'zh' : 'en'
+        setGenerationMode(defaultTemplate.recommendedMode)
+        setSelectedMode(defaultTemplate.optimalSettings.style)
+        setIntensity(defaultTemplate.optimalSettings.intensity)
+        if (defaultTemplate.recommendedMode === 'image-to-image') {
+          setPrompt(defaultTemplate.prompt[currentLang])
+        } else {
+          setTextPrompt(defaultTemplate.prompt[currentLang])
+        }
+        console.log('✅ 加载默认去水印模版')
+      } else {
+        setSelectedTemplate(null)
+        setIsTemplateMode(false)
+      }
+    }
+  }, [searchParams, pathname])
 
   // 持久化文件状态，避免登录后丢失
   useEffect(() => {
@@ -112,65 +226,85 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
     }
   }, [status, session?.user?.email])
 
-  // 防止无限加载的超时机制 - 简化逻辑
+  // 获取用户可用模版列表
   useEffect(() => {
-    if (status === 'loading') {
-      const timer = setTimeout(() => {
-        console.log('🚨 认证状态超时，强制渲染组件')
-        setForceRender(true)
-      }, 2000) // 增加到2秒超时
-
-      return () => clearTimeout(timer)
+    const fetchAvailableTemplates = async () => {
+      if (status === 'authenticated' && session?.user && (session.user as SessionUser).id) {
+        setTemplateAccessChecking(true)
+        try {
+          const templates = await getUserAvailableTemplates((session.user as SessionUser).id)
+          setAvailableTemplates(templates)
+        } catch (error) {
+          console.error('获取可用模版列表失败:', error)
+          // 设置默认的免费模版
+          setAvailableTemplates(['watermark-removal', 'body-optimization', 'tourist-removal'])
+        } finally {
+          setTemplateAccessChecking(false)
+        }
+      }
     }
-  }, [status])
 
-  // 三种创作模式
+    fetchAvailableTemplates()
+  }, [status, session?.user])
+
+  // 移除超时机制 - 创作区立即显示，不等待认证状态
+
+  // 四种创作模式
   const allModes = [
     {
       id: 'classic',
-      name: texts.classicMode || 'Classic Sybau',
-      description: texts.classicDescription || 'Traditional Sybau style with balanced aesthetics',
+      name: texts.classicMode || 'Classic',
+      description: texts.classicDescription || 'Traditional balanced aesthetic style',
       color: 'from-purple-500 to-pink-500',
       requiredPlan: 'free',
       icon: Sparkles
     },
     {
+      id: 'professional',
+      name: texts.professionalMode || 'Professional',
+      description: texts.professionalDescription || 'Refined professional style',
+      color: 'from-blue-500 to-cyan-500',
+      requiredPlan: 'free',
+      icon: Star
+    },
+    {
       id: 'exaggerated',
-      name: texts.exaggeratedMode || 'Expressive Sybau',
-      description: texts.exaggeratedDescription || 'Bold expressions that capture Gen Z energy',
+      name: texts.exaggeratedMode || 'Expressive',
+      description: texts.exaggeratedDescription || 'Bold and expressive style',
       color: 'from-red-500 to-orange-500',
       requiredPlan: 'standard',
       icon: Star
     },
     {
-      id: 'professional',
-      name: texts.professionalMode || 'Professional Sybau',
-      description: texts.professionalDescription || 'Refined Sybau style for professional use',
-      color: 'from-blue-500 to-cyan-500',
-      requiredPlan: 'standard',
-      icon: Star
+      id: 'creative',
+      name: texts.creativeMode || 'Creative',
+      description: texts.creativeDescription || 'Creative and imaginative style',
+      color: 'from-green-500 to-blue-500',
+      requiredPlan: 'free',
+      icon: Zap
     }
   ]
 
-  // 根据用户套餐过滤可用模式
+  // 显示所有模式，但标记锁定状态
   const getAvailableModes = () => {
-    if (!isSubscribed) {
-      return allModes.filter(mode => mode.requiredPlan === 'free')
-    }
+    return allModes // 显示全部3种风格
+  }
+  
+  // 检查模式是否锁定
+  const isModeLocker = (mode: any) => {
+    if (mode.requiredPlan === 'free') return false
+    
+    if (!isSubscribed) return true
     
     const planHierarchy = { 'free': 0, 'standard': 1, 'pro': 2 }
     const userPlanLevel = planHierarchy[subscriptionPlan as keyof typeof planHierarchy] || 0
+    const requiredLevel = planHierarchy[mode.requiredPlan as keyof typeof planHierarchy]
     
-    const availableModes = allModes.filter(mode => {
-      const requiredLevel = planHierarchy[mode.requiredPlan as keyof typeof planHierarchy]
-      return userPlanLevel >= requiredLevel
-    })
-    
-    return availableModes
+    return userPlanLevel < requiredLevel
   }
 
   const availableModes = getAvailableModes()
-  const lockedModes = allModes.filter(mode => !availableModes.includes(mode))
+  const lockedModes = allModes.filter(mode => isModeLocker(mode))
 
   const handleFileSelect = (selectedFile: File) => {
     if (selectedFile.size > 5 * 1024 * 1024) {
@@ -236,8 +370,11 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
     })
 
     if (!session) {
-      console.error('❌ 用户未登录')
-      setError('请登录Google账户开始创作。注册即可免费获得每月1张图片额度！')
+      console.error('❌ 用户未登录，引导用户登录')
+      // 安全地跳转到登录页面
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname)
+      }
       return
     }
 
@@ -270,6 +407,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
     try {
       const formData = new FormData()
       formData.append('mode', generationMode)
+      formData.append('taskType', taskType)
 
       if (generationMode === 'text-to-image') {
         formData.append('prompt', textPrompt || 'Create a Sybau style image')
@@ -296,6 +434,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
         // Image generation successful
         setGeneratedImage(data.imageUrl)
         setError(null)
+        
         // 🎯 更新用量计数
         await updateUsageCount()
       } else {
@@ -393,285 +532,264 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
     setError(null)
     setSelectedMode('classic')
     setIntensity(3)
-    setGenerationMode('text-to-image')
+    setGenerationMode('image-to-image')
+    setTaskType('generate')
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
       setPreviewUrl(null)
     }
   }
 
-  // 🔧 修复：简化加载状态逻辑，只有在真正需要时才显示加载
-  if (status === 'loading' && !forceRender) {
-    console.log('🔄 组件加载中，等待认证状态确认...')
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-        <Card className="border-2 border-purple-200 shadow-lg">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-center space-x-3">
-              <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
-              <span className="text-lg text-gray-600">加载中...</span>
-            </div>
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-500">正在检查登录状态，如果持续加载请刷新页面</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  // 模板选择处理函数
+  const handleTemplateSelect = (template: TemplateData) => {
+    setSelectedTemplate(template)
+    setIsTemplateMode(true)
+    
+    // 应用模板设置
+    const currentLang = pathname.startsWith('/zh') ? 'zh' : 'en'
+    setGenerationMode(template.recommendedMode)
+    setSelectedMode(template.optimalSettings.style)
+    setIntensity(template.optimalSettings.intensity)
+    
+    // 设置提示词
+    if (template.recommendedMode === 'image-to-image') {
+      setPrompt(template.prompt[currentLang])
+    } else {
+      setTextPrompt(template.prompt[currentLang])
+    }
+    
+    setShowTemplateLibrary(false)
   }
+
+  // 移除认证状态阻塞 - 创作区应该立即显示，只在生成时鉴权
 
   // 🔧 添加调试信息
   console.log('🎨 ImageGenerator渲染状态:', { 
     status, 
     hasSession: !!session, 
     userEmail: session?.user?.email,
-    forceRender 
+    usageCount,
+    maxUsage,
+    subscriptionPlan,
+    isSubscribed
   })
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-      {/* 左侧：创作准备区 */}
-      <Card className="p-4 lg:p-6 bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30 border border-purple-200/60 backdrop-blur-sm shadow-xl rounded-2xl">
-        <CardHeader className="text-center pb-4">
-          <div className="relative mb-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto shadow-lg">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-          </div>
-          <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
-            {texts.creationPreparation || '🎨 Creation Preparation'}
-          </CardTitle>
-          <CardDescription className="text-sm text-gray-600">
-            {texts.creationPreparationDesc || 'Choose your creative method, set your style, and let AI create beautiful works for you'}
-          </CardDescription>
-        </CardHeader>
+    <div className="bg-blue-50 p-4 rounded-xl min-h-[400px]">
+      {/* 顶部模式切换 - 蓝色主题 */}
+      <div className="bg-blue-100 rounded-lg p-3 mb-4">
+        <div className="flex justify-center gap-4">
+          <Button
+            variant="outline"
+            onClick={() => handleModeSwitch('image-to-image')}
+            className={`h-10 px-6 text-sm font-medium rounded-lg transition-all border-2 ${
+              generationMode === 'image-to-image' 
+                ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
+                : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'
+            }`}
+          >
+            <ImageIcon className="w-4 h-4 mr-2" />
+            {texts.imageMode || 'Image'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleModeSwitch('text-to-image')}
+            className={`h-10 px-6 text-sm font-medium rounded-lg transition-all border-2 ${
+              generationMode === 'text-to-image' 
+                ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
+                : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'
+            }`}
+          >
+            <Type className="w-4 h-4 mr-2" />
+            {texts.textMode || 'Text'}
+          </Button>
+        </div>
+      </div>
 
-        <CardContent className="space-y-4">
-          {/* 创作模式选择 */}
-          <div className="space-y-3">
-            <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-              {texts.creationMode || 'Creation Mode'}
-            </Label>
-            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-              <Button
-                variant={generationMode === 'text-to-image' ? 'default' : 'outline'}
-                onClick={() => handleModeSwitch('text-to-image')}
-                className={`p-4 h-auto text-center rounded-lg transition-all min-h-[60px] ${
-                  generationMode === 'text-to-image'
-                    ? 'bg-purple-600 text-white border-purple-600 shadow-lg'
-                    : 'border-purple-200 hover:border-purple-300 text-gray-700'
-                }`}
-              >
-                <div className="flex flex-col items-center space-y-1">
-                  <Type className="w-4 h-4" />
-                  <span className="text-xs font-medium">{texts.textToImageMode || 'Text Creation'}</span>
-                </div>
-              </Button>
-              
-              <Button
-                variant={generationMode === 'image-to-image' ? 'default' : 'outline'}
-                onClick={() => handleModeSwitch('image-to-image')}
-                className={`p-4 h-auto text-center rounded-lg transition-all min-h-[60px] ${
-                  generationMode === 'image-to-image'
-                    ? 'bg-purple-600 text-white border-purple-600 shadow-lg'
-                    : 'border-purple-200 hover:border-purple-300 text-gray-700'
-                }`}
-              >
-                <div className="flex flex-col items-center space-y-1">
-                  <ImageIcon className="w-4 h-4" />
-                  <span className="text-xs font-medium">{texts.imageToImageMode || 'Image Creation'}</span>
-                </div>
-              </Button>
-            </div>
-          </div>
+      {/* 主要内容区域 - 条件渲染 */}
+      <div className="bg-white border border-blue-200 shadow-lg rounded-lg overflow-hidden">
+        <div className="p-4">
 
-          {/* Sybau风格选择 */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center">
-                <Crown className="w-3 h-3 mr-1" />
-                {texts.styleLabel || 'Sybau Style'}
-              </Label>
-              {isSubscribed && (
-                <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-200">
-                  {subscriptionPlan.toUpperCase()}
-                </Badge>
-              )}
-            </div>
-            <div className="grid grid-cols-1 xs:grid-cols-3 gap-3">
-              {availableModes.map((mode) => {
-                const IconComponent = mode.icon
-                return (
-                  <Button
-                    key={mode.id}
-                    variant={selectedMode === mode.id ? "default" : "outline"}
-                    className={`p-2 h-auto text-center border transition-all rounded-lg ${
-                      selectedMode === mode.id
-                        ? `bg-gradient-to-r ${mode.color} text-white border-transparent shadow-md`
-                        : 'border-purple-200 bg-white/80 text-gray-700 hover:border-purple-300 hover:bg-purple-50'
-                    }`}
-                    onClick={() => setSelectedMode(mode.id)}
-                  >
-                    <div className="flex flex-col items-center space-y-1">
-                      <div className={`w-5 h-5 rounded-md flex items-center justify-center ${
-                        selectedMode === mode.id ? 'bg-white/20' : 'bg-purple-100'
-                      }`}>
-                        <IconComponent className={`w-3 h-3 ${
-                          selectedMode === mode.id ? 'text-white' : 'text-purple-600'
-                        }`} />
-                      </div>
-                      <span className="text-xs font-medium leading-tight">{mode.name.replace('Sybau', '').trim()}</span>
-                    </div>
-                  </Button>
-                )
-              })}
-              {/* 锁定的模式 */}
-              {lockedModes.map((mode) => {
-                const IconComponent = mode.icon
-                return (
-                  <Button
-                    key={mode.id}
-                    variant="outline"
-                    disabled
-                    className="p-2 h-auto text-center border border-purple-200 bg-gray-50 text-gray-400 rounded-lg opacity-60"
-                  >
-                    <div className="flex flex-col items-center space-y-1 relative">
-                      <div className="w-5 h-5 rounded-md flex items-center justify-center bg-gray-100">
-                        <IconComponent className="w-3 h-3 text-gray-400" />
-                      </div>
-                      <span className="text-xs font-medium leading-tight">{mode.name.replace('Sybau', '').trim()}</span>
-                      <Lock className="w-2 h-2 absolute top-0 right-0 text-gray-400" />
-                    </div>
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* 输入区域 */}
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center">
-              <Upload className="w-3 h-3 mr-1" />
-              {generationMode === 'text-to-image' ? (texts.textPromptLabel || 'Text Prompt') : (texts.uploadTitle || 'Upload Image')}
-            </Label>
-
+          {/* 条件渲染：文生图全宽 vs 图生图分区 */}
+          <div className="grid grid-cols-12 gap-4">
             {generationMode === 'text-to-image' ? (
-              <div className="space-y-1">
-                <Textarea
-                  id="textPrompt"
-                  placeholder={texts.detailedPrompt || 'Describe in detail the image you want to create, including style, colors, mood and details...'}
-                  value={textPrompt}
-                  onChange={(e) => setTextPrompt(e.target.value)}
-                  className="w-full min-h-[80px] resize-none border-purple-200 rounded-lg focus:border-purple-400 focus:ring-purple-400 text-sm"
-                  rows={3}
-                />
-                <p className="text-xs text-gray-500 flex items-center">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  {texts.detailsHelpAI || 'Detailed descriptions help AI generate better works'}
-                </p>
+              /* 文生图模式：全宽大输入框 */
+              <div className="col-span-12">
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder={texts.textPromptPlaceholder || 'Please describe what you want to generate, focus on the subject, for example: a brown dolphin with curled tail, cartoon style'}
+                    value={textPrompt}
+                    onChange={(e) => setTextPrompt(e.target.value)}
+                    className="w-full h-48 resize-none border-blue-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm leading-relaxed p-3"
+                  />
+                  <div className="flex justify-end items-center text-sm">
+                    <span className="text-blue-400">{textPrompt.length}/150</span>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div
-                className={`border-2 border-dashed rounded-xl p-4 text-center bg-white/60 backdrop-blur-sm transition-all cursor-pointer group ${
-                  isDragging ? 'border-purple-400 bg-purple-50 scale-105' : 'border-purple-200 hover:border-purple-300'
-                }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-
-                {file && previewUrl ? (
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="w-full h-24 object-cover rounded-lg shadow-md"
-                      />
-                      <div className="absolute top-1 right-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            resetGenerator()
-                          }}
-                          className="h-6 w-6 p-0 bg-white/90 backdrop-blur-sm border-gray-300 rounded-full"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
+              /* 图生图模式：左右分区 + 箭头指示 */
+              <>
+                {/* 左侧：案例展示区 - 4栅格 */}
+                <div className="col-span-4">
+                  {generatedImage ? (
+                    <div>
+                      <div className="aspect-square bg-blue-50 rounded-lg overflow-hidden border border-blue-200">
+                        <img src={generatedImage} alt="Generated" className="w-full h-full object-cover" />
                       </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
-                      <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {(() => {
+                        // 获取要显示的模版：用户选择的模版 或 默认的watermark-removal模版
+                        const displayTemplate = selectedTemplate || getTemplateById('watermark-removal')
+                        
+                        if (!displayTemplate) return null
+                        
+                        return (
+                          <>
+                            <div className="text-center mb-2">
+                              <h3 className="text-sm font-bold text-blue-800 mb-1">
+                                {pathname.startsWith('/zh') ? displayTemplate.title.zh : displayTemplate.title.en}
+                              </h3>
+                              <p className="text-xs text-blue-600">
+                                {pathname.startsWith('/zh') ? displayTemplate.description.zh : displayTemplate.description.en}
+                              </p>
+                            </div>
+                            
+                            {/* Before/After 对比 - 蓝色主题 */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="aspect-square bg-blue-50 rounded-lg overflow-hidden relative border border-blue-200">
+                                <img src={displayTemplate.beforeImage} alt="Before" className="w-full h-full object-cover" />
+                                <div className="absolute top-2 left-2">
+                                  <Badge className="bg-red-500 text-white text-xs px-2 py-1">
+                                    {pathname.startsWith('/zh') ? '处理前' : 'Before'}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="aspect-square bg-blue-50 rounded-lg overflow-hidden relative border border-blue-200">
+                                <img src={displayTemplate.afterImage} alt="After" className="w-full h-full object-cover" />
+                                <div className="absolute top-2 left-2">
+                                  <Badge className="bg-green-500 text-white text-xs px-2 py-1">
+                                    {pathname.startsWith('/zh') ? '处理后' : 'After'}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )
+                      })()}
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2 py-4">
-                    <div className="relative">
-                      <Upload className="h-8 w-8 text-purple-400 mx-auto group-hover:scale-110 transition-transform" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-700">{texts.dragImageHere || 'Drag image here'}</p>
-                      <p className="text-xs text-gray-500">{texts.orClickToSelect || 'or click to select file'}</p>
-                      <p className="text-xs text-gray-400 flex items-center justify-center">
-                        <ImageIcon className="w-3 h-3 mr-1" />
-                        {texts.supportedFormatsShort || 'Support JPG, PNG, WebP • Max 5MB'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
 
-            {/* 图片模式的风格增强输入 */}
-            {generationMode === 'image-to-image' && (
-              <div className="space-y-1">
-                <Input
-                  id="prompt"
-                  type="text"
-                  placeholder={texts.optionalStyleChange || 'Optional: describe desired style changes...'}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="w-full border-purple-200 rounded-lg focus:border-purple-400 text-sm h-8"
-                />
-              </div>
+                {/* 中间：箭头指示 - 1栅格 */}
+                <div className="col-span-1 flex items-center justify-center">
+                  <div className="flex items-center justify-center h-full">
+                    <ArrowRight className="w-10 h-10 text-blue-500 animate-pulse stroke-2" />
+                  </div>
+                </div>
+
+                {/* 右侧：操作区 - 7栅格 */}
+                <div className="col-span-7">
+                  <div className="space-y-3">
+                    <div
+                      className={`border-2 border-dashed rounded-lg h-52 text-center transition-all cursor-pointer group flex flex-col justify-center ${
+                        isDragging ? 'border-blue-400 bg-blue-100' : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50'
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFileInputChange}
+                        className="hidden"
+                      />
+                      {file && previewUrl ? (
+                        <div className="relative">
+                          <img src={previewUrl} alt="Preview" className="max-w-full max-h-40 object-contain rounded-lg mx-auto border border-blue-200" />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              resetGenerator()
+                            }}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-md"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          <p className="text-sm font-medium text-blue-700 mt-2 truncate">{file.name}</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto group-hover:bg-blue-700 transition-colors">
+                            <Upload className="w-8 h-8 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-lg font-medium text-blue-700 mb-1">🖼️ {texts.dragImageHere || 'Drag image here'}</p>
+                            <p className="text-sm text-blue-500">{texts.orClickToSelect || 'or click to select file'}</p>
+                            <p className="text-xs text-blue-400 mt-2">{texts.supportedFormatsShort || 'Support JPG, PNG, WebP • Max 5MB'}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* 可选描述输入 */}
+                    <Input
+                      placeholder={texts.styleOptional || 'Optional: describe desired style changes...'}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      className="w-full border-blue-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 h-10"
+                    />
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
-
-
-          {/* 错误提示 */}
-          {error && !error.includes('Please log in') && (
-            <div className="p-3 rounded-xl border-2 bg-red-50 border-red-200">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-red-600" />
-                <span className="text-sm text-red-700">{error}</span>
+        </div>
+        
+        {/* 底部控制条 - 蓝色主题优化布局 */}
+        <div className="border-t border-blue-200 bg-blue-50 p-3">
+          <div className="flex items-center justify-between gap-4">
+            {/* 左侧：模板库按钮 */}
+            <div className="flex-shrink-0">
+              <button 
+                onClick={() => setShowTemplateLibrary(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+              >
+                <div className="w-4 h-4 bg-blue-600 rounded flex items-center justify-center">
+                  <Target className="w-2.5 h-2.5 text-white" />
+                </div>
+                <span className="font-medium">{texts.templateLibrary || 'Template Library'}</span>
+              </button>
+            </div>
+            
+            {/* 中间：处理强度选择 - 紧凑布局 */}
+            <div className="flex items-center gap-2 flex-1 justify-center">
+              <span className="text-blue-600 text-sm font-medium">{texts.style || 'Style'}</span>
+              <div className="flex gap-1">
+                {availableModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    onClick={() => setSelectedMode(mode.id)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                      selectedMode === mode.id
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300'
+                    }`}
+                  >
+                    {mode.name}
+                  </button>
+                ))}
               </div>
             </div>
-          )}
-
-          {/* 生成按钮 */}
-          <div className="pt-2">
-            {!session ? (
-              <Link href="/auth/signin" className="block">
-                <Button className="w-full h-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <LogIn className="w-4 h-4" />
-                    <span>{texts.loginToStart || '🚀 Login to Start Creating'}</span>
-                  </div>
-                </Button>
-              </Link>
-            ) : (
+            
+            {/* 右侧：Generate按钮 - 紧凑版本 */}
+            <div className="flex-shrink-0">
               <Button
                 onClick={handleGenerate}
                 disabled={
@@ -679,114 +797,162 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
                   (generationMode === 'text-to-image' && !textPrompt.trim()) ||
                   (generationMode === 'image-to-image' && !file)
                 }
-                className="w-full h-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center min-w-[120px]"
               >
                 {isGenerating ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>{texts.creationInProgress || 'AI is creating...'}</span>
-                  </div>
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    {texts.generating || 'Generating...'}
+                  </>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <Sparkles className="w-4 h-4" />
-                    <span>{texts.startCreating || '🚀 Start AI Creation'}</span>
-                  </div>
+                  <>
+                    <span className="mr-2">🎨</span>
+                    Generate
+                  </>
                 )}
               </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 右侧：结果展示区 */}
-      <Card className="p-4 lg:p-6 bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30 border border-purple-200/60 backdrop-blur-sm shadow-xl rounded-2xl">
-        <CardHeader className="text-center pb-4">
-          <div className="relative mb-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto shadow-lg">
-              <Sparkles className="h-6 w-6 text-white" />
             </div>
           </div>
-          <CardTitle className="text-xl font-bold bg-gradient-to-r from-pink-700 to-purple-600 bg-clip-text text-transparent">
-            {texts.creationResult || '✨ Creation Result'}
-          </CardTitle>
-          <CardDescription className="text-sm text-gray-600">
-            {texts.creationResultDesc || 'Your AI creation will be beautifully presented here'}
-          </CardDescription>
-        </CardHeader>
+        </div>
+      </div>
 
-        <CardContent className="space-y-4">
-          {isGenerating ? (
-            <div className="flex flex-col items-center justify-center py-16 space-y-6">
-              <div className="relative">
-                <div className="w-20 h-20 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 text-purple-600 animate-pulse" />
-                </div>
-              </div>
-              <div className="text-center space-y-2">
-                <p className="text-xl font-semibold text-gray-700">{texts.creationInProgress || 'AI is creating...'}</p>
-                <p className="text-sm text-gray-500">{texts.creationWait || 'Please wait, estimated 15-30 seconds'}</p>
-                <div className="w-48 bg-purple-100 rounded-full h-2 mx-auto">
-                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
-                </div>
-              </div>
+      
+      {/* 错误提示 - 蓝色主题 */}
+      {error && !error.includes('Please log in') && (
+        <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <span className="text-sm text-red-700">{error}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* 加载状态显示 */}
+      {isGenerating && (
+        <div className="mt-4 p-4 bg-blue-100 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-center space-y-2">
+            <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mr-3"></div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-blue-700">{texts.creationInProgress || 'AI is creating...'}</p>
+              <p className="text-xs text-blue-500">{texts.creationWait || 'Please wait, estimated 15-30 seconds'}</p>
             </div>
-          ) : generatedImage ? (
-            <div className="space-y-4">
-              <div className="relative group">
-                <img
-                  src={generatedImage}
-                  alt="AI Generated"
-                  className="w-full h-auto rounded-2xl shadow-2xl group-hover:shadow-3xl transition-shadow duration-300 border border-purple-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+          </div>
+        </div>
+      )}
+      
+      {/* 下载和重新创作按钮 */}
+      {generatedImage && (
+        <div className="flex gap-2 mt-4">
+          <Button
+            onClick={handleDownload}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-10 text-sm"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            {texts.downloadImage || 'Download'}
+          </Button>
+          <Button
+            onClick={resetGenerator}
+            variant="outline" 
+            className="flex-1 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 rounded-lg h-10 text-sm"
+          >
+            <RotateCcw className="w-4 h-4 mr-1" />
+            {texts.recreate || 'Create Again'}
+          </Button>
+        </div>
+      )}
+
+      {/* 模板库弹窗 */}
+      {showTemplateLibrary && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            {/* 弹窗标题栏 */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <Grid className="w-5 h-5 text-blue-600" />
+                <h3 className="text-xl font-bold text-gray-800">{texts.templateLibrary || 'Template Library'}</h3>
+                <Badge className="bg-blue-100 text-blue-700 text-xs">
+                  {Object.keys(templateData).length} {texts.templatesCount || 'Templates'}
+                </Badge>
               </div>
-              <div className="grid grid-cols-1 gap-4">
-                <Button
-                  onClick={handleDownload}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 h-11"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  {texts.downloadImage || 'Download Image'}
-                </Button>
-                <Button
-                  onClick={resetGenerator}
-                  variant="outline"
-                  className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl h-11"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  {texts.recreate || 'Create Again'}
-                </Button>
-              </div>
-              <div className="text-center pt-2">
-                <p className="text-xs text-gray-500">{texts.creationComplete || '🎉 Creation complete! You can download the image or create again'}</p>
-              </div>
+              <button
+                onClick={() => setShowTemplateLibrary(false)}
+                className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-600" />
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 space-y-6">
-              <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-r from-purple-100 to-pink-100 rounded-3xl flex items-center justify-center">
-                  <ImageIcon className="w-10 h-10 text-purple-400" />
-                </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              <div className="text-center space-y-2">
-                <p className="text-xl font-semibold text-gray-700">{texts.creationReady || 'Ready to Create'}</p>
-                <p className="text-sm text-gray-500">{texts.creationResultDesc || 'Complete the settings on the left, and AI will generate beautiful works for you'}</p>
-              </div>
-              <div className="w-full max-w-xs">
-                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-full p-1">
-                  <div className="bg-white rounded-full py-2 px-4 text-center">
-                    <span className="text-sm font-medium text-gray-600">{texts.creationWaiting || 'Waiting for your creation command...'}</span>
+
+            {/* 模板网格 */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.values(templateData).map((template) => {
+                  const isAccessible = availableTemplates.includes(template.id)
+                  const isLocked = !isAccessible
+                  
+                  return (
+                    <div
+                      key={template.id}
+                      className={`bg-gray-50 rounded-xl overflow-hidden transition-all group relative ${
+                        isLocked 
+                          ? 'opacity-60 cursor-not-allowed' 
+                          : 'hover:shadow-lg cursor-pointer'
+                      }`}
+                      onClick={() => isAccessible ? handleTemplateSelect(template) : null}
+                    >
+                      {/* 锁定遮罩 */}
+                      {isLocked && (
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 rounded-xl">
+                          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 text-center">
+                            <Lock className="w-6 h-6 text-gray-600 mx-auto mb-1" />
+                            <p className="text-xs text-gray-600 font-medium">{texts.needUpgrade || 'Upgrade Required'}</p>
+                            <Link href="/billing" className="text-xs text-blue-600 hover:underline">
+                              {texts.upgradeNow || 'Upgrade Now'}
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    {/* Before/After 预览 */}
+                    <div className="aspect-video bg-white p-2">
+                      <BeforeAfterSlider
+                        beforeImage={template.beforeImage}
+                        afterImage={template.afterImage}
+                        beforeLabel="Before"
+                        afterLabel="After"
+                        width={300}
+                        height={200}
+                        className="rounded-lg overflow-hidden"
+                      />
+                    </div>
+                    
+                    {/* 模板信息 */}
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className={`text-xs ${ 
+                          template.category === 'life-enhancement' ? 'bg-green-100 text-green-700' :
+                          template.category === 'business-creation' ? 'bg-blue-100 text-blue-700' :
+                          'bg-purple-100 text-purple-700'
+                        }`}>
+                          {categoryInfo[template.category][pathname.startsWith('/zh') ? 'zh' : 'en']}
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          {template.processingTime[pathname.startsWith('/zh') ? 'zh' : 'en']}
+                        </span>
+                      </div>
+                      <h4 className="font-semibold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">
+                        {template.title[pathname.startsWith('/zh') ? 'zh' : 'en']}
+                      </h4>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {template.description[pathname.startsWith('/zh') ? 'zh' : 'en']}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                  )
+                })}
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

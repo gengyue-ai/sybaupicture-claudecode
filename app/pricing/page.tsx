@@ -20,14 +20,14 @@ const getPricingPlans = (isAnnual: boolean) => [
     description: 'Perfect for trying Sybau AI',
     badge: null,
     features: [
-      'Free trial experience',
-      'Basic Sybau styles',
+      '3 images per month',
+      '✨ Access to ALL templates',
       'Standard quality (1024x1024)',
+      'No watermarks',
       'Community gallery access'
     ],
     limitations: [
-      'Basic usage quota',
-      'Watermarked images'
+      'Limited monthly usage'
     ],
     buttonText: 'Get Started Free',
     buttonVariant: 'outline' as const,
@@ -45,9 +45,10 @@ const getPricingPlans = (isAnnual: boolean) => [
     badge: null,
     features: [
       '60 images per month',
-      'All Sybau styles',
-      'High quality (up to 2048x2048)',
+      '✨ Access to ALL templates',
+      'High quality (up to 1536x1536)',
       'No watermarks',
+      'All Sybau styles',
       'Multiple download formats'
     ],
     limitations: [
@@ -69,9 +70,10 @@ const getPricingPlans = (isAnnual: boolean) => [
     badge: 'Most Popular',
     features: [
       '180 images per month',
-      'All premium Sybau styles',
-      'Ultra quality (up to 4096x4096)',
+      '✨ Access to ALL templates',
+      'Ultra quality (up to 2048x2048)',
       'No watermarks',
+      'All premium Sybau styles',
       'Priority processing',
       'Advanced AI features'
     ],
@@ -215,7 +217,26 @@ export default function PricingPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session')
+        console.error('支付系统错误:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+          details: data.details,
+          code: data.code,
+          debug: data.debug
+        })
+        
+        // 根据错误类型提供更友好的提示
+        let errorMessage = data.error || 'Failed to create checkout session'
+        if (data.code === 'STRIPE_NOT_CONFIGURED') {
+          errorMessage = 'Payment system is currently unavailable. Please try again later or contact support.'
+        } else if (data.code === 'STRIPE_PRICE_CONFIG_INCOMPLETE') {
+          errorMessage = 'Payment configuration error. Please contact support.'
+        } else if (data.details) {
+          errorMessage = data.details
+        }
+        
+        throw new Error(errorMessage)
       }
 
       if (data.url) {

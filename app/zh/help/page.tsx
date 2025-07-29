@@ -2,19 +2,26 @@ import { Metadata } from 'next'
 import ZHHelpPageClient from './ZHHelpPageClient'
 
 export const metadata: Metadata = {
-  title: '帮助支持 - Sybau Picture | AI图片生成器常见问题',
-  description: '找到关于Sybau Picture AI图片生成器的常见问题答案。获取图片生成、价格、故障排除等方面的帮助。',
-  keywords: ['帮助', '支持', '常见问题', 'AI图片生成器', 'Sybau Picture', '故障排除', '指南', '教程'],
+  title: '帮助支持 - Sybau Picture | AI图片生成器常见问题与模板指南',
+  description: '找到关于Sybau Picture AI图片生成器的完整答案。了解模板功能、我的资产、双重创作模式、价格套餐、故障排除和高级功能。',
+  keywords: ['帮助', '支持', '常见问题', 'AI图片生成器', 'Sybau Picture', '模板功能', '我的资产', '文生图', '图生图', '故障排除', '指南', '教程', '去水印', '身材优化', '智能修图'],
   openGraph: {
-    title: '帮助支持 - Sybau Picture',
-    description: '找到关于Sybau Picture AI图片生成器的常见问题答案。获取图片生成、价格、故障排除等方面的帮助。',
+    title: '帮助支持 - Sybau Picture AI图片生成器',
+    description: 'Sybau Picture完整FAQ指南：模板功能、我的资产、双重创作模式、价格套餐和故障排除。掌握AI图片生成技巧。',
     url: 'https://sybaupicture.com/zh/help',
     type: 'website',
+    images: [{
+      url: 'https://sybaupicture.com/images/help-zh-og.jpg',
+      width: 1200,
+      height: 630,
+      alt: 'Sybau Picture 帮助支持指南',
+    }],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: '帮助支持 - Sybau Picture',
-    description: '找到关于Sybau Picture AI图片生成器的常见问题答案。',
+    description: '完整FAQ指南：模板功能、我的资产、双重模式和AI图片生成高级功能。',
+    images: ['https://sybaupicture.com/images/help-zh-twitter.jpg'],
   },
   alternates: {
     canonical: '/zh/help',
@@ -28,7 +35,7 @@ export const metadata: Metadata = {
 export default function ZHHelpPage() {
   return (
     <>
-      {/* 中文FAQ结构化数据 */}
+      {/* 更新的中文FAQ结构化数据 */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -42,7 +49,31 @@ export default function ZHHelpPage() {
                 "name": "如何开始使用Sybau Picture？",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "1. 访问我们的生成器 2. 上传图片或输入文字描述 3. 选择Sybau风格 4. 点击生成按钮，等待8秒即可获得您的专属创意作品！体验Stay Young, Beautiful and Unique的文化理念。"
+                  "text": "我们的AI融合了Z时代文化和Sybau理念 - Stay Young, Beautiful and Unique。选择文生图模式（输入文字描述）或图生图模式（上传并转换），选择您喜欢的风格，几秒钟内获得专业效果。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "模板是什么，如何使用？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "模板是针对特定任务的预配置AI设置，如去水印、身材优化或背景替换。点击模板库按钮浏览14个专业模板，分为3大类：生活增强、商业创作、创意转换。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "文生图和图生图模式有什么区别？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "文生图根据您的文字描述创建全新图片。图生图则是对您上传的照片进行AI转换 - 非常适合编辑、风格变换或增强效果。两种模式都支持我们的4种专业风格。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "如何管理我生成的图片？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "在个人资料中访问\"我的资产\"查看所有生成的图片，按日期整理。您可以查看、下载或删除个人画廊中的图片。生成时图片会自动保存。"
                 }
               },
               {
@@ -50,15 +81,31 @@ export default function ZHHelpPage() {
                 "name": "支持哪些图片格式？",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "我们支持 JPG、PNG、WebP 格式的图片。建议图片尺寸不超过10MB，分辨率在500x500到2000x2000像素之间效果最佳。"
+                  "text": "我们支持JPG、PNG和WebP格式。图片大小应控制在5MB以内，分辨率在512x512到2048x2048像素之间效果最佳。"
                 }
               },
               {
                 "@type": "Question",
-                "name": "免费用户有什么限制？",
+                "name": "当前的使用限制是什么？",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "免费用户享有基础体验配额。标准版用户每月可生成60张，专业版用户每月可生成180张图片，享受优先处理队列。"
+                  "text": "免费用户：每月3张图片。标准用户：每月60张图片。专业用户：每月180张图片，享受优先处理。所有套餐都包含无限存储且无水印。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "免费用户可以使用哪些模板？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "免费用户可使用3个基础模板：智能去水印、身材优化、游客移除。标准用户可使用5个模板，专业用户解锁全部14个专业模板。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "有哪些AI风格可以选择？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "我们提供4种专业风格：经典（均衡美学）、专业（精致商务）、表现力（大胆表达）、创意（富有想象力）。免费用户可使用经典和专业风格，付费用户解锁所有风格。"
                 }
               },
               {
@@ -66,7 +113,31 @@ export default function ZHHelpPage() {
                 "name": "可以商业使用生成的图片吗？",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "是的！您拥有生成图片的完整使用权，可以用于个人和商业目的。但请确保上传的原始图片没有版权问题。"
+                  "text": "可以！您拥有所有生成图片的完整商业使用权。可用于商业、社交媒体、营销或任何商业目的。只需确保您上传的原始图片没有版权问题。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "生成的图片会有水印吗？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "不会！包括免费套餐在内的所有套餐都生成无水印图片。您将获得干净、专业的结果，适用于任何用途。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "我的图片会保存多长时间？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "您生成的图片会永久保存在账户中，除非您主动删除。您拥有无限存储空间，可随时从\"我的资产\"访问所有创作。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "我的数据安全和隐私吗？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "绝对安全。我们使用企业级加密，不会永久存储上传的图片，除非您选择保存。生成的图片仅保存在您的个人画廊中。请查看我们的隐私政策了解完整详情。"
                 }
               }
             ]

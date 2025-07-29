@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { createPrismaClient } from '@/lib/prisma'
 
 // 强制动态渲染
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
+    // 🎯 创建独立的数据库连接，避免prepared statement冲突
+    const prisma = createPrismaClient()
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {

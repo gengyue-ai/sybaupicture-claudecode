@@ -17,6 +17,22 @@ model User {
   password         String?   // 可选,支持第三方登录
   image            String?
   emailVerified    DateTime?
+  provider         String?   // OAuth提供者 "google" | "email"
+  
+  // 密码重置相关
+  resetToken       String?   // 重置密码令牌
+  resetTokenExpiry DateTime? // 令牌过期时间
+  
+  // 邮箱验证相关
+  verificationToken       String?   @map("verification_token") // 邮箱验证令牌
+  verificationTokenExpiry DateTime? @map("verification_token_expiry") // 验证令牌过期时间
+  
+  // 通知设置
+  emailNotifications   Boolean? @default(true)  // 邮件通知
+  smsNotifications     Boolean? @default(false) // 短信通知
+  marketingEmails      Boolean? @default(false) // 营销邮件
+  subscriptionUpdates  Boolean? @default(true)  // 订阅更新通知
+  
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -272,4 +288,65 @@ model UserUsage {
   @@map("user_usage")
   @@index([userId])
   @@index([month, year])
+}
+
+// AI编辑功能模板表 - 首页展示和Gallery都使用这个统一模板系统
+model EditTemplate {
+  id              String   @id @default(cuid())
+  key             String   @unique // 功能唯一标识: people_removal, background_replace, color_adjust, etc.
+  
+  // 基本信息
+  name            String   // 中文名称: "人物移除"
+  nameEn          String   // 英文名称: "People Removal"
+  icon            String   // 图标emoji: "👥"
+  category        String   // 分类: photography, ecommerce, fashion, travel, realestate
+  
+  // 展示信息
+  title           String   // 展示标题
+  titleEn         String   // 英文标题
+  description     String   // 功能描述
+  descriptionEn   String   // 英文描述
+  
+  // 使用说明
+  instruction     String   // 使用说明
+  instructionEn   String   // 英文使用说明
+  
+  // AI处理配置
+  prompt          String   // 中文提示词模板
+  promptEn        String   // 英文提示词模板
+  
+  // 推荐参数
+  optimalStyle       String  @default("professional") // 推荐风格
+  optimalIntensity   Int     @default(4)              // 推荐强度 1-5
+  generationMode     String  @default("image-to-image") // 生成模式
+  
+  // 展示素材
+  beforeImage     String   // before示例图片路径
+  afterImage      String   // after示例图片路径
+  thumbnailImage  String?  // 缩略图路径(Gallery列表用)
+  
+  // 标签和分类
+  tags            String   // JSON数组: ["人物", "移除", "摄影"]
+  difficulty      String   @default("easy") // 难度: easy, medium, hard
+  estimatedTime   Int      @default(15)     // 预计处理时间(秒)
+  
+  // 业务属性  
+  isPopular       Boolean  @default(false)  // 是否热门
+  isFeatured      Boolean  @default(false)  // 是否精选
+  isActive        Boolean  @default(true)   // 是否启用
+  sortOrder       Int      @default(0)      // 排序权重
+  
+  // 使用统计
+  usageCount      Int      @default(0)      // 使用次数
+  successRate     Float    @default(0.95)   // 成功率
+  avgRating       Float    @default(4.8)    // 平均评分
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("edit_templates")
+  @@index([category])
+  @@index([isActive])
+  @@index([isPopular])
+  @@index([sortOrder])
 }

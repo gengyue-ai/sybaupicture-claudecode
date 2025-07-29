@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { createPrismaClient } from '@/lib/prisma'
 import { config } from '@/lib/config'
+import { SessionUser } from '@/types'
 import {
   getCurrentUserWithSubscription,
   canUserGenerateImage,
@@ -35,44 +36,129 @@ async function configureFalClient() {
 export async function POST(request: NextRequest) {
   try {
     // Starting image generation
+    
+    // 🎯 创建独立的数据库连接，避免prepared statement冲突
+    const prisma = createPrismaClient()
 
     // 配置 Fal AI 客户端
     const { fal } = await configureFalClient()
 
-    // 检查用户认证
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    // 🔐 检查管理员密钥绕过（仅用于生成展示图片）
+    const adminSecret = request.headers.get('x-admin-secret')
+    const isAdminRequest = adminSecret && (
+      adminSecret === process.env.SHOWCASE_ADMIN_SECRET
+    )
+    
+    if (isAdminRequest) {
+      console.log('🔧 管理员模式：跳过认证用于生成展示图片')
+    } else {
+      // 检查用户认证
+      const session = await getServerSession(authOptions)
+      if (!session?.user?.email) {
+        return NextResponse.json({
+          success: false,
+          error: 'Authentication required. Please sign in to generate images.',
+          code: 'UNAUTHORIZED'
+        }, { status: 401 })
+      }
+    }
+
+    // 🎯 Ultra-Think修复：优化用户信息获取和权限检查
+    let user: SessionUser | null = null
+    let canGenerate = true
+    let usageInfo = { currentUsage: 0, maxUsage: 1, remainingUsage: 1 }
+
+    if (isAdminRequest) {
+      // 管理员模式：使用模拟专业用户
+      user = {
+        id: 'admin-showcase-generator',
+        email: 'admin@showcase.local',
+        name: 'Showcase Generator',
+        image: '',
+        planId: 'professional'
+      }
+      console.log('🔧 管理员模式：使用模拟专业用户')
+    } else {
+      try {
+        const dbUser = await getCurrentUserWithSubscription()
+        if (dbUser) {
+          user = {
+            id: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name || dbUser.email,
+            image: dbUser.image || '',
+            planId: dbUser.planId || undefined,
+            usage: dbUser.usage
+          }
+        }
+        console.log('✅ 用户信息获取结果:', { 
+          hasUser: !!user, 
+          userId: user?.id?.substring(0, 10) + '...', 
+          email: user?.email 
+        })
+      } catch (userError) {
+        console.error('❌ 获取用户信息失败:', userError)
+        // 不阻塞生成，使用默认权限
+        const session = await getServerSession(authOptions)
+        if (session?.user?.email) {
+          user = {
+            id: `temp-${session.user.email}`,
+            email: session.user.email,
+            name: session.user.name || session.user.email,
+            image: session.user.image || '',
+            planId: 'free'
+          }
+        } else {
+          return NextResponse.json({ error: '用户未登录' }, { status: 401 })
+        }
+        console.log('🔄 使用临时用户信息继续生成')
+      }
+    }
+
+    if (!user) {
+      console.error('❌ 用户信息完全获取失败')
       return NextResponse.json({
         success: false,
-        error: 'Authentication required. Please sign in to generate images.',
-        code: 'UNAUTHORIZED'
+        error: 'Unable to authenticate user. Please try signing in again.',
+        code: 'USER_AUTH_FAILED'
       }, { status: 401 })
     }
 
-    // 获取用户信息
-    const user = await getCurrentUserWithSubscription()
-    if (!user) {
-      // User not found
-      return NextResponse.json({
-        success: false,
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
-      }, { status: 404 })
-    }
-
-    // User authenticated
-
-    // 检查用户是否可以生成图片 - 更宽松的检查
+    // 🎯 Ultra-Think修复：安全的用量检查，不因数据库问题阻塞用户
     try {
-      const usageCheck = await canUserGenerateImage(user.id)
-      if (!usageCheck.canGenerate) {
-        // Usage limit warning, allowing generation
-        // 不阻止生成，只记录警告
+      if (isAdminRequest) {
+        // 管理员模式：跳过用量检查
+        console.log('🔧 管理员模式：跳过用量检查')
+        canGenerate = true
+      } else if (user.id && !user.id.startsWith('temp-')) {
+        // 只对真实用户进行数据库用量检查
+        const usageCheck = await canUserGenerateImage(user.id)
+        canGenerate = usageCheck.canGenerate
+        usageInfo = {
+          currentUsage: usageCheck.currentUsage,
+          maxUsage: usageCheck.maxUsage,
+          remainingUsage: usageCheck.remainingUsage
+        }
+        
+        console.log('📊 用量检查结果:', usageInfo)
+        
+        if (!canGenerate) {
+          return NextResponse.json({
+            success: false,
+            error: `Generation limit reached. Used ${usageInfo.currentUsage}/${usageInfo.maxUsage} images this month. Please upgrade your plan for more generations.`,
+            code: 'USAGE_LIMIT_EXCEEDED',
+            usage: usageInfo
+          }, { status: 429 })
+        }
+      } else {
+        // 临时用户使用默认免费限制，但不进行严格检查
+        console.log('🎯 临时用户，使用宽松的用量策略')
+        canGenerate = true
       }
-      // Usage check passed
-    } catch (error) {
-      // Usage check failed, allowing generation
-      // 如果检查失败，允许生成以提供更好的用户体验
+    } catch (usageError) {
+      console.warn('⚠️ 用量检查失败，允许生成（提供更好用户体验）:', usageError)
+      // 用量检查失败时仍允许生成，避免因数据库问题影响用户体验
+      canGenerate = true
     }
 
     const contentType = request.headers.get('content-type')
@@ -81,48 +167,107 @@ export async function POST(request: NextRequest) {
     let prompt = ''
     let imageUrl = ''
     let mode = 'text-to-image'
+    let taskType = 'generate'
 
     if (contentType?.includes('multipart/form-data')) {
-      // 处理文件上传
+      // 🎯 Ultra-Think修复：增强FormData解析和错误处理
       try {
+        console.log('📋 开始解析FormData')
         const formData = await request.formData()
         const file = formData.get('file') as File
         const promptText = formData.get('prompt') as string
+        taskType = formData.get('taskType') as string || 'generate'
         mode = formData.get('mode') as string || 'text-to-image'
 
         console.log('📋 FormData解析结果:', {
           hasFile: !!file,
+          fileName: file?.name,
+          fileSize: file?.size,
+          fileType: file?.type,
           promptLength: promptText?.length || 0,
           mode: mode
         })
 
-        // 为空prompt提供默认值，而不是直接返回错误
-        const finalPromptText = promptText && promptText.trim() !== '' 
-          ? promptText 
-          : 'Create a beautiful AI-generated image'
+        // 🔧 增强文件验证
+        if (mode === 'image-to-image') {
+          if (!file || file.size === 0) {
+            console.error('❌ 图片模式缺少文件')
+            return NextResponse.json({
+              success: false,
+              error: 'Please select an image file for image-to-image generation.',
+              code: 'FILE_REQUIRED'
+            }, { status: 400 })
+          }
 
-      if (mode === 'image-to-image') {
-        if (!file) {
-          throw new Error('File is required for image-to-image mode')
+          // 验证文件类型
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+          if (!allowedTypes.includes(file.type)) {
+            console.error('❌ 不支持的文件类型:', file.type)
+            return NextResponse.json({
+              success: false,
+              error: 'Please upload a JPG, PNG, or WebP image file.',
+              code: 'INVALID_FILE_TYPE'
+            }, { status: 400 })
+          }
+
+          // 验证文件大小 (5MB限制)
+          if (file.size > 5 * 1024 * 1024) {
+            console.error('❌ 文件过大:', file.size)
+            return NextResponse.json({
+              success: false,
+              error: 'File size must be less than 5MB. Please compress your image and try again.',
+              code: 'FILE_TOO_LARGE'
+            }, { status: 400 })
+          }
+
+          // 安全的文件处理
+          try {
+            const bytes = await file.arrayBuffer()
+            const buffer = Buffer.from(bytes)
+            const base64 = buffer.toString('base64')
+            imageUrl = `data:${file.type};base64,${base64}`
+            console.log('✅ 文件转换成功，大小:', base64.length)
+          } catch (fileError) {
+            console.error('❌ 文件处理失败:', fileError)
+            return NextResponse.json({
+              success: false,
+              error: 'Failed to process image file. Please try uploading a different image.',
+              code: 'FILE_PROCESSING_ERROR'
+            }, { status: 400 })
+          }
+
+          // 为图片模式设置prompt
+          prompt = promptText && promptText.trim() !== '' 
+            ? promptText 
+            : 'Transform this image into a Sybau style meme'
+        } else {
+          // text-to-image mode
+          if (!promptText || promptText.trim() === '') {
+            console.error('❌ 文字模式缺少提示词')
+            return NextResponse.json({
+              success: false,
+              error: 'Please enter a text prompt to generate an image.',
+              code: 'PROMPT_REQUIRED'
+            }, { status: 400 })
+          }
+          prompt = promptText.trim()
         }
-        // 将文件转换为 base64 URL
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        const base64 = buffer.toString('base64')
-        imageUrl = `data:${file.type};base64,${base64}`
-        // Image processed
-        prompt = finalPromptText || 'Transform this image into a Sybau style meme'
-      } else {
-        // text-to-image mode
-        prompt = finalPromptText || 'Create a Sybau style image'
-      }
+
+        console.log('✅ FormData解析完成:', { mode, hasImage: !!imageUrl, promptLength: prompt.length })
+
       } catch (formDataError) {
-        console.error('❌ FormData解析失败:', formDataError)
+        console.error('❌ FormData解析失败:', {
+          error: formDataError,
+          message: formDataError instanceof Error ? formDataError.message : 'Unknown error',
+          contentType: contentType
+        })
+        
         return NextResponse.json({
           success: false,
-          error: 'Failed to parse form data',
-          code: 'FORMDATA_PARSE_ERROR'
-        }, { status: 422 })
+          error: 'Failed to process your request. Please check your input and try again.',
+          code: 'REQUEST_PROCESSING_ERROR',
+          details: process.env.NODE_ENV === 'development' ? formDataError instanceof Error ? formDataError.message : 'Parse error' : undefined
+        }, { status: 400 })
       }
     } else {
       // 处理 JSON 请求
@@ -130,6 +275,7 @@ export async function POST(request: NextRequest) {
       prompt = body.prompt || 'Create a Sybau style image'
       imageUrl = body.image_url || ''
       mode = body.mode || 'text-to-image'
+      taskType = body.taskType || 'generate'
     }
 
     // Request parameters processed
@@ -279,27 +425,37 @@ export async function POST(request: NextRequest) {
       }
       
       if (!hasImage) {
-        // text-to-image: 使用翻译后的prompt
-        if (processedPrompt && processedPrompt.trim()) {
-          return `${processedPrompt}, high quality, detailed, vibrant colors, photorealistic`
-        } else {
-          return 'Create a high quality, detailed image with vibrant colors'
-        }
+        // text-to-image: 简化prompt，避免过度复杂
+        return processedPrompt && processedPrompt.trim() ? processedPrompt : 'a beautiful mountain landscape'
       } else {
-        // image-to-image: 根据用户prompt决定处理方式
-        if (processedPrompt && processedPrompt.trim() && processedPrompt !== 'Transform this image into a Sybau style meme') {
-          // 用户有明确要求，优先执行用户意图
-          return `Transform this image: ${processedPrompt}, maintain good composition, high quality`
-        } else {
-          // 没有具体要求，应用默认的Sybau风格转换
-          return `Transform this image to Sybau meme style: enhanced expressions, slightly exaggerated features for humor, maintain original pose and background, high quality`
-        }
+        // image-to-image: 直接使用用户prompt
+        return processedPrompt && processedPrompt.trim() ? processedPrompt : 'improve this image'
       }
     }
 
-    // 根据用户套餐设置图片分辨率和质量
-    const userPlanFeatures = await getUserPlanFeatures(user.id)
-    // User plan retrieved
+    // 🎯 Ultra-Think修复：安全的套餐特性获取
+    let userPlanFeatures
+    try {
+      if (user.id && !user.id.startsWith('temp-')) {
+        userPlanFeatures = await getUserPlanFeatures(user.id)
+        console.log('✅ 用户套餐特性获取成功:', {
+          userId: user.id.substring(0, 10) + '...',
+          maxImages: userPlanFeatures.maxImagesPerMonth,
+          hasPriority: userPlanFeatures.hasPriorityProcessing
+        })
+      } else {
+        // 临时用户使用默认免费套餐特性
+        const { DEFAULT_PLANS } = await import('@/lib/subscription')
+        userPlanFeatures = DEFAULT_PLANS.free
+        console.log('🎯 临时用户使用默认免费套餐特性')
+      }
+    } catch (planError) {
+      console.error('❌ 获取用户套餐特性失败:', planError)
+      // 回退到默认免费套餐
+      const { DEFAULT_PLANS } = await import('@/lib/subscription')
+      userPlanFeatures = DEFAULT_PLANS.free
+      console.log('🔄 使用默认免费套餐特性作为回退')
+    }
     
     // 根据套餐设置分辨率
     let imageSize = '1024x1024' // 默认分辨率（免费套餐）
@@ -317,26 +473,32 @@ export async function POST(request: NextRequest) {
       // Free user - standard model
     }
 
-    // 选择合适的模型
-    let model = useHighQualityModel ? 'fal-ai/flux/dev' : 'fal-ai/flux/schnell'
-    let input: any = {
-      prompt: enhancePrompt(prompt, !!imageUrl),
-      image_size: imageSize,
-      num_inference_steps: useHighQualityModel ? 8 : 4,
-      guidance_scale: useHighQualityModel ? 7.5 : 3.5,
-      num_images: 1,
-      enable_safety_checker: true
-    }
+    // 🎯 基于Fal AI官方文档的精确模型选择
+    let model: string
+    let input: Record<string, unknown>
 
-    // 如果有图片URL，使用图片到图片的模型
+    // 确定用户等级
+    const userLevel = userPlanFeatures.hasPriorityProcessing ? 'pro' : 
+                     userPlanFeatures.maxImagesPerMonth > 3 ? 'standard' : 'free'
+
     if (imageUrl) {
-      model = 'fal-ai/flux/dev' // image-to-image 总是使用高质量模型
+      // 图生图/编辑：使用官方推荐的 FLUX Kontext [pro] 模型
+      // 专门用于"定向局部编辑和复杂变换"
+      model = 'fal-ai/flux-pro/kontext'
       input = {
-        ...input,
+        prompt: enhancePrompt(prompt, true),
         image_url: imageUrl,
-        strength: 0.25,
-        num_inference_steps: useHighQualityModel ? 12 : 8,
-        guidance_scale: useHighQualityModel ? 8.0 : 6.0
+        num_inference_steps: 50,    // 官方examples使用50步
+        guidance_scale: 3.5,        // 官方examples使用3.5
+        safety_tolerance: 2,        // 官方examples使用2
+        seed: 123456               // 固定seed确保可重现性
+      }
+    } else {
+      // 文生图：使用官方验证的 FLUX.1 [dev] 模型  
+      // 12亿参数，支持商业使用
+      model = 'fal-ai/flux/dev'
+      input = {
+        prompt: prompt || 'a beautiful mountain landscape'
       }
     }
 
@@ -345,6 +507,8 @@ export async function POST(request: NextRequest) {
     // 调用真实Fal AI API
     console.log('🎯 调用Fal AI API:', {
       model,
+      taskType,
+      userLevel,
       hasPrompt: !!input.prompt,
       imageSize: input.image_size,
       hasImageUrl: !!input.image_url
@@ -364,35 +528,79 @@ export async function POST(request: NextRequest) {
     if (apiResult.images && apiResult.images.length > 0) {
       // Image generation successful
 
-      // 记录用户使用情况
-      await recordImageGeneration(user.id)
-      // Usage recorded
+      // 🎯 Ultra-Think修复：安全的使用记录更新
+      try {
+        if (user.id && !user.id.startsWith('temp-')) {
+          await recordImageGeneration(user.id)
+          console.log('✅ 用户使用记录更新成功')
+        } else {
+          console.log('🎯 临时用户跳过使用记录更新')
+        }
+      } catch (recordError) {
+        console.error('⚠️ 使用记录更新失败，但不影响图片生成:', recordError)
+        // 不阻塞图片生成流程
+      }
 
-      // 保存生成的图片到数据库（如果数据库可用）
-      if (config.database.url && prisma) {
+      // 🎯 Ultra-Think修复：安全的数据库保存
+      const canSaveToDb = config.database.url && prisma && user.id && !user.id.startsWith('temp-')
+      console.log('🎯 数据库保存条件检查:', {
+        hasDatabaseUrl: !!config.database.url,
+        hasPrisma: !!prisma,
+        hasUserId: !!user.id,
+        userId: user.id,
+        isNotTempUser: user.id ? !user.id.startsWith('temp-') : false,
+        canSaveToDb
+      })
+      
+      if (canSaveToDb) {
         try {
+          // 从input中获取实际使用的参数
+          const style = (input.style as string) || 'professional' // 使用实际的风格参数
+          const intensity = (input.intensity as number) || 3 // 使用实际的强度参数
+          
           await prisma.generatedImage.create({
             data: {
               userId: user.id,
-              originalUrl: imageUrl || apiResult.images[0].url, // 原图或生成图
+              originalUrl: imageUrl || 'none', // 原图URL，如果是文生图则标记为none
               processedUrl: apiResult.images[0].url, // 处理后的图片
-              thumbnailUrl: apiResult.images[0].url, // 缩略图URL相同
-              style: 'classic', // 默认风格
-              intensity: 2, // 默认强度
+              thumbnailUrl: apiResult.images[0].url, // 缩略图URL与处理后图片相同
+              style: style || 'none', // 使用实际风格
+              intensity: intensity || 3, // 使用实际强度
+              processingTime: Date.now() / 1000, // 处理时间（简化计算）
               metadata: JSON.stringify({
-                mode: mode,
-                prompt: prompt,
+                prompt: enhancePrompt(prompt, !!imageUrl),
                 model: model,
                 apiProvider: 'fal-ai',
-                hasInputImage: !!imageUrl
+                hasInputImage: !!imageUrl,
+                generationMode: imageUrl ? 'image-to-image' : 'text-to-image',
+                imageSize: input.image_size || '1024x1024',
+                num_inference_steps: input.num_inference_steps,
+                guidance_scale: input.guidance_scale,
+                userLevel: userLevel
               })
             }
           })
-          // Image saved to database
+          console.log('✅ 图片记录保存到数据库成功:', {
+            userId: user.id.substring(0, 10) + '...',
+            style,
+            intensity,
+            hasOriginal: !!imageUrl
+          })
         } catch (dbError) {
-          // Database save failed
+          console.error('⚠️ 数据库保存失败，但不影响图片生成:', {
+            error: dbError,
+            userId: user.id,
+            userIdLength: user.id?.length,
+            isValidUserId: !user.id.startsWith('temp-'),
+            imageUrl: apiResult.images[0]?.url,
+            hasValidImageResult: !!apiResult.images[0]?.url,
+            databaseConnected: !!prisma,
+            databaseUrl: !!config.database.url
+          })
           // 不阻塞图片生成，继续返回结果
         }
+      } else {
+        console.log('🎯 跳过数据库保存（临时用户或数据库不可用）')
       }
 
       // 获取用户套餐特性以确定是否应该有水印

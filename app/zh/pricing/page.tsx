@@ -19,14 +19,14 @@ const getPricingPlans = (isAnnual: boolean) => [
     description: '完美的Sybau AI体验入门',
     badge: null,
     features: [
-      '免费创作体验',
-      '基础Sybau风格',
+      '每月3张图片',
+      '✨ 解锁全部模版',
       '标准质量 (1024x1024)',
+      '无水印',
       '社区画廊访问'
     ],
     limitations: [
-      '基础使用配额',
-      '带水印图片'
+      '月度使用限制'
     ],
     buttonText: '免费开始',
     buttonVariant: 'outline' as const,
@@ -44,9 +44,10 @@ const getPricingPlans = (isAnnual: boolean) => [
     badge: null,
     features: [
       '每月60张图片',
-      '所有Sybau风格',
-      '高质量 (最高2048x2048)',
+      '✨ 解锁全部模版',
+      '高质量 (最高1536x1536)',
       '无水印',
+      '所有Sybau风格',
       '多种格式下载'
     ],
     limitations: [
@@ -68,9 +69,10 @@ const getPricingPlans = (isAnnual: boolean) => [
     badge: '最受欢迎',
     features: [
       '每月180张图片',
-      '所有高级Sybau风格',
-      '超高质量 (最高4096x4096)',
+      '✨ 解锁全部模版',
+      '超高质量 (最高2048x2048)',
       '无水印',
+      '所有高级Sybau风格',
       '优先处理',
       '高级AI功能'
     ],
@@ -379,14 +381,14 @@ export default function ZHPricingPage() {
                     <td className="px-6 py-4 text-center text-sm text-gray-600">4096x4096</td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900">去除水印</td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                    <td className="px-6 py-4 text-sm text-gray-900">所有模版访问</td>
+                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                     <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                     <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">所有Sybau风格</td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                     <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                     <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                   </tr>

@@ -2,19 +2,26 @@ import { Metadata } from 'next'
 import HelpPageClient from './HelpPageClient'
 
 export const metadata: Metadata = {
-  title: 'Help & Support - Sybau Picture | AI Image Generator FAQ',
-  description: 'Find answers to frequently asked questions about Sybau Picture AI image generator. Get help with image generation, pricing, troubleshooting, and more.',
-  keywords: ['help', 'support', 'FAQ', 'AI image generator', 'Sybau Picture', 'troubleshooting', 'guide', 'tutorial'],
+  title: 'Help & Support - Sybau Picture | AI Image Generator FAQ & Templates',
+  description: 'Find comprehensive answers about Sybau Picture AI image generator. Learn about templates, My Assets, dual modes, pricing plans, troubleshooting, and advanced features.',
+  keywords: ['help', 'support', 'FAQ', 'AI image generator', 'Sybau Picture', 'templates', 'my assets', 'text-to-image', 'image-to-image', 'troubleshooting', 'guide', 'tutorial', 'watermark removal', 'body optimization'],
   openGraph: {
-    title: 'Help & Support - Sybau Picture',
-    description: 'Find answers to frequently asked questions about Sybau Picture AI image generator. Get help with image generation, pricing, troubleshooting, and more.',
+    title: 'Help & Support - Sybau Picture AI Generator',
+    description: 'Complete FAQ guide for Sybau Picture: Templates, My Assets, dual creation modes, pricing plans, and troubleshooting. Master AI image generation.',
     url: 'https://sybaupicture.com/help',
     type: 'website',
+    images: [{
+      url: 'https://sybaupicture.com/images/help-og.jpg',
+      width: 1200,
+      height: 630,
+      alt: 'Sybau Picture Help & Support Guide',
+    }],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Help & Support - Sybau Picture',
-    description: 'Find answers to frequently asked questions about Sybau Picture AI image generator.',
+    description: 'Complete FAQ guide: Templates, My Assets, dual modes, and advanced AI image generation features.',
+    images: ['https://sybaupicture.com/images/help-twitter.jpg'],
   },
   alternates: {
     canonical: '/help',
@@ -28,7 +35,7 @@ export const metadata: Metadata = {
 export default function HelpPage() {
   return (
     <>
-      {/* FAQ结构化数据 */}
+      {/* 更新的FAQ结构化数据 */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -41,7 +48,31 @@ export default function HelpPage() {
                 "name": "How does the AI image generator work?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Our AI uses advanced machine learning models inspired by Gen Z culture and the Sybau philosophy - Stay Young, Beautiful and Unique. Simply upload an image or enter text, select your preferred style, and our AI will transform it into a viral-worthy creative piece in seconds."
+                  "text": "Our AI uses advanced machine learning models inspired by Gen Z culture and the Sybau philosophy - Stay Young, Beautiful and Unique. Choose between Text-to-Image mode (enter a description) or Image-to-Image mode (upload and transform), select your style, and get professional results in seconds."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What are Templates and how do I use them?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Templates are pre-configured AI setups for specific tasks like watermark removal, body optimization, or background replacement. Click the template library button to browse 14 professional templates across 3 categories: Life Enhancement, Business Creation, and Creative Conversion."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What's the difference between Text-to-Image and Image-to-Image modes?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Text-to-Image creates completely new images from your written description. Image-to-Image transforms your uploaded photos using AI - perfect for editing, style changes, or enhancements. Both modes support our 4 professional styles."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I manage my generated images?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Visit 'My Assets' in your profile to view all generated images, organized by date. You can view, download, or delete images from your personal gallery. Images are automatically saved when you generate them."
                 }
               },
               {
@@ -49,15 +80,31 @@ export default function HelpPage() {
                 "name": "What image formats are supported?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "We support all major image formats including JPG, PNG, GIF, and WebP. For best results, we recommend uploading high-quality images with good lighting and clear subjects."
+                  "text": "We support JPG, PNG, and WebP formats. Images should be under 5MB for optimal processing. Resolution between 512x512 and 2048x2048 pixels works best."
                 }
               },
               {
                 "@type": "Question",
-                "name": "How many images can I generate?",
+                "name": "What are the current usage limits?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Free users can generate 3 images per month. Standard users get 50 images per month, and PRO users get 200 images per month with priority processing."
+                  "text": "Free users: 3 images per month. Standard users: 60 images per month. Pro users: 180 images per month with priority processing. All plans include unlimited storage and no watermarks."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Which templates are available for free users?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Free users get access to 3 essential templates: Smart Watermark Removal, Body Optimization, and Tourist Removal. Standard users get 5 templates, while Pro users unlock all 14 professional templates."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What are the different AI styles available?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We offer 4 professional styles: Classic (balanced aesthetic), Professional (refined business-ready), Exaggerated (bold and expressive), and Creative (imaginative and artistic). Free users get Classic and Professional, while paid users access all styles."
                 }
               },
               {
@@ -65,7 +112,31 @@ export default function HelpPage() {
                 "name": "Can I use generated images commercially?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Yes! All images generated with Sybau Picture can be used for commercial purposes. You retain full rights to your creations. However, please ensure your original uploaded images don't infringe on copyrights."
+                  "text": "Yes! You retain full commercial rights to all generated images. Use them for business, social media, marketing, or any commercial purpose. Just ensure your original uploaded images don't infringe on copyrights."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do you add watermarks to generated images?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No! All plans, including the free tier, generate images without watermarks. You get clean, professional results ready for any use case."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How long are my images stored?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Your generated images are stored permanently in your account unless you delete them. You have unlimited storage for your creations and can access them anytime from 'My Assets'."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is my data safe and private?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Absolutely. We use enterprise-grade encryption and don't store uploaded images permanently unless you choose to save them. Generated images are only kept in your personal gallery. Read our Privacy Policy for complete details."
                 }
               }
             ]

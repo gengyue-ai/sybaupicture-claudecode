@@ -12,9 +12,9 @@ import { GooglePageAds } from '@/components/GoogleAds'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sybau Picture - AI Image Generator | Stay Young, Beautiful & Unique',
-  description: 'Create amazing Sybau-style images with AI technology. Transform text and images into stunning creative visuals. Free, fast, and fun!',
-  keywords: ['AI', 'image generator', 'Sybau', 'artificial intelligence', 'image generation', 'creative AI', 'meme generator', 'AI art'],
+  title: 'Sybau Picture - FLUX Pro AI Picture Generator | Kontext Engine Powered',
+  description: 'Professional AI picture generator powered by FLUX Pro and Kontext engine. Transform images with Sybau style - 9 AI scenarios, 15s generation, commercial quality results.',
+  keywords: ['FLUX Pro', 'Kontext AI', 'picture generator', 'Sybau', 'AI image editor', 'flux-pro/kontext', 'professional AI editing', 'AI picture generation', 'flux pro picture generator', 'sybau picture generator'],
   authors: [{ name: 'Sybau Picture Team' }],
   creator: 'Sybau Picture',
   publisher: 'Sybau Picture',
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
     google: '207c6c6d915a05e8',
   },
   openGraph: {
-    title: 'Sybau Picture - AI Image Generator',
-    description: 'Create amazing Sybau-style images with AI technology. Transform text and images into stunning creative visuals.',
+    title: 'Sybau Picture - FLUX Pro AI Picture Generator',
+    description: 'Professional AI picture generator powered by FLUX Pro and Kontext engine. Transform images with Sybau style - 9 AI scenarios, commercial quality.',
     url: 'https://sybaupicture.com',
     siteName: 'Sybau Picture',
     images: [
@@ -59,8 +59,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sybau Picture - AI Image Generator',
-    description: 'Create amazing Sybau-style images with AI technology. Transform text and images into stunning creative visuals.',
+    title: 'Sybau Picture - FLUX Pro Picture Generator',
+    description: 'Professional AI picture generator powered by FLUX Pro and Kontext engine. Transform images with Sybau style - 9 AI scenarios.',
     images: ['/logo-600x600.svg'],
     creator: '@SybauPicture',
   },
@@ -87,60 +87,82 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        
         {/* Favicon */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/logo-icon.svg" />
         
-        {/* 结构化数据 - 谷歌Logo索引 */}
+        {/* 结构化数据 - Organization & SoftwareApplication */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              "name": "Sybau Picture",
-              "alternateName": ["SP", "Sybau"],
-              "url": "https://sybaupicture.com",
-              "logo": [
-                {
-                  "@type": "ImageObject",
-                  "url": "https://sybaupicture.com/logo-600x600.svg",
-                  "width": 600,
-                  "height": 600,
-                  "caption": "Sybau Picture Logo"
-                },
-                {
-                  "@type": "ImageObject", 
-                  "url": "https://sybaupicture.com/logo-600x60.svg",
-                  "width": 600,
-                  "height": 60,
-                  "caption": "Sybau Picture Horizontal Logo"
-                }
-              ],
-              "sameAs": [
-                "https://sybaupicture.com",
-                "https://sybaupicture.com/zh"
-              ],
-              "description": "Stay Young, Beautiful & Unique - AI Image Generation Platform",
-              "slogan": "Stay Young, Beautiful & Unique",
-              "founder": {
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
                 "@type": "Organization",
-                "name": "Gengyue AI"
+                "name": "Sybau Picture",
+                "alternateName": ["SP", "Sybau", "FLUX Pro Picture Generator"],
+                "url": "https://sybaupicture.com",
+                "logo": [
+                  {
+                    "@type": "ImageObject",
+                    "url": "https://sybaupicture.com/logo-600x600.svg",
+                    "width": 600,
+                    "height": 600,
+                    "caption": "Sybau FLUX Pro Picture Generator Logo"
+                  }
+                ],
+                "sameAs": [
+                  "https://sybaupicture.com",
+                  "https://sybaupicture.com/zh"
+                ],
+                "description": "Professional AI picture generator powered by FLUX Pro and Kontext engine",
+                "slogan": "Stay Young, Beautiful & Unique",
+                "founder": {
+                  "@type": "Organization",
+                  "name": "Gengyue AI"
+                },
+                "foundingDate": "2024",
+                "knowsAbout": [
+                  "FLUX Pro AI Engine",
+                  "Kontext Technology",
+                  "AI Picture Generation",
+                  "Professional Image Editing",
+                  "Creative AI Tools"
+                ]
               },
-              "foundingDate": "2024",
-              "knowsAbout": [
-                "AI Image Generation",
-                "Artificial Intelligence",
-                "Creative Technology",
-                "Meme Generation"
-              ],
-              "potentialAction": {
-                "@type": "CreateAction",
-                "name": "Generate AI Images",
-                "target": "https://sybaupicture.com"
+              {
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                "name": "Sybau Picture - FLUX Pro Generator",
+                "applicationCategory": "AI Image Editor",
+                "operatingSystem": "Web Browser",
+                "url": "https://sybaupicture.com",
+                "description": "Professional AI picture generator powered by FLUX Pro and Kontext engine with 9 specialized templates",
+                "featureList": [
+                  "FLUX Pro AI Engine",
+                  "Kontext Technology",
+                  "9 Professional Templates",
+                  "15-second Generation",
+                  "Commercial Quality Output",
+                  "Multi-language Support"
+                ],
+                "offers": {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "USD",
+                  "description": "Free tier with 3 templates available"
+                },
+                "creator": {
+                  "@type": "Organization",
+                  "name": "Sybau Picture Team"
+                },
+                "potentialAction": {
+                  "@type": "CreateAction",
+                  "name": "Generate FLUX Pro Images",
+                  "target": "https://sybaupicture.com"
+                }
               }
-            })
+            ])
           }}
         />
       </head>

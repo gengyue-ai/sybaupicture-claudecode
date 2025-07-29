@@ -1,10 +1,13 @@
-import { prisma } from '@/lib/prisma'
+import { createPrismaClient } from '@/lib/prisma'
 
 export async function syncUser(userData: {
   email: string
   name?: string | null
   image?: string | null
 }) {
+  // 🎯 创建独立的数据库连接，避免prepared statement冲突
+  const prisma = createPrismaClient()
+  
   // 如果Prisma不可用，返回虚拟用户对象，不阻塞登录
   if (!prisma) {
     console.warn('❌ Prisma not available for user sync, allowing login without sync')

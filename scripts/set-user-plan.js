@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 // 默认套餐配置
 const DEFAULT_PLANS = {
   free: {
-    maxImagesPerMonth: 1,
+    maxImagesPerMonth: 3,
     maxResolution: '1024x1024',
     hasWatermark: false,
     hasPriorityProcessing: false,

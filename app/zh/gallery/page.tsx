@@ -2,27 +2,31 @@ import { Metadata } from 'next'
 import GalleryClient from '@/components/GalleryClient'
 
 export const metadata: Metadata = {
-  title: 'Sybau创意画廊 - 探索AI生成艺术作品 | Sybau Picture',
-  description: '探索数千个令人惊叹的Sybau风格AI生成作品。发现由全球创作者使用先进AI技术创建的独特艺术作品，体验Stay Young, Beautiful and Unique的创意精神。',
-  keywords: ['Sybau画廊', 'AI艺术', '人工智能生成', '创意作品', 'Sybau风格', 'AI画廊', '数字艺术'],
+  title: 'FLUX引擎应用案例库 - 9大专业AI图像编辑场景 | Sybau Picture',
+  description: '探索基于FLUX Pro引擎的9大专业AI图像编辑场景。从智能去水印到风格转换，120亿参数模型，15秒生成专业级作品。',
+  keywords: [
+    'FLUX引擎', 'AI图像编辑', '智能去水印', '背景替换', '风格转换', 
+    '身材优化', '专业AI编辑', 'FLUX Pro', 'Kontext AI', '120亿参数',
+    'AI照片编辑', '智能图像处理', '前后对比', 'AI编辑案例'
+  ],
   openGraph: {
-    title: 'Sybau创意画廊 - 探索AI生成艺术作品',
-    description: '探索数千个令人惊叹的Sybau风格AI生成作品。发现独特的AI艺术创作。',
+    title: 'FLUX引擎应用案例库 - 专业AI图像编辑',
+    description: '发现9大专业AI图像编辑场景。FLUX Pro引擎，120亿参数，15秒生成时间。',
     url: 'https://sybaupicture.com/zh/gallery',
-    images: [
-      {
-        url: '/logo-600x600.svg',
-        width: 600,
-        height: 600,
-        alt: 'Sybau Picture 创意画廊',
-      },
-    ],
+    images: ['/og-gallery-flux.webp'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FLUX引擎应用案例库 - 专业AI图像编辑',
+    description: '探索9大AI图像编辑场景：智能去水印、风格转换、背景替换等。',
+    images: ['/og-gallery-flux.webp'],
   },
   alternates: {
-    canonical: '/zh/gallery',
+    canonical: 'https://sybaupicture.com/zh/gallery',
     languages: {
-      'en-US': '/gallery',
-      'zh-CN': '/zh/gallery',
+      'en': 'https://sybaupicture.com/gallery',
+      'zh': 'https://sybaupicture.com/zh/gallery',
     },
   },
 }

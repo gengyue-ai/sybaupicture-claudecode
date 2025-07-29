@@ -1,7 +1,41 @@
-// 🔧 Sybau Picture - 简化配置管理
+// 🔧 Sybau Picture - 智能环境配置管理 v2.0
 // 保护AdSense：保留所有广告相关环境变量支持
 
-const isProduction = process.env.NODE_ENV === 'production'
+// 🎯 更智能的环境检测逻辑
+function detectEnvironment() {
+  // 1. 优先检查显式的环境设置
+  if (process.env.SYBAU_ENV === 'development') return 'development'
+  if (process.env.SYBAU_ENV === 'production') return 'production'
+  
+  // 2. 检查NEXTAUTH_URL来判断环境
+  const nextAuthUrl = process.env.NEXTAUTH_URL
+  if (nextAuthUrl) {
+    if (nextAuthUrl.includes('localhost') || nextAuthUrl.includes('127.0.0.1')) {
+      return 'development'
+    }
+    if (nextAuthUrl.includes('sybaupicture.com')) {
+      return 'production'
+    }
+  }
+  
+  // 3. 检查Vercel环境
+  if (process.env.VERCEL_ENV === 'production') return 'production'
+  if (process.env.VERCEL_ENV === 'development' || process.env.VERCEL_ENV === 'preview') {
+    return 'development'
+  }
+  
+  // 4. 作为最后手段，检查NODE_ENV
+  if (process.env.NODE_ENV === 'production') return 'production'
+  
+  // 5. 默认为开发环境（更安全）
+  return 'development'
+}
+
+const currentEnvironment = detectEnvironment()
+const isProduction = currentEnvironment === 'production'
+const isDevelopment = currentEnvironment === 'development'
+
+console.log(`🌍 检测环境: ${currentEnvironment} (NODE_ENV: ${process.env.NODE_ENV || 'undefined'})`)
 
 export const config = {
   app: {
@@ -9,7 +43,7 @@ export const config = {
     description: 'AI-powered image generation platform',
     url: isProduction 
       ? process.env.NEXTAUTH_URL || 'https://sybaupicture.com'
-      : 'http://localhost:3001',
+      : process.env.NEXTAUTH_URL || 'http://localhost:3003',
   },
   
   database: {
@@ -17,14 +51,10 @@ export const config = {
   },
   
   auth: {
-    secret: process.env.NEXTAUTH_SECRET!,
+    secret: process.env.NEXTAUTH_SECRET || 'fallback-dev-secret-change-in-production',
     google: {
-      clientId: isProduction 
-        ? process.env.GOOGLE_CLIENT_ID_PROD!
-        : (process.env.GOOGLE_CLIENT_ID_DEV || process.env.GOOGLE_CLIENT_ID)!,
-      clientSecret: isProduction 
-        ? process.env.GOOGLE_CLIENT_SECRET_PROD!
-        : (process.env.GOOGLE_CLIENT_SECRET_DEV || process.env.GOOGLE_CLIENT_SECRET)!,
+      clientId: process.env.GOOGLE_CLIENT_ID_PROD || process.env.GOOGLE_CLIENT_ID_DEV || process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET_PROD || process.env.GOOGLE_CLIENT_SECRET_DEV || process.env.GOOGLE_CLIENT_SECRET || '',
     },
   },
   
@@ -79,12 +109,12 @@ export function validateConfig() {
   }
   
   // 验证Google OAuth配置
-  const googleClientId = isProduction 
-    ? process.env.GOOGLE_CLIENT_ID_PROD
-    : (process.env.GOOGLE_CLIENT_ID_DEV || process.env.GOOGLE_CLIENT_ID)
+  const googleClientId = process.env.GOOGLE_CLIENT_ID_PROD || process.env.GOOGLE_CLIENT_ID_DEV || process.env.GOOGLE_CLIENT_ID
     
   if (!googleClientId) {
     console.warn('⚠️ Google OAuth not configured')
+  } else {
+    console.log('✅ Google OAuth configured')
   }
   
   // 验证Stripe配置
@@ -108,5 +138,5 @@ export function getEnvironmentInfo() {
 }
 
 // 兼容性导出（保持向后兼容）
-export const isDevelopment = !isProduction
+export { isDevelopment }
 export const appConfig = config

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { User, Calendar, CreditCard, Image, Settings, Mail } from 'lucide-react'
+import { UserAvatar } from '@/components/ui/UserAvatar'
+import { MyAssetsCard } from '@/components/MyAssetsCard'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -144,18 +146,14 @@ export default function ZhProfilePage() {
             {/* 头像和基本信息 */}
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="w-24 h-24 mx-auto mb-4 relative">
-                  {profile.image ? (
-                    <img
-                      src={`${profile.image}?t=${Date.now()}`}
-                      alt="头像"
-                      className="w-full h-full rounded-full object-cover border-4 border-purple-200"
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
-                      <User className="w-10 h-10 text-white" />
-                    </div>
-                  )}
+                <div className="mx-auto mb-4 relative">
+                  <UserAvatar
+                    image={profile.image}
+                    name={profile.name}
+                    email={profile.email}
+                    size="xl"
+                    className="border-4 border-purple-200"
+                  />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800">{profile.name}</h2>
                 <p className="text-gray-600 flex items-center justify-center mt-2">
@@ -307,6 +305,9 @@ export default function ZhProfilePage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* 我的生成图片 */}
+            <MyAssetsCard />
 
             {/* 账户管理 */}
             <Card>

@@ -12,13 +12,25 @@ const stripeSecretKey = isProduction
 let stripe: Stripe | null = null
 
 if (stripeSecretKey) {
-  stripe = new Stripe(stripeSecretKey, {
-    apiVersion: '2025-06-30.basil',
-    typescript: true
-  })
-  // Stripe initialized
+  try {
+    stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2025-06-30.basil',
+      typescript: true
+    })
+    console.log('✅ Stripe初始化成功:', {
+      environment: isProduction ? 'production' : 'development',
+      keyPrefix: stripeSecretKey.substring(0, 12) + '...'
+    })
+  } catch (error) {
+    console.error('❌ Stripe初始化失败:', error)
+    stripe = null
+  }
 } else {
-  // Stripe not configured
+  console.warn('⚠️ Stripe未配置 - 缺少API密钥:', {
+    environment: isProduction ? 'production' : 'development',
+    expectedVar: isProduction ? 'STRIPE_SECRET_KEY_PROD' : 'STRIPE_SECRET_KEY_DEV',
+    fallbackVar: 'STRIPE_SECRET_KEY'
+  })
 }
 
 export { stripe }
@@ -30,22 +42,50 @@ export const getStripe = () => {
     : (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   
   if (!publishableKey) {
-    // Stripe Publishable Key not configured
+    console.warn('⚠️ Stripe客户端未配置 - 缺少公钥:', {
+      environment: isProduction ? 'production' : 'development',
+      expectedVar: isProduction ? 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD' : 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV',
+      fallbackVar: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'
+    })
     return null
   }
+  
+  console.log('✅ Stripe客户端配置成功:', {
+    environment: isProduction ? 'production' : 'development',
+    keyPrefix: publishableKey.substring(0, 12) + '...'
+  })
+  
   return loadStripe(publishableKey)
 }
 
-// Stripe价格ID配置 - 从环境变量读取
+// Stripe价格ID配置 - 完全从环境变量读取
 export const STRIPE_PRICE_IDS = {
   standard: {
-    monthly: process.env.STRIPE_PRICE_STANDARD_MONTHLY || 'price_1RhROqG6XuFqUG4898GD54ic', // Standard Monthly
-    yearly: process.env.STRIPE_PRICE_STANDARD_YEARLY || 'price_1RhRQBG6XuFqUG48R9UPjFyb'   // Standard Yearly
+    monthly: process.env.STRIPE_PRICE_STANDARD_MONTHLY,
+    yearly: process.env.STRIPE_PRICE_STANDARD_YEARLY
   },
   pro: {
-    monthly: process.env.STRIPE_PRICE_PRO_MONTHLY || 'price_1RhRPSG6XuFqUG48PjjCUHkU', // Pro Monthly  
-    yearly: process.env.STRIPE_PRICE_PRO_YEARLY || 'price_1RhRQgG6XuFqUG48RcSOqsAA'   // Pro Yearly
+    monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
+    yearly: process.env.STRIPE_PRICE_PRO_YEARLY
   }
+}
+
+// 验证价格ID配置
+export function validatePriceIds(): { isValid: boolean; missing: string[] } {
+  const missing: string[] = []
+  
+  if (!STRIPE_PRICE_IDS.standard.monthly) missing.push('STRIPE_PRICE_STANDARD_MONTHLY')
+  if (!STRIPE_PRICE_IDS.standard.yearly) missing.push('STRIPE_PRICE_STANDARD_YEARLY')
+  if (!STRIPE_PRICE_IDS.pro.monthly) missing.push('STRIPE_PRICE_PRO_MONTHLY')
+  if (!STRIPE_PRICE_IDS.pro.yearly) missing.push('STRIPE_PRICE_PRO_YEARLY')
+  
+  if (missing.length > 0) {
+    console.warn('⚠️ Stripe价格ID配置不完整:', { missing })
+  } else {
+    console.log('✅ Stripe价格ID配置完整')
+  }
+  
+  return { isValid: missing.length === 0, missing }
 }
 
 // 创建Stripe客户

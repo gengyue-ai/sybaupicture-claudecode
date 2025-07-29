@@ -2,6 +2,36 @@
 const fs = require('fs');
 const path = require('path');
 
+// 读取环境变量文件
+function loadEnvFile() {
+  const envFiles = ['.env.current', '.env.local', '.env'];
+  
+  for (const envFile of envFiles) {
+    const envPath = path.join(process.cwd(), envFile);
+    if (fs.existsSync(envPath)) {
+      console.log(`📁 读取环境文件: ${envFile}`);
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      const lines = envContent.split('\n');
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine && !trimmedLine.startsWith('#') && trimmedLine.includes('=')) {
+          const [key, ...valueParts] = trimmedLine.split('=');
+          const value = valueParts.join('=').replace(/^"|"$/g, '');
+          if (key && value) {
+            process.env[key] = value;
+          }
+        }
+      });
+      
+      return envFile;
+    }
+  }
+  
+  console.log('⚠️ 未找到环境变量文件');
+  return null;
+}
+
 // 读取环境变量
 function checkEnvironmentVariables() {
   const prodVars = [
@@ -157,6 +187,12 @@ function generateVercelCommands(config) {
 function main() {
   console.log('🎯 Stripe配置诊断工具');
   console.log('═══════════════════════════════════════════════════════════════════');
+  
+  // 首先加载环境变量文件
+  const loadedEnvFile = loadEnvFile();
+  if (loadedEnvFile) {
+    console.log(`✅ 成功加载环境配置: ${loadedEnvFile}\n`);
+  }
   
   const envStatus = checkEnvironmentVariables();
   const correctConfig = getCorrectValues();

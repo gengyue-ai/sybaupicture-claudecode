@@ -85,114 +85,158 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
 
   // 同步状态引用，避免循环依赖
   const isSyncingRef = useRef(false)
+  const lastSyncTimeRef = useRef(0)
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // 后台静默同步数据
+  // 后台静默同步数据 - 修复无限循环问题
   const backgroundSync = useCallback(async () => {
     if (!session?.user?.email || isSyncingRef.current) return
-
+    
+    // 防抖机制：限制同步频率，避免无限循环
+    const now = Date.now()
+    if (now - lastSyncTimeRef.current < 5000) { // 5秒内不重复同步
+      console.log('🔄 同步请求被防抖机制阻止，距离上次同步', now - lastSyncTimeRef.current, 'ms')
+      return
+    }
+    
+    lastSyncTimeRef.current = now
     isSyncingRef.current = true
     setSyncState(prev => ({ ...prev, isSyncing: true, error: null }))
 
     try {
-      console.log('🔄 开始后台同步用户数据')
+      console.log('🔄 开始优化的用户数据同步')
       
-      // 并行获取用户数据 - 优先获取最新用量信息
-      const [usageResponse, subscriptionResponse, syncResponse] = await Promise.all([
-        fetch('/api/user/usage?_t=' + Date.now(), { cache: 'no-store' }),
-        fetch('/api/subscription?_t=' + Date.now(), { cache: 'no-store' }),
-        fetch('/api/user/sync', { 
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'no-store'
-        })
-      ])
-
+      // 🎯 Ultra-Think修复：简化数据源，避免冲突
+      // 优先使用最可靠的用量API，失败时才使用备用数据源
       let profileData: UserProfileData | null = null
+      let primaryDataSource = 'none'
 
-      // 🔑 优先使用用量API数据（最准确的实时数据）
-      if (usageResponse.ok) {
-        const usageData = await usageResponse.json()
-        console.log('✅ 用量API数据获取成功:', usageData)
+      // 主数据源：用量API（最准确的实时数据）
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 3000) // 3秒超时
         
-        // 🔧 修复：直接使用用量API的数据，不再混合其他数据源
-        const isActive = usageData.isSubscribed
-        const planName = usageData.subscriptionPlan || 'free'
+        const usageResponse = await fetch('/api/user/usage?_t=' + Date.now(), { 
+          cache: 'no-store',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal
+        })
         
-        profileData = {
-          name: session.user.name || '',
-          email: session.user.email || '',
-          image: session.user.image || null,
-          isSubscribed: isActive,
-          subscriptionStatus: isActive ? 'active' : 'inactive',
-          subscriptionPlan: planName,
-          usageCount: usageData.usageCount || 0,
-          maxUsage: usageData.maxUsage || 1,
-          stripeCustomerId: null, // 从其他API获取
-          planFeatures: {
-            hasWatermark: !isActive,
-            maxImagesPerMonth: usageData.maxUsage || 1,
-            maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
-            hasPriorityProcessing: isActive && planName !== 'free'
-          },
-          lastSyncTime: Date.now(),
-          isDataValid: true
-        }
-      }
-      // 备用：使用订阅API数据
-      else if (subscriptionResponse.ok) {
-        const subscriptionData = await subscriptionResponse.json()
-        console.log('✅ 订阅API数据获取成功:', subscriptionData)
+        clearTimeout(timeoutId)
         
-        // 改进数据解析逻辑
-        const subscription = subscriptionData.subscription
-        const isActive = subscription?.status === 'active' || subscription?.isActive
-        const planName = subscription?.plan?.name || subscriptionData.user?.plan?.name || 'free'
+        if (usageResponse.ok) {
+          const usageData = await usageResponse.json()
+          console.log('✅ 主数据源（用量API）获取成功:', usageData)
+          primaryDataSource = 'usage'
+          
+          // 直接使用用量API的完整数据，避免数据混合导致的不一致
+          const isSubscribed = Boolean(usageData.isSubscribed)
+          const planName = usageData.subscriptionPlan || 'free'
         
-        profileData = {
-          name: session.user.name || '',
-          email: session.user.email || '',
-          image: session.user.image || null,
-          isSubscribed: isActive || false,
-          subscriptionStatus: subscription?.status || 'inactive',
-          subscriptionPlan: planName,
-          usageCount: subscriptionData.usage?.current || 0,
-          maxUsage: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
-          stripeCustomerId: subscription?.stripeCustomerId || subscriptionData.user?.stripeCustomerId || null,
-          planFeatures: {
-            hasWatermark: !isActive,
-            maxImagesPerMonth: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
-            maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
-            hasPriorityProcessing: isActive && planName !== 'free'
-          },
-          lastSyncTime: Date.now(),
-          isDataValid: true
-        }
-      }
-      // 备用：使用同步API数据
-      else if (syncResponse.ok) {
-        const syncData = await syncResponse.json()
-        console.log('✅ 同步API数据获取成功')
-        
-        if (syncData.success && syncData.user) {
           profileData = {
             name: session.user.name || '',
             email: session.user.email || '',
             image: session.user.image || null,
-            isSubscribed: syncData.user.isSubscribed || false,
-            subscriptionStatus: syncData.user.subscriptionStatus || 'inactive',
-            subscriptionPlan: syncData.user.subscriptionPlan || 'free',
-            usageCount: syncData.user.usageCount || 0,
-            maxUsage: syncData.user.maxUsage || 1,
-            stripeCustomerId: syncData.user.stripeCustomerId || null,
+            isSubscribed: isSubscribed,
+            subscriptionStatus: isSubscribed ? 'active' : 'inactive',
+            subscriptionPlan: planName,
+            usageCount: usageData.usageCount || 0,
+            maxUsage: usageData.maxUsage || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+            stripeCustomerId: usageData.stripeCustomerId || null,
             planFeatures: {
-              hasWatermark: !syncData.user.isSubscribed,
-              maxImagesPerMonth: syncData.user.maxUsage || 1,
-              maxResolution: '1024x1024',
-              hasPriorityProcessing: syncData.user.isSubscribed
+              hasWatermark: !isSubscribed,
+              maxImagesPerMonth: usageData.maxUsage || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+              maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
+              hasPriorityProcessing: isSubscribed && planName !== 'free'
             },
             lastSyncTime: Date.now(),
             isDataValid: true
           }
+        }
+      } catch (usageError) {
+        console.warn('⚠️ 主数据源失败，尝试备用数据源:', usageError)
+      }
+
+      // 备用数据源1：订阅API
+      if (!profileData) {
+        try {
+          const subscriptionResponse = await fetch('/api/subscription?_t=' + Date.now(), { 
+            cache: 'no-store',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          
+          if (subscriptionResponse.ok) {
+            const subscriptionData = await subscriptionResponse.json()
+            console.log('✅ 备用数据源（订阅API）获取成功:', subscriptionData)
+            primaryDataSource = 'subscription'
+        
+            // 改进数据解析逻辑
+            const subscription = subscriptionData.subscription
+            const isActive = subscription?.status === 'active' || subscription?.isActive
+            const planName = subscription?.plan?.name || subscriptionData.user?.plan?.name || 'free'
+        
+            profileData = {
+              name: session.user.name || '',
+              email: session.user.email || '',
+              image: session.user.image || null,
+              isSubscribed: isActive || false,
+              subscriptionStatus: subscription?.status || 'inactive',
+              subscriptionPlan: planName,
+              usageCount: subscriptionData.usage?.current || 0,
+              maxUsage: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+              stripeCustomerId: subscription?.stripeCustomerId || subscriptionData.user?.stripeCustomerId || null,
+              planFeatures: {
+                hasWatermark: !isActive,
+                maxImagesPerMonth: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+                maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
+                hasPriorityProcessing: isActive && planName !== 'free'
+              },
+              lastSyncTime: Date.now(),
+              isDataValid: true
+            }
+          }
+        } catch (subscriptionError) {
+          console.warn('⚠️ 备用数据源1失败，尝试最后的fallback:', subscriptionError)
+        }
+      }
+
+      // 备用数据源2：同步API
+      if (!profileData) {
+        try {
+          const syncResponse = await fetch('/api/user/sync?_t=' + Date.now(), { 
+            cache: 'no-store',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          
+          if (syncResponse.ok) {
+            const syncData = await syncResponse.json()
+            console.log('✅ 备用数据源2（同步API）获取成功:', syncData)
+            primaryDataSource = 'sync'
+        
+            if (syncData.success && syncData.user) {
+              profileData = {
+                name: session.user.name || '',
+                email: session.user.email || '',
+                image: session.user.image || null,
+                isSubscribed: syncData.user.isSubscribed || false,
+                subscriptionStatus: syncData.user.subscriptionStatus || 'inactive',
+                subscriptionPlan: syncData.user.subscriptionPlan || 'free',
+                usageCount: syncData.user.usageCount || 0,
+                maxUsage: syncData.user.maxUsage || 1,
+                stripeCustomerId: syncData.user.stripeCustomerId || null,
+                planFeatures: {
+                  hasWatermark: !syncData.user.isSubscribed,
+                  maxImagesPerMonth: syncData.user.maxUsage || 1,
+                  maxResolution: '1024x1024',
+                  hasPriorityProcessing: syncData.user.isSubscribed
+                },
+                lastSyncTime: Date.now(),
+                isDataValid: true
+              }
+            }
+          }
+        } catch (syncError) {
+          console.warn('⚠️ 所有数据源都失败，使用默认数据:', syncError)
         }
       }
 
@@ -218,10 +262,16 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         lastSyncTime: Date.now()
       }))
     }
-  }, [session?.user?.email]) // 🎯 Ultra-Think根本修复：移除syncState.isSyncing避免无限循环
+  }, [session?.user?.email]) // 🎯 修复：只依赖email，避免状态循环
 
-  // 用户登录后立即显示基本信息，然后异步同步详细数据
+  // 用户登录后立即显示基本信息，然后异步同步详细数据  
   useEffect(() => {
+    // 清理之前的定时器
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current)
+      syncTimeoutRef.current = null
+    }
+    
     if (status === 'authenticated' && session?.user && !syncState.hasInitialized) {
       console.log('🔄 用户已登录，立即显示基本信息')
       
@@ -232,7 +282,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
       console.log('👤 新用户登录，设置默认信息等待API同步:', { userEmail: session.user.email })
       
       // 默认免费套餐配额
-      const defaultLimits = { max: 1, resolution: '1024x1024' }
+      const defaultLimits = { max: 5, resolution: '1024x1024' } // 提高默认配额
       
       const basicProfile: UserProfileData = {
         name: session.user.name || session.user.email?.split('@')[0] || '',
@@ -251,7 +301,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
           hasPriorityProcessing: false
         },
         lastSyncTime: Date.now(),
-        isDataValid: false // 标记为需要后续同步
+        isDataValid: true // 标记为有效，避免无限同步
       }
       
       setProfile(basicProfile)
@@ -263,14 +313,20 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         plan: basicProfile.subscriptionPlan
       })
       
-      // 异步进行详细数据同步 - 不阻塞用户体验
-      setTimeout(() => {
-        backgroundSync().then(() => {
+      // 异步进行详细数据同步 - 使用定时器引用避免重复
+      syncTimeoutRef.current = setTimeout(() => {
+        Promise.race([
+          backgroundSync(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('同步超时')), 8000))
+        ]).then(() => {
           console.log('✅ 详细数据同步完成')
         }).catch(error => {
           console.warn('⚠️ 详细数据同步失败，使用基本信息:', error)
+          // 同步失败也不影响用户使用
+        }).finally(() => {
+          syncTimeoutRef.current = null
         })
-      }, 500) // 稍微延迟，让用户先看到基本信息
+      }, 500) // 适当延迟避免频繁调用
     }
     
     // 用户登出时清空数据
@@ -284,7 +340,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         hasInitialized: false
       })
     }
-  }, [status, session?.user?.email, syncState.hasInitialized]) // 🎯 Ultra-Think修复：移除backgroundSync避免无限循环
+  }, [status, session?.user?.email, syncState.hasInitialized, backgroundSync])
 
   // 手动刷新数据
   const refreshData = useCallback(async () => {

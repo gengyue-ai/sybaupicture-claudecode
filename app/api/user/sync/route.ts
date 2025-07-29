@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { createPrismaClient } from '@/lib/prisma'
 
 // 定义用户数据类型
 interface UserData {
@@ -19,6 +19,8 @@ interface UserData {
 
 export async function POST() {
   try {
+    // 🎯 创建独立的数据库连接，避免prepared statement冲突
+    const prisma = createPrismaClient()
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {

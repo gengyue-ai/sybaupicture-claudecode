@@ -105,7 +105,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              {t('footer.description', 'The world\'s first AI meme generator platform focused on Sybau style. Making viral content creation accessible to everyone.')}
+              {t('footer.description', 'Professional AI image editing platform powered by FLUX Pro engine. Advanced AI technology for creative professionals and businesses.')}
             </p>
 
             {/* Social Links */}

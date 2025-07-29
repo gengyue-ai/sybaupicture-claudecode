@@ -12,7 +12,7 @@ async function main() {
       displayName: 'Free',
       description: 'Perfect for getting started',
       price: 0,
-      maxImagesPerMonth: 1,
+      maxImagesPerMonth: 3,
       maxResolution: '1024x1024',
       hasWatermark: true,
       hasPriorityProcessing: false,

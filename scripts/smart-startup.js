@@ -39,7 +39,7 @@ const log = {
 
 // 配置
 const CONFIG = {
-  port: 3001,
+  port: 3003,
   host: 'localhost',
   maxRetries: 3,
   retryDelay: 1000
@@ -211,7 +211,7 @@ async function main() {
         const basicEnv = `# 🌍 Sybau Picture - 环境配置
 # 生成时间: ${new Date().toISOString()}
 NODE_ENV=development
-NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_URL=http://localhost:3003
 NEXTAUTH_SECRET=${require('crypto').randomBytes(32).toString('base64')}
 DEBUG=true
 `;

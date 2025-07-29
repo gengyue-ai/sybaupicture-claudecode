@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession, signOut, signIn } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -19,10 +19,12 @@ import {
   UserCircle, 
   LogOut, 
   User, 
+  Image,
   History, 
   CreditCard, 
   Settings
 } from 'lucide-react'
+import { UserAvatar } from '@/components/ui/UserAvatar'
 
 // 文本配置
 const texts = {
@@ -32,12 +34,14 @@ const texts = {
     pricing: 'Pricing',
     help: 'Help',
     signIn: 'Sign In',
+    signUp: 'Sign Up',
     signOut: 'Sign Out',
     signingOut: 'Signing Out...',
     profile: 'Profile',
+    assets: 'My Assets',
     history: 'History',
     billing: 'Billing',
-    support: 'Support',
+    settings: 'Settings',
     syncing: 'Syncing...'
   },
   zh: {
@@ -46,22 +50,18 @@ const texts = {
     pricing: '定价',
     help: '帮助',
     signIn: '登录',
+    signUp: '注册',
     signOut: '退出',
     signingOut: '退出中...',
     profile: '个人资料',
+    assets: '我的资产',
     history: '历史记录',
     billing: '账单',
-    support: '支持',
+    settings: '设置',
     syncing: '同步中...'
   }
 }
 
-const getUserInitials = (name: string | null | undefined, email: string): string => {
-  if (name && name.trim()) {
-    return name.trim().split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  }
-  return email.charAt(0).toUpperCase()
-}
 
 const getPlanBadge = (planName: string | null | undefined, language: 'en' | 'zh') => {
   const plan = planName || 'free'
@@ -76,9 +76,28 @@ const getPlanBadge = (planName: string | null | undefined, language: 'en' | 'zh'
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [showAuthButtons, setShowAuthButtons] = useState(false)
   const { data: session, status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
+
+  // 3秒后如果还在loading，强制显示登录按钮
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (status === 'loading') {
+        setShowAuthButtons(true)
+      }
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [status])
+
+  // 登录成功后重置强制显示状态
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      setShowAuthButtons(false)
+    }
+  }, [status, session])
 
   const currentLang = pathname.startsWith('/zh') ? 'zh' : 'en'
   const t = texts[currentLang]
@@ -137,40 +156,48 @@ export default function Navbar() {
     return currentLang === 'zh' ? `/zh${path}` : path
   }
 
-  const navItems = [
+  // 基础导航菜单
+  const baseNavItems = [
     { href: getNavLink('/'), label: t.home },
     { href: getNavLink('/gallery'), label: t.gallery },
     { href: getNavLink('/pricing'), label: t.pricing },
     { href: getNavLink('/help'), label: t.help },
   ]
 
-  // 🚨 修复：简化用户头像渲染逻辑，避免闪烁
+  // 根据登录状态动态添加"我的资产"
+  const navItems = session?.user 
+    ? [...baseNavItems, { href: getNavLink('/profile/assets'), label: t.assets }]
+    : baseNavItems
+
+  // 🚨 修复：添加超时处理避免永久loading
   const renderUserAvatar = () => {
-    if (status === 'loading') {
+    // 如果loading且未超时，显示loading状态（最多3秒）
+    if (status === 'loading' && !showAuthButtons) {
       return <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
     }
 
-    if (!session?.user) {
+    // 如果未登录、loading超时、或者是unauthenticated状态，显示登录按钮
+    if (status === 'unauthenticated' || !session?.user || showAuthButtons) {
       return (
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => {
-            console.log('🔄 导航栏登录按钮点击')
-            // 简化重定向逻辑 - 直接回到当前页面
-            const callbackUrl = pathname === '/auth/signin' ? '/' : pathname
-            
-            console.log('登录重定向URL:', callbackUrl)
-            signIn('google', { 
-              callbackUrl,
-              redirect: true 
-            })
-          }}
-          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 flex items-center space-x-2"
-        >
-          <UserCircle className="h-4 w-4" />
-          <span>{t.signIn}</span>
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Link href="/auth/signin">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium"
+            >
+              {t.signIn}
+            </Button>
+          </Link>
+          <Link href="/auth/signup">
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-sm"
+            >
+              {t.signUp}
+            </Button>
+          </Link>
+        </div>
       )
     }
 
@@ -178,47 +205,23 @@ export default function Navbar() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 border-0 hover:bg-transparent">
-            <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200 hover:border-gray-300 transition-colors">
-              {session.user.image ? (
-                <img
-                  src={session.user.image}
-                  alt={session.user.name || session.user.email || 'User'}
-                  className="h-full w-full object-cover"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '50%',
-                    display: 'block'
-                  }}
-                  onError={(e) => {
-                    // 头像加载失败时显示初始字母
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                    target.nextElementSibling?.classList.remove('hidden')
-                  }}
-                />
-              ) : null}
-              <div className={`h-full w-full rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-medium text-sm ${session.user.image ? 'hidden' : ''}`}>
-                {getUserInitials(session.user.name, session.user.email || '')}
-              </div>
-            </div>
+            <UserAvatar
+              image={session.user.image}
+              name={session.user.name}
+              email={session.user.email}
+              size="md"
+              className="hover:border-gray-300 transition-colors"
+            />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
           <div className="flex items-center space-x-3 p-4 border-b">
-            <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-gray-200">
-              {session.user.image ? (
-                <img
-                  src={session.user.image}
-                  alt={session.user.name || session.user.email || 'User'}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="h-full w-full rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-medium">
-                  {getUserInitials(session.user.name, session.user.email || '')}
-                </div>
-              )}
-            </div>
+            <UserAvatar
+              image={session.user.image}
+              name={session.user.name}
+              email={session.user.email}
+              size="lg"
+            />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
                 {session.user.name || 'User'}
@@ -235,32 +238,23 @@ export default function Navbar() {
           </div>
           
           <DropdownMenuItem asChild>
-            <Link href={getNavLink('/profile')} className="flex items-center space-x-2 px-4 py-2">
-              <User className="h-4 w-4" />
-              <span>{t.profile}</span>
+            <Link href={getNavLink('/profile/assets')} className="flex items-center space-x-2 px-4 py-2">
+              <Image className="h-4 w-4" />
+              <span>{t.assets}</span>
             </Link>
           </DropdownMenuItem>
           
           <DropdownMenuItem asChild>
-            <Link href={getNavLink('/history')} className="flex items-center space-x-2 px-4 py-2">
-              <History className="h-4 w-4" />
-              <span>{t.history}</span>
-            </Link>
-          </DropdownMenuItem>
-          
-          <DropdownMenuItem asChild>
-            <Link href={getNavLink('/pricing')} className="flex items-center space-x-2 px-4 py-2">
+            <Link href={getNavLink('/billing')} className="flex items-center space-x-2 px-4 py-2">
               <CreditCard className="h-4 w-4" />
               <span>{t.billing}</span>
             </Link>
           </DropdownMenuItem>
           
-          <DropdownMenuSeparator />
-          
           <DropdownMenuItem asChild>
-            <Link href={getNavLink('/support')} className="flex items-center space-x-2 px-4 py-2">
+            <Link href={getNavLink('/settings')} className="flex items-center space-x-2 px-4 py-2">
               <Settings className="h-4 w-4" />
-              <span>{t.support}</span>
+              <span>{t.settings}</span>
             </Link>
           </DropdownMenuItem>
           
@@ -385,25 +379,24 @@ export default function Navbar() {
 
               {/* Mobile Auth */}
               {!session?.user && (
-                <div className="border-t pt-4 mt-4">
-                  <button
-                    className="w-full px-4 py-3 text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-lg transition-colors font-medium text-center text-lg min-h-[44px] flex items-center justify-center space-x-2"
-                    onClick={() => {
-                      console.log('移动端登录按钮被点击')
-                      setIsMenuOpen(false)
-                      // 简化重定向逻辑 - 直接回到当前页面
-                      const callbackUrl = pathname === '/auth/signin' ? '/' : pathname
-                      
-                      console.log('移动端登录重定向URL:', callbackUrl)
-                      signIn('google', { 
-                        callbackUrl,
-                        redirect: true 
-                      })
-                    }}
-                  >
-                    <UserCircle className="h-5 w-5" />
-                    <span>{t.signIn}</span>
-                  </button>
+                <div className="border-t pt-4 mt-4 space-y-3">
+                  <Link href="/auth/signup">
+                    <button
+                      className="w-full px-4 py-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg transition-all duration-200 font-semibold text-center text-lg min-h-[44px] flex items-center justify-center shadow-sm"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <UserCircle className="h-5 w-5 mr-2" />
+                      <span>{t.signUp}</span>
+                    </button>
+                  </Link>
+                  <Link href="/auth/signin">
+                    <button
+                      className="w-full px-4 py-3 text-blue-600 border border-blue-500 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium text-center text-lg min-h-[44px] flex items-center justify-center"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span>{t.signIn}</span>
+                    </button>
+                  </Link>
                 </div>
               )}
             </div>

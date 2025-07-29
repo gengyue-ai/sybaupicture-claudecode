@@ -11,13 +11,14 @@ import {
   HelpCircle,
   BookOpen,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
   Zap,
-  Upload,
-  Download,
   Settings,
   Shield,
-  Users
+  CreditCard,
+  ImageIcon,
+  Palette,
+  Archive
 } from 'lucide-react'
 
 export default function ZHHelpPageClient() {
@@ -26,63 +27,137 @@ export default function ZHHelpPageClient() {
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null)
 
   const categories = [
-    { id: 'all', name: '全部', icon: BookOpen },
+    { id: 'all', name: '全部话题', icon: BookOpen },
     { id: 'getting-started', name: '快速开始', icon: Zap },
-    { id: 'features', name: '功能介绍', icon: Settings },
-    { id: 'upload', name: '上传问题', icon: Upload },
-    { id: 'generation', name: '生成问题', icon: Download },
-    { id: 'account', name: '账户管理', icon: Users },
-    { id: 'technical', name: '技术支持', icon: Shield }
+    { id: 'templates', name: '模板功能', icon: Palette },
+    { id: 'assets', name: '我的资产', icon: Archive },
+    { id: 'pricing', name: '套餐价格', icon: CreditCard },
+    { id: 'usage', name: '使用权限', icon: ImageIcon },
+    { id: 'troubleshooting', name: '故障排除', icon: Settings },
+    { id: 'privacy', name: '隐私安全', icon: Shield }
   ]
 
   const faqData = [
+    // 快速开始
     {
-      id: 'how-to-start',
+      id: '1',
       category: 'getting-started',
       question: '如何开始使用Sybau Picture？',
-      answer: '1. 访问我们的生成器 2. 上传图片或输入文字描述 3. 选择Sybau风格 4. 点击生成按钮，等待8秒即可获得您的专属创意作品！体验Stay Young, Beautiful and Unique的文化理念。'
+      answer: '我们的AI融合了Z时代文化和Sybau理念 - Stay Young, Beautiful and Unique。选择文生图模式（输入文字描述）或图生图模式（上传并转换），选择您喜欢的风格，几秒钟内获得专业效果。'
     },
     {
-      id: 'supported-formats',
-      category: 'upload',
+      id: '2',
+      category: 'getting-started',
+      question: '文生图和图生图模式有什么区别？',
+      answer: '文生图根据您的文字描述创建全新图片。图生图则是对您上传的照片进行AI转换 - 非常适合编辑、风格变换或增强效果。两种模式都支持我们的4种专业风格。'
+    },
+    {
+      id: '3',
+      category: 'getting-started',
       question: '支持哪些图片格式？',
-      answer: '我们支持 JPG、PNG、WebP 格式的图片。建议图片尺寸不超过10MB，分辨率在500x500到2000x2000像素之间效果最佳。'
+      answer: '我们支持JPG、PNG和WebP格式。图片大小应控制在5MB以内，分辨率在512x512到2048x2048像素之间效果最佳。'
     },
     {
-      id: 'generation-time',
-      category: 'generation',
-      question: '生成一张图片需要多长时间？',
-      answer: '我们的AI引擎通常在8秒内完成图片生成。高峰期可能需要10-15秒。如果超过30秒仍未完成，请刷新页面重试。'
+      id: '4',
+      category: 'getting-started',
+      question: '如何下载生成的图片？',
+      answer: '生成完成后点击下载按钮即可保存到设备。所有图片都以高质量JPG格式保存。您也可以稍后在"我的资产"中访问它们。'
+    },
+
+    // 模板功能
+    {
+      id: '5',
+      category: 'templates',
+      question: '模板是什么，如何使用？',
+      answer: '模板是针对特定任务的预配置AI设置，如去水印、身材优化或背景替换。点击模板库按钮浏览14个专业模板，分为3大类：生活增强、商业创作、创意转换。'
     },
     {
-      id: 'free-usage',
-      category: 'account',
-      question: '免费用户有什么限制？',
-      answer: '免费用户享有基础体验配额。标准版用户每月可生成60张，专业版用户每月可生成180张图片，享受优先处理队列。'
+      id: '6',
+      category: 'templates',
+      question: '免费用户可以使用哪些模板？',
+      answer: '免费用户可使用3个基础模板：智能去水印、身材优化、游客移除。标准用户可使用5个模板，专业用户解锁全部14个专业模板。'
     },
     {
-      id: 'style-options',
-      category: 'features',
-      question: '有哪些风格可以选择？',
-      answer: '我们专注于体现Stay Young, Beautiful and Unique理念的Sybau风格，包含：经典模式、表现力模式、创意模式和专业模式。每种模式都能表达Z时代的独特美学。'
+      id: '7',
+      category: 'templates',
+      question: '有哪些AI风格可以选择？',
+      answer: '我们提供4种专业风格：经典（均衡美学）、专业（精致商务）、表现力（大胆表达）、创意（富有想象力）。免费用户可使用经典和专业风格，付费用户解锁所有风格。'
+    },
+
+    // 我的资产
+    {
+      id: '8',
+      category: 'assets',
+      question: '如何管理我生成的图片？',
+      answer: '在个人资料中访问"我的资产"查看所有生成的图片，按日期整理。您可以查看、下载或删除个人画廊中的图片。生成时图片会自动保存。'
     },
     {
-      id: 'download-quality',
-      category: 'generation',
-      question: '生成的图片质量如何？',
-      answer: '我们生成的图片为高清质量，默认输出1024x1024像素。付费用户可选择更高分辨率，最高支持2048x2048像素。'
+      id: '9',
+      category: 'assets',
+      question: '我的图片会保存多长时间？',
+      answer: '您生成的图片会永久保存在账户中，除非您主动删除。您拥有无限存储空间，可随时从"我的资产"访问所有创作。'
+    },
+
+    // 套餐价格
+    {
+      id: '10',
+      category: 'pricing',
+      question: '当前的使用限制是什么？',
+      answer: '免费用户：每月3张图片。标准用户：每月60张图片。专业用户：每月180张图片，享受优先处理。所有套餐都包含无限存储且无水印。'
     },
     {
-      id: 'commercial-use',
-      category: 'account',
+      id: '11',
+      category: 'pricing',
+      question: '生成的图片会有水印吗？',
+      answer: '不会！包括免费套餐在内的所有套餐都生成无水印图片。您将获得干净、专业的结果，适用于任何用途。'
+    },
+    {
+      id: '12',
+      category: 'pricing',
+      question: '如何取消订阅？',
+      answer: '您可以随时在设置 > 账单 > 取消订阅中取消。您的高级功能将在计费周期结束前保持有效，之后自动切换到免费套餐。'
+    },
+
+    // 使用权限
+    {
+      id: '13',
+      category: 'usage',
       question: '可以商业使用生成的图片吗？',
-      answer: '是的！您拥有生成图片的完整使用权，可以用于个人和商业目的。但请确保上传的原始图片没有版权问题。'
+      answer: '可以！您拥有所有生成图片的完整商业使用权。可用于商业、社交媒体、营销或任何商业目的。只需确保您上传的原始图片没有版权问题。'
     },
     {
-      id: 'advanced-features',
-      category: 'technical',
-      question: '专业版有哪些高级功能？',
-      answer: '专业版用户享有优先处理队列、更高的图片质量上限、所有高级Sybau风格，以及专属的高级AI功能。'
+      id: '14',
+      category: 'usage',
+      question: '图片质量和分辨率如何？',
+      answer: '所有图片都以高质量生成。免费用户获得1024x1024像素，标准用户最高1536x1536像素，专业用户最高2048x2048像素分辨率。'
+    },
+
+    // 故障排除
+    {
+      id: '15',
+      category: 'troubleshooting',
+      question: '图片生成失败了怎么办？',
+      answer: '常见解决方案：1）检查网络连接，2）确保图片小于5MB且内容合适，3）尝试不同风格或降低强度，4）清除浏览器缓存重试。问题持续请联系客服。'
+    },
+    {
+      id: '16',
+      category: 'troubleshooting',
+      question: '为什么生成时间比平时长？',
+      answer: '生成通常需要15-30秒。高峰期可能出现延迟。专业用户享有优先处理获得更快结果。如果超过2分钟，请刷新页面重试。'
+    },
+
+    // 隐私安全
+    {
+      id: '17',
+      category: 'privacy',
+      question: '我的数据安全和隐私吗？',
+      answer: '绝对安全。我们使用企业级加密，不会永久存储上传的图片，除非您选择保存。生成的图片仅保存在您的个人画廊中。请查看我们的隐私政策了解完整详情。'
+    },
+    {
+      id: '18',
+      category: 'privacy',
+      question: '你们会用我的图片训练AI模型吗？',
+      answer: '不会，我们不会使用您上传或生成的图片来训练AI模型。您的内容保持私密，仅用于您的图片生成请求。'
     }
   ]
 
@@ -183,9 +258,9 @@ export default function ZHHelpPageClient() {
                             {faq.question}
                           </CardTitle>
                           {expandedFAQ === faq.id ? (
-                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                          ) : (
                             <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
                           )}
                         </div>
                       </CardHeader>

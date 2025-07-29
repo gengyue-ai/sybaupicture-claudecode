@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { createPrismaClient } from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
@@ -13,36 +13,79 @@ export interface PlanFeatures {
   hasBatchProcessing: boolean
   hasAdvancedFeatures: boolean
   availableStyles: string[]
+  // 模版权限控制 - 基于两组模版（5个+9个）
+  availableTemplates: string[]  // 可用模版ID列表
+  maxTemplates: number         // 最大模版数量
 }
 
-// 默认套餐配置（按用户要求修改）
+// 🎯 商业优化：所有套餐都无水印，提升用户体验和转化率
+// 🔥 全面开放模版权限：所有用户都能使用全部模版，提升产品竞争力
 export const DEFAULT_PLANS: Record<PlanType, PlanFeatures> = {
   free: {
-    maxImagesPerMonth: 1,
+    maxImagesPerMonth: 3,
     maxResolution: '1024x1024',
-    hasWatermark: false,
+    hasWatermark: false, // ✅ 免费套餐也无水印
     hasPriorityProcessing: false,
     hasBatchProcessing: false,
     hasAdvancedFeatures: false,
-    availableStyles: ['classic']
+    availableStyles: ['classic'],
+    // 🔥 免费套餐：开放全部模版使用权限
+    maxTemplates: 99, // 设置足够大的数字，表示无限制
+    availableTemplates: [
+      // 全部14个模版（5个基础+9个高级）
+      'watermark-removal', 'body-optimization', 'tourist-removal',
+      'ecommerce-display', 'background-replacement', 
+      'element-integration', 'style-conversion', 'text-editing', 
+      'detail-modification', 'professional-editing', 'artistic-transformation',
+      'commercial-enhancement', 'creative-fusion', 'advanced-styling',
+      // 首页展示模版
+      'photography-showcase', 'ecommerce-showcase', 'fashion-showcase',
+      'travel-showcase', 'realestate-showcase'
+    ]
   },
   standard: {
     maxImagesPerMonth: 60,
-    maxResolution: '2048x2048',
-    hasWatermark: false,
+    maxResolution: '1536x1536', // 🎯 调整分辨率层级
+    hasWatermark: false, // ✅ 标准套餐无水印
     hasPriorityProcessing: false,
     hasBatchProcessing: false,
     hasAdvancedFeatures: false,
-    availableStyles: ['classic', 'exaggerated', 'minimal', 'professional']
+    availableStyles: ['classic', 'exaggerated', 'professional'],
+    // 🔥 标准套餐：开放全部模版使用权限
+    maxTemplates: 99, // 设置足够大的数字，表示无限制
+    availableTemplates: [
+      // 全部14个模版（5个基础+9个高级）
+      'watermark-removal', 'body-optimization', 'tourist-removal',
+      'ecommerce-display', 'background-replacement', 
+      'element-integration', 'style-conversion', 'text-editing', 
+      'detail-modification', 'professional-editing', 'artistic-transformation',
+      'commercial-enhancement', 'creative-fusion', 'advanced-styling',
+      // 首页展示模版
+      'photography-showcase', 'ecommerce-showcase', 'fashion-showcase',
+      'travel-showcase', 'realestate-showcase'
+    ]
   },
   pro: {
     maxImagesPerMonth: 180,
-    maxResolution: '4096x4096',
-    hasWatermark: false,
+    maxResolution: '2048x2048', // 🎯 Pro套餐最高分辨率
+    hasWatermark: false, // ✅ 专业套餐无水印
     hasPriorityProcessing: true,
     hasBatchProcessing: false,
     hasAdvancedFeatures: true,
-    availableStyles: ['classic', 'exaggerated', 'minimal', 'professional', 'artistic', 'premium']
+    availableStyles: ['classic', 'exaggerated', 'professional', 'artistic', 'premium'],
+    // 🔥 Pro套餐：继续开放全部模版使用权限（与其他套餐一致）
+    maxTemplates: 99, // 设置足够大的数字，表示无限制
+    availableTemplates: [
+      // 全部14个模版（5个基础+9个高级）
+      'watermark-removal', 'body-optimization', 'tourist-removal',
+      'ecommerce-display', 'background-replacement', 
+      'element-integration', 'style-conversion', 'text-editing', 
+      'detail-modification', 'professional-editing', 'artistic-transformation',
+      'commercial-enhancement', 'creative-fusion', 'advanced-styling',
+      // 首页展示模版
+      'photography-showcase', 'ecommerce-showcase', 'fashion-showcase',
+      'travel-showcase', 'realestate-showcase'
+    ]
   }
 }
 
@@ -50,6 +93,7 @@ export const DEFAULT_PLANS: Record<PlanType, PlanFeatures> = {
  * 获取当前用户信息和订阅状态
  */
 export async function getCurrentUserWithSubscription() {
+  const prisma = createPrismaClient()
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.email) {
@@ -75,7 +119,7 @@ export async function getCurrentUserWithSubscription() {
   try {
     // 查询用户
     
-    let user = await prisma.user.findUnique({
+    let user = await prisma!.user.findUnique({
       where: { email: session.user.email },
       include: {
         plan: true,
@@ -102,7 +146,7 @@ export async function getCurrentUserWithSubscription() {
       // 尝试创建缺失的用户记录
       try {
         // 创建缺失的用户记录
-        user = await prisma.user.create({
+        user = await prisma!.user.create({
           data: {
             email: session.user.email,
             name: session.user.name || '',
@@ -172,6 +216,8 @@ export async function getCurrentUserWithSubscription() {
  * 获取用户的套餐特性
  */
 export async function getUserPlanFeatures(userId?: string): Promise<PlanFeatures> {
+  const prisma = createPrismaClient()
+  
   if (!userId) {
     return DEFAULT_PLANS.free
   }
@@ -183,7 +229,7 @@ export async function getUserPlanFeatures(userId?: string): Promise<PlanFeatures
 
   try {
     // 🔧 关键修复：同时查询用户套餐和活跃订阅，优先使用活跃订阅
-    const user = await prisma.user.findUnique({
+    const user = await prisma!.user.findUnique({
       where: { id: userId },
       include: { 
         plan: true,
@@ -218,7 +264,9 @@ export async function getUserPlanFeatures(userId?: string): Promise<PlanFeatures
       hasPriorityProcessing: effectivePlan.hasPriorityProcessing,
       hasBatchProcessing: effectivePlan.hasBatchProcessing,
       hasAdvancedFeatures: effectivePlan.hasAdvancedFeatures,
-      availableStyles: JSON.parse(effectivePlan.availableStyles || '["classic"]')
+      availableStyles: JSON.parse(effectivePlan.availableStyles || '["classic"]'),
+      availableTemplates: [],
+      maxTemplates: 0
     }
   } catch (error) {
     console.error('❌ 获取用户套餐特性失败:', error)
@@ -235,6 +283,7 @@ export async function canUserGenerateImage(userId: string): Promise<{
   maxUsage: number
   remainingUsage: number
 }> {
+  const prisma = createPrismaClient()
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
 
@@ -260,7 +309,7 @@ export async function canUserGenerateImage(userId: string): Promise<{
     })
 
     // 获取当月使用情况
-    let usage = await prisma.userUsage.findUnique({
+    let usage = await prisma!.userUsage.findUnique({
       where: {
         userId_month_year: {
           userId,
@@ -275,7 +324,7 @@ export async function canUserGenerateImage(userId: string): Promise<{
       console.log(`📝 创建新的月度使用记录:`, { userId, currentMonth, currentYear })
       
       try {
-        usage = await prisma.userUsage.create({
+        usage = await prisma!.userUsage.create({
           data: {
             userId,
             month: currentMonth,
@@ -319,11 +368,11 @@ export async function canUserGenerateImage(userId: string): Promise<{
       maxUsage,
       remainingUsage
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ 检查用户使用权限失败:', {
       userId,
-      error: error.message,
-      code: error.code
+      error: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as any)?.code
     })
     
     // 错误时使用保守的免费套餐限制
@@ -343,6 +392,7 @@ export async function canUserGenerateImage(userId: string): Promise<{
  * 记录用户生成图片
  */
 export async function recordImageGeneration(userId: string): Promise<void> {
+  const prisma = createPrismaClient()
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
 
@@ -352,7 +402,7 @@ export async function recordImageGeneration(userId: string): Promise<void> {
   }
 
   try {
-    await prisma.userUsage.upsert({
+    await prisma!.userUsage.upsert({
       where: {
         userId_month_year: {
           userId,
@@ -393,9 +443,37 @@ export async function hasPermission(userId: string, permission: keyof PlanFeatur
 }
 
 /**
+ * 检查用户是否可以访问指定模版
+ */
+export async function canAccessTemplate(userId: string, templateId: string): Promise<boolean> {
+  try {
+    const features = await getUserPlanFeatures(userId)
+    return features.availableTemplates.includes(templateId)
+  } catch (error) {
+    console.error('❌ 检查用户模版权限失败:', error)
+    return false
+  }
+}
+
+/**
+ * 获取用户可用的模版列表
+ */
+export async function getUserAvailableTemplates(userId: string): Promise<string[]> {
+  try {
+    const features = await getUserPlanFeatures(userId)
+    return features.availableTemplates
+  } catch (error) {
+    console.error('❌ 获取用户可用模版失败:', error)
+    return DEFAULT_PLANS.free.availableTemplates
+  }
+}
+
+/**
  * 获取用户的套餐类型
  */
 export async function getUserPlanType(userId: string): Promise<PlanType> {
+  const prisma = createPrismaClient()
+  
   if (!prisma) {
     console.warn('⚠️  数据库不可用，返回免费套餐类型')
     return 'free'
@@ -403,7 +481,7 @@ export async function getUserPlanType(userId: string): Promise<PlanType> {
 
   try {
     // 🎯 Ultra-Think修复：同时检查活跃订阅和直接套餐关联
-    const user = await prisma.user.findUnique({
+    const user = await prisma!.user.findUnique({
       where: { id: userId },
       include: { 
         plan: true,
@@ -450,6 +528,8 @@ export async function getUserPlanType(userId: string): Promise<PlanType> {
  * 更新用户套餐
  */
 export async function updateUserPlan(userId: string, planType: PlanType): Promise<void> {
+  const prisma = createPrismaClient()
+  
   if (!prisma) {
     console.warn('⚠️  数据库不可用，跳过套餐更新')
     return
@@ -457,7 +537,7 @@ export async function updateUserPlan(userId: string, planType: PlanType): Promis
 
   try {
     // 查找或创建套餐
-    const plan = await prisma.plan.upsert({
+    const plan = await prisma!.plan.upsert({
       where: { name: planType },
       create: {
         name: planType,
@@ -486,7 +566,7 @@ export async function updateUserPlan(userId: string, planType: PlanType): Promis
     })
 
     // 更新用户套餐
-    await prisma.user.update({
+    await prisma!.user.update({
       where: { id: userId },
       data: { planId: plan.id }
     })
@@ -513,6 +593,8 @@ export async function createSubscription({
   stripeCustomerId?: string
   stripePriceId?: string
 }) {
+  const prisma = createPrismaClient()
+  
   if (!prisma) {
     console.warn('⚠️  数据库不可用，跳过订阅创建')
     return null
@@ -520,7 +602,7 @@ export async function createSubscription({
 
   try {
     // 查找或创建套餐
-    const plan = await prisma.plan.upsert({
+    const plan = await prisma!.plan.upsert({
       where: { name: planType },
       create: {
         name: planType,
@@ -540,7 +622,7 @@ export async function createSubscription({
     })
 
     // 创建订阅
-    const subscription = await prisma.subscription.create({
+    const subscription = await prisma!.subscription.create({
       data: {
         userId,
         planId: plan.id,

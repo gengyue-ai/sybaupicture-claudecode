@@ -11,8 +11,19 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/*', 
           '/private/',
           '/_next/',
-          '/auth/',
+          '/auth/signin',
+          '/auth/signup',
+          '/auth/verify-email',
         ],
+      },
+      // 特别允许Google AdSense爬虫
+      {
+        userAgent: 'Mediapartners-Google',
+        allow: '/',
+      },
+      {
+        userAgent: 'AdsBot-Google',
+        allow: '/',
       },
       // 阻止AI训练爬虫但允许搜索引擎
       {

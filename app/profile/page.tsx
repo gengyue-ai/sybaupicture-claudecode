@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { User, Calendar, CreditCard, Image, Settings, Mail } from 'lucide-react'
+import { UserAvatar } from '@/components/ui/UserAvatar'
+import { MyAssetsCard } from '@/components/MyAssetsCard'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -139,18 +141,14 @@ export default function ProfilePage() {
             {/* 头像和基本信息 */}
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="w-24 h-24 mx-auto mb-4 relative">
-                  {profile.image ? (
-                    <img
-                      src={`${profile.image}?t=${Date.now()}`}
-                      alt="Avatar"
-                      className="w-full h-full rounded-full object-cover border-4 border-purple-200"
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
-                      <User className="w-10 h-10 text-white" />
-                    </div>
-                  )}
+                <div className="mx-auto mb-4 relative">
+                  <UserAvatar
+                    image={profile.image}
+                    name={profile.name}
+                    email={profile.email}
+                    size="xl"
+                    className="border-4 border-purple-200"
+                  />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800">{profile.name}</h2>
                 <p className="text-gray-600 flex items-center justify-center mt-2">
@@ -304,6 +302,9 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
+            {/* My Generated Images */}
+            <MyAssetsCard />
+
             {/* Account Management */}
             <Card>
               <CardHeader>
@@ -316,7 +317,12 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <h4 className="font-medium">Login Method</h4>
-                    <p className="text-sm text-gray-600">Google Account Login</p>
+                    <p className="text-sm text-gray-600">
+                      {profile.image && profile.image.includes('googleusercontent.com') 
+                        ? 'Google Account Login' 
+                        : 'Email Account Login'
+                      }
+                    </p>
                   </div>
                   <Badge variant="outline" className="bg-green-100 text-green-800">
                     Verified

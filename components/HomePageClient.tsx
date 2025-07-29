@@ -2,23 +2,72 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider'
 import { ArrowRight, Sparkles, Rocket, Star, TrendingUp, Heart, Users, Shield, Clock, Award, Check, Play } from 'lucide-react'
 import ImageGenerator from '@/components/ImageGenerator'
+import UnifiedScenarioShowcase from '@/components/UnifiedScenarioShowcase'
 import { useSession, getSession } from 'next-auth/react'
 
 // 静态文本内容
 const staticTexts = {
   en: {
-    'home.hero.title': 'Create Viral',
-    'home.hero.subtitle': 'Sybau Creations',
-    'home.hero.tagline': 'in Seconds',
-    'home.hero.description': 'Transform any text or image into stunning creative visuals with our AI technology! Experience the Sybau culture - Stay Young, Beautiful and Unique!',
-    'home.benefits.free': '100% Free',
-    'home.benefits.noRegistration': 'Google Login',
-    'home.benefits.hdQuality': 'HD Quality',
-    'home.benefits.fastProcessing': '8s Processing',
+    'home.hero.badge': 'FLUX AI Engine Powered',
+    'home.hero.title': 'Professional AI',
+    'home.hero.subtitle': 'Image Editor',
+    'home.hero.tagline': 'FLUX Pro Engine',
+    'home.hero.description': 'Powered by FLUX Pro/Kontext AI engine - Transform any text or image into stunning creative visuals! 9 practical scenarios, 15-second generation, professional commercial quality.',
+    'home.hero.smart.removal': 'Smart Removal',
+    'home.hero.smart.done': '15s Done',
+    // FLUX Engine Features
+    'home.flux.title': 'FLUX Pro + Kontext Dual Engine',
+    'home.flux.subtitle': 'Industry-leading AI image editing technology',
+    'home.flux.param12b': '12 Billion Parameters',
+    'home.flux.param12b.desc': 'Flow transformer architecture',
+    'home.flux.topelo': 'Highest Elo Score',
+    'home.flux.topelo.desc': 'Top ranking on Artificial Analysis arena',
+    'home.flux.speed6x': '6x Speed Boost',
+    'home.flux.speed6x.desc': '4x faster than other platforms',
+    'home.flux.commercial': '$0.04/Image License',
+    'home.flux.commercial.desc': 'Professional commercial quality',
+    'home.flux.multimodal': 'Multimodal Understanding',
+    'home.flux.multimodal.desc': 'Text + image input processing',
+    'home.flux.localediting': 'Precise Local Editing',
+    'home.flux.localediting.desc': 'Targeted area modifications',
+    'home.flux.consistency': 'Character Consistency',
+    'home.flux.consistency.desc': 'Maintain coherence across edits',
+    'home.flux.notuning': 'No Fine-tuning Required',
+    'home.flux.notuning.desc': 'Professional results out-of-the-box',
+    // Technical Comparison
+    'home.comparison.title': '⚡ Why Choose FLUX Engine?',
+    'home.comparison.traditional': 'Traditional Photo Editing',
+    'home.comparison.flux': 'FLUX Engine',
+    'home.comparison.skill.traditional': 'Requires professional skills',
+    'home.comparison.skill.flux': 'Zero-skill startup',
+    'home.comparison.time.traditional': 'Takes hours',
+    'home.comparison.time.flux': '15 seconds completion',
+    'home.comparison.effect.traditional': 'Stiff results',
+    'home.comparison.effect.flux': 'AI-intelligent natural',
+    'home.comparison.function.traditional': 'Single function',
+    'home.comparison.function.flux': '9 scenarios full coverage',
+    // Case Gallery
+    'home.cases.title': '📸 FLUX Creation Gallery',
+    'home.cases.subtitle': 'Real user cases, before/after comparison',
+    'home.cases.time': 'Processing time',
+    'home.cases.prompt': 'Prompt',
+    'home.cases.before': 'Before',
+    'home.cases.after': 'After',
+    'home.cases.try': 'Try Now',
+    'home.benefits.flux': 'FLUX Engine',
+    'home.benefits.flux.desc': '12B parameter model',
+    'home.benefits.speed': '15s Processing',
+    'home.benefits.speed.desc': 'Ultra-fast generation',
+    'home.benefits.scenarios': '9 Scenarios',
+    'home.benefits.scenarios.desc': 'Complete coverage',
+    'home.benefits.quality': 'Professional Quality',
+    'home.benefits.quality.desc': 'Commercial-grade output',
     'home.socialProof': 'Trusted by creators worldwide',
     'home.stats.memes': 'Creations Made',
     'home.stats.rating': 'User Rating',
@@ -71,23 +120,23 @@ const staticTexts = {
     'home.pricing.free.price': '$0',
     'home.pricing.free.period': 'forever',
     'home.pricing.free.description': 'Perfect for getting started',
-    'home.pricing.free.feature1': 'Free creative experience',
-    'home.pricing.free.feature2': 'Basic Sybau styles',
-    'home.pricing.free.feature3': 'Standard quality',
+    'home.pricing.free.feature1': '1 generation per month',
+    'home.pricing.free.feature2': 'Basic Sybau style',
+    'home.pricing.free.feature3': 'Standard quality (1024x1024)',
     'home.pricing.pro.title': 'Standard',
     'home.pricing.pro.price': '$9',
     'home.pricing.pro.period': 'per month',
     'home.pricing.pro.description': 'Best for regular creators',
     'home.pricing.pro.feature1': '60 generations per month',
     'home.pricing.pro.feature2': 'All Sybau styles',
-    'home.pricing.pro.feature3': 'High quality, no watermarks',
+    'home.pricing.pro.feature3': 'High quality (1536x1536)',
     'home.pricing.enterprise.title': 'Professional',
     'home.pricing.enterprise.price': '$19',
     'home.pricing.enterprise.period': 'per month',
     'home.pricing.enterprise.description': 'For businesses and power users',
     'home.pricing.enterprise.feature1': '180 generations per month',
-    'home.pricing.enterprise.feature2': 'Exclusive styles + priority support',
-    'home.pricing.enterprise.feature3': 'Ultra high quality + commercial license',
+    'home.pricing.enterprise.feature2': 'All styles + priority processing',
+    'home.pricing.enterprise.feature3': 'Ultra quality (2048x2048) + commercial license',
     'home.pricing.viewAllPlans': 'View All Plans',
     'home.pricing.popular': 'Most Popular',
     'home.cta.title': 'Ready to Go Viral? 🚀',
@@ -100,7 +149,7 @@ const staticTexts = {
     'home.footer.secure': 'Secure Processing',
     'home.footer.speed': '8-Second Generation',
     'home.footer.community': 'Global Community',
-    'footer.description': 'The world\'s first AI creative platform inspired by Gen Z culture. Stay Young, Beautiful and Unique with Sybau Picture.',
+    'footer.description': 'Professional AI image editing platform powered by FLUX Pro engine. Advanced AI technology for creative professionals and businesses.',
     // Generator specific texts
     'generator.uploadTitle': 'Upload Image or Enter Text',
     'generator.uploadDescription': 'Drag and drop an image or enter creative text',
@@ -134,7 +183,7 @@ const staticTexts = {
     'generator.textToImageMode': 'Text to Image',
     'generator.imageToImageMode': 'Image to Image',
     'generator.textPromptLabel': 'Text Prompt',
-    'generator.textPromptPlaceholder': 'Describe what you want to create...',
+    'generator.textPromptPlaceholderDefault': 'Describe what you want to create...',
     'generator.creationReady': 'Ready to Create',
     'generator.creationResult': '✨ Creation Result',
     'generator.creationResultDesc': 'Your AI creation will be beautifully presented here',
@@ -151,29 +200,100 @@ const staticTexts = {
     'generator.supportedFormatsShort': 'Support JPG, PNG, WebP • Max 5MB',
     'generator.optionalStyleChange': 'Optional: describe desired style changes...',
     'generator.detailsHelpAI': 'Detailed descriptions help AI generate better works',
-    'generator.detailedPrompt': 'Describe in detail the image you want to create, including style, colors, mood and details...'
+    'generator.detailedPrompt': 'Describe in detail the image you want to create, including style, colors, mood and details...',
+    // 功能Tab文本
+    'generator.textToImage': 'Text-to-Image',
+    'generator.smartRetouch': 'Smart Retouch',
+    'generator.hdEnhance': 'HD Enhance',
+    'generator.imageEdit': 'Image Edit',
+    // 模式切换
+    'generator.textMode': 'Text-to-Image',
+    'generator.imageMode': 'Image-to-Image',
+    // 输入提示
+    'generator.textPromptPlaceholder': 'Please describe what you want to generate, focus on the subject, for example: a brown dolphin with curled tail, cartoon style',
+    'generator.dragImagePlaceholder': 'Drag image here',
+    'generator.selectFile': 'or click to select file',
+    'generator.styleOptional': 'Optional: describe desired style changes...',
+    // 参数控制
+    'generator.style': 'Style',
+    'generator.intensity': 'Intensity',
+    'generator.generate': 'Generate',
+    'generator.result': 'Generation Result',
+    // 状态文本
+    'generator.random': 'Random',
+    // 模板库相关
+    'generator.templateLibrary': 'Template Library',
+    'generator.templatesCount': 'Templates',
+    'generator.needUpgrade': 'Upgrade Required',
+    'generator.upgradeNow': 'Upgrade Now'
   },
   zh: {
-    'home.hero.title': '创建病毒式',
-    'home.hero.subtitle': 'Sybau创作',
-    'home.hero.tagline': '几秒钟搞定',
-    'home.hero.description': '使用我们的AI技术将任何文本或图片转换为令人惊艳的创意视觉作品！体验Sybau文化 - Stay Young, Beautiful and Unique！',
-    'home.benefits.free': '100%免费',
-    'home.benefits.noRegistration': '谷歌登录',
-    'home.benefits.hdQuality': '高清质量',
-    'home.benefits.fastProcessing': '8秒处理',
+    'home.hero.badge': 'FLUX AI 驱动',
+    'home.hero.title': 'Sybau FLUX Pro 图像生成器',
+    'home.hero.subtitle': '专业AI图像编辑器',
+    'home.hero.tagline': 'FLUX Pro 引擎',
+    'home.hero.description': '基于FLUX Pro/Kontext AI引擎驱动 - 将任何文字或图像转换为令人惊艳的创意视觉！9大实用场景，15秒生成，专业商用品质。',
+    'home.hero.smart.removal': '智能去除',
+    'home.hero.smart.done': '15秒完成',
+    // FLUX Engine Features
+    'home.flux.title': 'FLUX Pro + Kontext 双引擎',
+    'home.flux.subtitle': '行业领先的AI图像编辑技术',
+    'home.flux.param12b': '120亿参数',
+    'home.flux.param12b.desc': '流变换器架构',
+    'home.flux.topelo': '最高Elo评分',
+    'home.flux.topelo.desc': 'AI竞技场排名第一',
+    'home.flux.speed6x': '6倍速度提升',
+    'home.flux.speed6x.desc': '比其他平台快4倍',
+    'home.flux.commercial': '$0.04/张 商用授权',
+    'home.flux.commercial.desc': '专业商用品质',
+    'home.flux.multimodal': '多模态理解',
+    'home.flux.multimodal.desc': '文字+图像输入处理',
+    'home.flux.localediting': '精准局部编辑',
+    'home.flux.localediting.desc': '针对性区域修改',
+    'home.flux.consistency': '角色一致性',
+    'home.flux.consistency.desc': '编辑间保持一致性',
+    'home.flux.notuning': '无需微调',
+    'home.flux.notuning.desc': '开箱即用专业效果',
+    // 技术对比
+    'home.comparison.title': '⚡ 为什么选择FLUX引擎？',
+    'home.comparison.traditional': '传统图像编辑',
+    'home.comparison.flux': 'FLUX引擎',
+    'home.comparison.skill.traditional': '需要专业技能',
+    'home.comparison.skill.flux': '零基础入门',
+    'home.comparison.time.traditional': '耗时数小时',
+    'home.comparison.time.flux': '15秒完成',
+    'home.comparison.effect.traditional': '效果生硬',
+    'home.comparison.effect.flux': 'AI智能自然',
+    'home.comparison.function.traditional': '功能单一',
+    'home.comparison.function.flux': '9大场景全覆盖',
+    // 案例展示
+    'home.cases.title': '📸 FLUX创作画廊',
+    'home.cases.subtitle': '真实用户案例，前后对比展示',
+    'home.cases.time': '处理时间',
+    'home.cases.prompt': '提示词',
+    'home.cases.before': '处理前',
+    'home.cases.after': '处理后',
+    'home.cases.try': '立即尝试',
+    'home.benefits.flux': 'FLUX引擎',
+    'home.benefits.flux.desc': '120亿参数模型',
+    'home.benefits.speed': '15秒处理',
+    'home.benefits.speed.desc': '超快生成',
+    'home.benefits.scenarios': '9大场景',
+    'home.benefits.scenarios.desc': '全面覆盖',
+    'home.benefits.quality': '专业品质',
+    'home.benefits.quality.desc': '商业级输出',
     'home.socialProof': '全球创作者信赖',
-    'home.stats.memes': '创作已生成',
+    'home.stats.memes': '创作生成',
     'home.stats.rating': '用户评分',
-    'home.stats.countries': '个国家',
+    'home.stats.countries': '个国家/地区',
     'home.generator.title': '🎨 AI创意工作室',
-    'home.generator.description': '选择您的创作方式，设定您的风格，让AI为您创造美丽作品',
+    'home.generator.description': '选择您的创作方式，设定您的风格，让AI为您创作美丽作品',
     'home.howitworks.title': 'Sybau Picture如何工作',
-    'home.howitworks.description': '使用Sybau Picture创建病毒式创意内容简单、快速且完全免费。我们的AI驱动平台通过三个简单步骤将您的想法转换为引人入胜的视觉作品。',
-    'home.howitworks.step1': '上传图片或输入文本',
-    'home.howitworks.step1.desc': '只需上传图片或输入文字描述。Sybau Picture支持JPG、PNG、WebP格式和创意文本提示。',
+    'home.howitworks.description': '使用Sybau Picture创建专业创意内容既简单又快速。我们的AI驱动平台通过三个简单步骤将您的想法转换为引人入胜的视觉效果。',
+    'home.howitworks.step1': '上传图像或输入文字',
+    'home.howitworks.step1.desc': '简单上传图像或输入文字描述。Sybau Picture支持JPG、PNG、WebP格式和创意文字提示。',
     'home.howitworks.step2': 'AI处理魔法',
-    'home.howitworks.step2.desc': '我们先进的AI技术分析您的输入并自动应用标志性的Sybau风格转换。',
+    'home.howitworks.step2.desc': '我们的先进AI技术分析您的输入，并自动应用标志性的Sybau风格转换。',
     'home.howitworks.step3': '下载您的创作',
     'home.howitworks.step3.desc': '几秒钟内，下载您的高质量Sybau Picture创作，准备在所有社交平台上分享。',
     'home.features.title': '为什么选择Sybau Picture？',
@@ -191,7 +311,7 @@ const staticTexts = {
     'home.features.available.title': '24/7可用',
     'home.features.available.desc': '随时随地使用Sybau Picture创建内容。当灵感来袭时，我们的平台始终准备就绪。',
     'home.usecases.title': '适合每个创作者',
-    'home.usecases.description': '无论您是专业营销人员还是创意爱好者，Sybau Picture都能让每个人创建捕捉Z时代文化精髓的病毒式内容。',
+    'home.usecases.description': '无论您是专业营销人员还是创意爱好者，Sybau Picture都能让每个人创建高质量的专业创意内容。',
     'home.usecases.social': '社交媒体影响者',
     'home.usecases.social.desc': '创建与Z时代观众产生共鸣并体现Sybau精神的引人入胜内容。',
     'home.usecases.content': '内容创作者',
@@ -214,27 +334,27 @@ const staticTexts = {
     'home.pricing.free.price': '$0',
     'home.pricing.free.period': '永久',
     'home.pricing.free.description': '完美的入门体验',
-    'home.pricing.free.feature1': '免费创作体验',
+    'home.pricing.free.feature1': '每月1次生成',
     'home.pricing.free.feature2': '基础Sybau风格',
-    'home.pricing.free.feature3': '标准质量',
+    'home.pricing.free.feature3': '标准质量 (1024x1024)',
     'home.pricing.pro.title': '标准版',
     'home.pricing.pro.price': '$9',
     'home.pricing.pro.period': '每月',
     'home.pricing.pro.description': '最适合常规创作者',
     'home.pricing.pro.feature1': '每月60次生成',
     'home.pricing.pro.feature2': '所有Sybau风格',
-    'home.pricing.pro.feature3': '高质量，无水印',
+    'home.pricing.pro.feature3': '高质量 (1536x1536)',
     'home.pricing.enterprise.title': '专业版',
     'home.pricing.enterprise.price': '$19',
     'home.pricing.enterprise.period': '每月',
     'home.pricing.enterprise.description': '适合企业和专业用户',
     'home.pricing.enterprise.feature1': '每月180次生成',
     'home.pricing.enterprise.feature2': '独家风格 + 优先支持',
-    'home.pricing.enterprise.feature3': '超高质量 + 商业许可证',
+    'home.pricing.enterprise.feature3': '超高质量 (2048x2048) + 商业许可证',
     'home.pricing.viewAllPlans': '查看所有套餐',
     'home.pricing.popular': '最受欢迎',
-    'home.cta.title': '准备好病毒式传播了吗？🚀',
-    'home.cta.description': '加入已经拥抱Sybau生活方式的数百万创作者。通过我们的AI驱动创意平台 Stay Young, Beautiful and Unique！',
+    'home.cta.title': '准备开始专业创作了吗？🚀',
+    'home.cta.description': '加入已经使用Sybau Picture的数百万创作者。通过我们的AI驱动创意平台体验专业级图像编辑！',
     'home.cta.startCreating': '立即开始创作',
     'home.cta.getStarted': '开始使用',
     'home.cta.signUp': '立即注册',
@@ -243,7 +363,7 @@ const staticTexts = {
     'home.footer.secure': '安全处理',
     'home.footer.speed': '8秒生成',
     'home.footer.community': '全球社区',
-    'footer.description': '世界首个受Z时代文化启发的AI创意平台。使用Sybau Picture Stay Young, Beautiful and Unique。',
+    'footer.description': '基于FLUX Pro引擎的专业AI图像编辑平台。为创意专业人士和企业提供先进的AI技术支持。',
     // Generator specific texts
     'generator.uploadTitle': '上传图片或输入文本',
     'generator.uploadDescription': '拖拽图片或输入创意文本',
@@ -297,7 +417,31 @@ const staticTexts = {
     'generator.detailedPrompt': '详细描述您想要创作的图片，包含风格、颜色、情绪和细节...',
     'generator.creationPreparation': '🎨 创作准备',
     'generator.creationPreparationDesc': '选择您的创作方式，设定您的风格，让AI为您创造美丽作品',
-    'generator.creationMode': '创作模式'
+    'generator.creationMode': '创作模式',
+    // Tab功能文本
+    'generator.textToImage': '文生图',
+    'generator.smartRetouch': '智能修图',
+    'generator.hdEnhance': '高清增强',
+    'generator.imageEdit': '图片编辑',
+    // 模式切换
+    'generator.textMode': '文生图',
+    'generator.imageMode': '图生图',
+    // 输入提示
+    'generator.dragImagePlaceholder': '拖拽图片到这里',
+    'generator.selectFile': '或点击选择文件',
+    'generator.styleOptional': '可选：描述想要的风格变化...',
+    // 参数控制
+    'generator.style': '风格',
+    'generator.intensity': '强度',
+    'generator.generate': '生成',
+    'generator.result': '生成结果',
+    // 状态文本
+    'generator.random': '随机',
+    // 模板库相关
+    'generator.templateLibrary': '模板库',
+    'generator.templatesCount': '个模板',
+    'generator.needUpgrade': '需要升级解锁',
+    'generator.upgradeNow': '立即升级'
   }
 }
 
@@ -307,17 +451,31 @@ export default function HomePageClient() {
   const [stats, setStats] = useState({ memes: 125000, rating: 4.9, countries: 180 })
   const { data: session, status } = useSession()
   
-  // 🚨 修复：添加状态检查，确保首页不会重定向
-  useEffect(() => {
-    // 如果用户直接访问首页，不需要任何重定向
-    if (pathname === '/' || pathname === '/zh') {
-      console.log('🏠 用户访问首页，保持页面状态')
-      return
+  // 临时简化状态管理，避免复杂的useEffect逻辑
+  // useEffect(() => {
+  //   if (pathname === '/' || pathname === '/zh') {
+  //     console.log('🏠 用户访问首页，保持页面状态')
+  //     return
+  //   }
+  // }, [pathname])
+
+  const handleCaseClick = (zhPrompt: string, enPrompt: string) => {
+    // 滚动到生成器区域
+    const generatorElement = document.querySelector('#generator-section')
+    if (generatorElement) {
+      generatorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      
+      // 延迟一点时间，确保滚动完成后再设置prompt
+      setTimeout(() => {
+        const promptInput = document.querySelector('textarea[placeholder*="prompt"]') as HTMLTextAreaElement
+        if (promptInput) {
+          const prompt = currentLang === 'zh' ? zhPrompt : enPrompt
+          promptInput.value = prompt
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      }, 1000)
     }
-  }, [pathname])
-  
-  // 🚨 修复：完全移除复杂的用户数据同步逻辑
-  // 现在只依赖于session状态，避免无限循环和状态冲突
+  }
 
   const handlePlanClick = (planType: 'free' | 'standard' | 'professional') => {
     const currentLang = getCurrentLanguage()
@@ -365,66 +523,125 @@ export default function HomePageClient() {
         <div className="absolute inset-0 bg-gradient-to-r from-purple-400/10 via-pink-300/10 to-cyan-400/10"></div>
 
         <div className="relative container mx-auto px-4 py-16 lg:py-24">
-          <div className="text-center max-w-5xl mx-auto">
-            {/* Animated Icon */}
-            <div className="mb-8">
-              <div className="text-6xl mb-4">🎭</div>
-              <Badge className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white px-4 py-2 text-sm font-medium">
-                <Sparkles className="w-4 h-4 mr-2" />
-                AI-Powered Meme Generator
-              </Badge>
-            </div>
-
-            {/* Main Title */}
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 bg-clip-text text-transparent leading-tight">
-              {getText('home.hero.title', 'Create Viral')} <span className="text-gray-800">{getText('home.hero.subtitle', 'Sybau Creations')}</span><br />
-              <span className="text-4xl lg:text-5xl">{getText('home.hero.tagline', 'in Seconds')}</span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-xl lg:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
-              {getText('home.hero.description', 'Transform any text or image into stunning creative visuals with our AI technology! Experience the Sybau culture - Stay Young, Beautiful and Unique!')}
-            </p>
-
-            {/* Benefits Row */}
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
-              {[
-                { icon: <Star className="w-5 h-5" />, text: getText('home.benefits.free', '100% Free') },
-                { icon: <Rocket className="w-5 h-5" />, text: getText('home.benefits.noRegistration', 'Google Login') },
-                { icon: <Heart className="w-5 h-5" />, text: getText('home.benefits.hdQuality', 'HD Quality') },
-                { icon: <TrendingUp className="w-5 h-5" />, text: getText('home.benefits.fastProcessing', '8s Processing') }
-              ].map((benefit, index) => (
-                <Badge key={index} variant="outline" className="bg-white/80 backdrop-blur-sm border-purple-200 text-purple-700 px-4 py-2 text-sm font-medium">
-                  {benefit.icon}
-                  <span className="ml-2">{benefit.text}</span>
+          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+            {/* Left Content */}
+            <div className="text-left">
+              {/* FLUX Engine Badge */}
+              <div className="mb-6">
+                <Badge className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white px-4 py-2 text-sm font-medium">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {getText('home.hero.badge', 'FLUX AI Engine Powered')}
                 </Badge>
-              ))}
+              </div>
+
+              {/* Main Title - SEO Optimized */}
+              <div className="mb-6">
+                {/* Primary H1 - SEO optimized with core keywords */}
+                <h1 className="text-4xl lg:text-5xl font-bold mb-3 text-gray-900 leading-tight">
+                  {getText('home.hero.title', 'Sybau FLUX Pro Picture Generator')}
+                </h1>
+                
+                {/* Secondary tagline */}
+                <h2 className="text-2xl lg:text-3xl font-medium mb-3 text-gray-700 leading-tight">
+                  {getText('home.hero.subtitle', 'Professional AI Image Editor')}
+                </h2>
+                
+                {/* Technology Feature */}
+                <h3 className="text-xl lg:text-2xl font-medium mb-4 leading-tight">
+                  {currentLang === 'zh' ? '基于' : 'Powered by'} <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 bg-clip-text text-transparent font-bold">{getText('home.hero.tagline', 'FLUX Pro Engine')}</span>
+                </h3>
+              </div>
+
+              {/* Description */}
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                {getText('home.hero.description', 'Powered by FLUX Pro/Kontext AI engine - Transform any text or image into stunning creative visuals! 9 practical scenarios, 15-second generation, professional commercial quality.')}
+              </p>
+
+              {/* Key Features */}
+              <div className="flex flex-wrap gap-4 mb-8">
+                {[
+                  { icon: <Star className="w-4 h-4" />, text: getText('home.flux.param12b', '12B Parameters') },
+                  { icon: <Rocket className="w-4 h-4" />, text: getText('home.benefits.speed', '15s Generation') },
+                  { icon: <Heart className="w-4 h-4" />, text: getText('home.benefits.scenarios', '9 Scenarios') },
+                  { icon: <TrendingUp className="w-4 h-4" />, text: getText('home.benefits.quality', 'Pro Quality') }
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md">
+                    <div className="text-purple-600">{feature.icon}</div>
+                    <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Call to Action */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <button 
+                  onClick={() => {
+                    const generatorElement = document.querySelector('#generator-section')
+                    if (generatorElement) {
+                      generatorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                >
+                  {getText('home.cta.startCreating', 'Start Creating Now')}
+                </button>
+                <div className="text-sm text-gray-500 py-4">
+                  {getText('home.socialProof', 'Trusted by creators worldwide')}
+                </div>
+              </div>
             </div>
 
-            {/* Social Proof */}
-            <div className="text-center mb-12">
-              <p className="text-gray-500 mb-6">{getText('home.socialProof', 'Trusted by creators worldwide')}</p>
-              <div className="flex flex-wrap justify-center gap-8 text-center">
-                <div className="flex flex-col items-center">
-                  <div className="text-3xl font-bold text-purple-600">{stats.memes.toLocaleString()}+</div>
-                  <div className="text-sm text-gray-500">{getText('home.stats.memes', 'Creations Made')}</div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="text-3xl font-bold text-pink-600 flex items-center">
-                    {stats.rating.toFixed(1)}
-                    <Star className="w-6 h-6 ml-1 fill-current" />
+            {/* Right Visual Showcase */}
+            <div className="relative lg:pl-8">
+              {/* Main showcase container with floating elements */}
+              <div className="relative">
+                {/* Background decorative elements */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl transform rotate-3 opacity-60"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-100 to-blue-100 rounded-3xl transform -rotate-2 opacity-60"></div>
+                
+                {/* Main content area with Before/After Slider */}
+                <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl">
+                  <BeforeAfterSlider
+                    beforeImage="/images/hero-showcase/hero-removal-before.webp"
+                    afterImage="/images/hero-showcase/hero-removal-after.webp"
+                    beforeLabel={getText('home.cases.before', 'Before')}
+                    afterLabel={getText('home.cases.after', 'After')}
+                    className="w-full rounded-xl overflow-hidden shadow-lg"
+                    width={600}
+                    height={400}
+                  />
+                  
+                  {/* Tool icons and indicators */}
+                  <div className="flex justify-center gap-4 mt-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="font-medium">{getText('home.hero.smart.removal', 'Smart Removal')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="font-medium">{getText('home.hero.smart.done', '15s Done')}</span>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500">{getText('home.stats.rating', 'User Rating')}</div>
                 </div>
-                <div className="flex flex-col items-center">
-                  <div className="text-3xl font-bold text-cyan-600">{stats.countries}+</div>
-                  <div className="text-sm text-gray-500">{getText('home.stats.countries', 'Countries')}</div>
+
+                {/* Floating tool indicators */}
+                <div className="absolute -top-4 -right-4 bg-purple-500 text-white p-3 rounded-full shadow-lg animate-bounce">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                
+                <div className="absolute -bottom-6 -left-6 bg-cyan-500 text-white p-3 rounded-full shadow-lg">
+                  <Rocket className="w-5 h-5" />
+                </div>
+                
+                <div className="absolute top-1/2 -right-8 bg-pink-500 text-white p-2 rounded-full shadow-lg">
+                  <Star className="w-4 h-4" />
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* Generator Section */}
       <section id="generator-section" className="py-20 bg-white">
@@ -438,7 +655,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <ImageGenerator
               texts={{
                 uploadTitle: getText('generator.uploadTitle', 'Upload Image or Enter Text'),
@@ -446,7 +663,7 @@ export default function HomePageClient() {
                 uploadPlaceholder: getText('generator.uploadPlaceholder', 'Select an image or enter your creative idea'),
                 settingsTitle: getText('generator.settingsTitle', 'Style Settings'),
                 settingsDescription: getText('generator.settingsDescription', 'Choose your preferred Sybau style'),
-                styleLabel: getText('generator.styleLabel', 'Sybau Style'),
+                styleLabel: getText('generator.style', 'Style'),
                 styleOption: getText('generator.styleOption', 'Sybau Style'),
                 styleDescription: getText('generator.styleDescription', 'Apply Sybau style - Stay Young, Beautiful and Unique'),
                 promptLabel: getText('generator.promptLabel', 'Creative Prompt'),
@@ -461,7 +678,7 @@ export default function HomePageClient() {
                 dragAndDrop: getText('generator.dragAndDrop', 'Drag and drop'),
                 clickToBrowse: getText('generator.clickToBrowse', 'Click to browse'),
                 intensityLabel: getText('generator.intensityLabel', 'Style Intensity'),
-                modeLabel: getText('generator.modeLabel', 'Generation Mode'),
+                modeLabel: getText('generator.modeLabel', 'Mode'),
                 classicMode: getText('generator.classicMode', 'Classic Sybau'),
                 exaggeratedMode: getText('generator.exaggeratedMode', 'Expressive Sybau'),
                 professionalMode: getText('generator.professionalMode', 'Professional Sybau'),
@@ -493,9 +710,187 @@ export default function HomePageClient() {
                 recreate: getText('generator.recreate', 'Create Again'),
                 creationPreparation: getText('generator.creationPreparation', '🎨 Creation Preparation'),
                 creationPreparationDesc: getText('generator.creationPreparationDesc', 'Choose your creative method, set your style, and let AI create beautiful works for you'),
-                creationMode: getText('generator.creationMode', 'Creation Mode')
+                creationMode: getText('generator.creationMode', 'Creation Mode'),
+                // 新增的文本键
+                textToImage: getText('generator.textToImage', 'Text-to-Image'),
+                smartRetouch: getText('generator.smartRetouch', 'Smart Retouch'),
+                hdEnhance: getText('generator.hdEnhance', 'HD Enhance'),
+                imageEdit: getText('generator.imageEdit', 'Image Edit'),
+                textMode: getText('generator.textMode', 'Text'),
+                imageMode: getText('generator.imageMode', 'Image'),
+                dragImagePlaceholder: getText('generator.dragImagePlaceholder', 'Drag image here'),
+                selectFile: getText('generator.selectFile', 'or click to select file'),
+                styleOptional: getText('generator.styleOptional', 'Optional: describe desired style changes...'),
+                style: getText('generator.style', 'Style'),
+                intensity: getText('generator.intensity', 'Intensity'),
+                generate: getText('generator.generate', 'Generate'),
+                templateLibrary: getText('generator.templateLibrary', 'Template Library'),
+                templatesCount: getText('generator.templatesCount', 'Templates'),
+                needUpgrade: getText('generator.needUpgrade', 'Upgrade Required'),
+                upgradeNow: getText('generator.upgradeNow', 'Upgrade Now'),
+                result: getText('generator.result', 'Generation Result'),
+                random: getText('generator.random', 'Random')
               }}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* FLUX Engine Features Section */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-cyan-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-800">
+              {getText('home.flux.title', 'FLUX Pro + Kontext Dual Engine')}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {getText('home.flux.subtitle', 'Industry-leading AI image editing technology')}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            {/* Technical Parameters */}
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
+                <Star className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{getText('home.flux.param12b', '12 Billion Parameters')}</h3>
+              <p className="text-gray-600 text-sm">{getText('home.flux.param12b.desc', 'Flow transformer architecture')}</p>
+            </div>
+
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
+                <TrendingUp className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{getText('home.flux.topelo', 'Highest Elo Score')}</h3>
+              <p className="text-gray-600 text-sm">{getText('home.flux.topelo.desc', 'Top ranking on Artificial Analysis arena')}</p>
+            </div>
+
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
+                <Rocket className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{getText('home.flux.speed6x', '6x Speed Boost')}</h3>
+              <p className="text-gray-600 text-sm">{getText('home.flux.speed6x.desc', '4x faster than other platforms')}</p>
+            </div>
+
+            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
+                <Heart className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{getText('home.flux.multimodal', 'Multimodal Understanding')}</h3>
+              <p className="text-gray-600 text-sm">{getText('home.flux.multimodal.desc', 'Text + image input processing')}</p>
+            </div>
+          </div>
+
+          {/* Additional Features */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mt-12">
+            <div className="flex items-start space-x-4 p-6 bg-white/80 backdrop-blur-sm rounded-xl">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <Star className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-gray-800 mb-2">{getText('home.flux.localediting', 'Precise Local Editing')}</h4>
+                <p className="text-gray-600">{getText('home.flux.localediting.desc', 'Targeted area modifications')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4 p-6 bg-white/80 backdrop-blur-sm rounded-xl">
+              <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <Heart className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-gray-800 mb-2">{getText('home.flux.consistency', 'Character Consistency')}</h4>
+                <p className="text-gray-600">{getText('home.flux.consistency.desc', 'Maintain coherence across edits')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4 p-6 bg-white/80 backdrop-blur-sm rounded-xl">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <Rocket className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-gray-800 mb-2">{getText('home.flux.notuning', 'No Fine-tuning Required')}</h4>
+                <p className="text-gray-600">{getText('home.flux.notuning.desc', 'Professional results out-of-the-box')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4 p-6 bg-white/80 backdrop-blur-sm rounded-xl">
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-gray-800 mb-2">{getText('home.benefits.quality', 'Professional Quality')}</h4>
+                <p className="text-gray-600">{getText('home.benefits.quality.desc', 'Commercial-grade output')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* Unified Scenario Showcase - SnapEdit Style */}
+      <UnifiedScenarioShowcase currentLang={currentLang} />
+
+
+
+      {/* Technical Comparison Section */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-purple-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-800">
+              {getText('home.comparison.title', '⚡ Why Choose FLUX Engine?')}
+            </h2>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="grid md:grid-cols-2 divide-x divide-gray-200">
+                <div className="p-8">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">{getText('home.comparison.traditional', 'Traditional Photo Editing')}</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.skill.traditional', 'Requires professional skills')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.time.traditional', 'Takes hours')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.effect.traditional', 'Stiff results')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.function.traditional', 'Single function')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-8 bg-gradient-to-br from-purple-50 to-cyan-50">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">{getText('home.comparison.flux', 'FLUX Engine')}</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.skill.flux', 'Zero-skill startup')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.time.flux', '15 seconds completion')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.effect.flux', 'AI-intelligent natural')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                      <span className="text-gray-600">{getText('home.comparison.function.flux', '9 scenarios full coverage')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -689,138 +1084,6 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-800">
-              {getText('home.pricing.title', 'Choose Your Plan')}
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {getText('home.pricing.description', 'Start creating amazing Sybau content today. Choose the plan that fits your needs.')}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center transition-all duration-300 hover:shadow-xl">
-              <div className="w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-6">
-                <Star className="w-8 h-8" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">{getText('home.pricing.free.title', 'Free')}</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-2">
-                {getText('home.pricing.free.price', '$0')}
-                <span className="text-lg font-normal text-gray-600">/{getText('home.pricing.free.period', 'forever')}</span>
-              </div>
-              <p className="text-gray-600 mb-6">{getText('home.pricing.free.description', 'Perfect for getting started')}</p>
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.free.feature1', '5 generations per day')}</span>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.free.feature2', 'Basic Sybau styles')}</span>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.free.feature3', 'Standard quality')}</span>
-                </div>
-              </div>
-              <Button
-                className="w-full"
-                variant="outline"
-                size="lg"
-                onClick={() => handlePlanClick('free')}
-              >
-                {getText('home.cta.getStarted', 'Get Started')}
-              </Button>
-            </div>
-
-            {/* Standard Plan */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center transition-all duration-300 hover:shadow-xl ring-2 ring-purple-500 scale-105 relative">
-              <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 text-sm font-medium rounded-bl-lg rounded-tr-2xl">
-                {getText('home.pricing.popular', 'Most Popular')}
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-6">
-                <Sparkles className="w-8 h-8" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">{getText('home.pricing.pro.title', 'Standard')}</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-2">
-                {getText('home.pricing.pro.price', '$9')}
-                <span className="text-lg font-normal text-gray-600">/{getText('home.pricing.pro.period', 'per month')}</span>
-              </div>
-              <p className="text-gray-600 mb-6">{getText('home.pricing.pro.description', 'Best for regular creators')}</p>
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.pro.feature1', '60 generations per month')}</span>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.pro.feature2', 'All Sybau styles')}</span>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.pro.feature3', 'High quality, no watermarks')}</span>
-                </div>
-              </div>
-              <Button
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                size="lg"
-                onClick={() => handlePlanClick('standard')}
-              >
-                {getText('home.cta.signUp', 'Sign In Now')}
-              </Button>
-            </div>
-
-            {/* Professional Plan */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center transition-all duration-300 hover:shadow-xl">
-              <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-6">
-                <Rocket className="w-8 h-8" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">{getText('home.pricing.enterprise.title', 'Professional')}</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-2">
-                {getText('home.pricing.enterprise.price', '$19')}
-                <span className="text-lg font-normal text-gray-600">/{getText('home.pricing.enterprise.period', 'per month')}</span>
-              </div>
-              <p className="text-gray-600 mb-6">{getText('home.pricing.enterprise.description', 'For businesses and power users')}</p>
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.enterprise.feature1', '180 generations per month')}</span>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.enterprise.feature2', 'Exclusive styles + priority support')}</span>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span className="text-gray-700">{getText('home.pricing.enterprise.feature3', 'Ultra high quality + commercial license')}</span>
-                </div>
-              </div>
-              <Button
-                className="w-full"
-                variant="outline"
-                size="lg"
-                onClick={() => handlePlanClick('professional')}
-              >
-                {getText('home.cta.choosePlan', 'Choose Plan')}
-              </Button>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <a
-              href={getCurrentLanguage() === 'zh' ? '/zh/pricing' : '/pricing'}
-              className="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold"
-            >
-              {getText('home.pricing.viewAllPlans', 'View All Plans')}
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </a>
-          </div>
-        </div>
-      </section>
 
       {/* Footer Features */}
       <section className="py-16 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600">

@@ -52,7 +52,7 @@ const COMMANDS = {
 const ENV_TEMPLATES = {
   development: {
     NODE_ENV: 'development',
-    NEXTAUTH_URL: 'http://localhost:3001',
+    NEXTAUTH_URL: 'http://localhost:3003',
     DEBUG: 'true'
   },
   production: {
@@ -109,13 +109,18 @@ function readCurrentEnv() {
  * 写入环境配置
  */
 function writeEnvConfig(environment) {
-  const envFile = path.join(process.cwd(), '.env.local');
-  const currentEnv = readCurrentEnv() || {};
+  const envLocalFile = path.join(process.cwd(), '.env.local');
+  const envCurrentFile = path.join(process.cwd(), '.env.current');
+  
+  // 读取.env.current中的配置作为基础
+  const currentEnv = readEnvFile(envCurrentFile) || readCurrentEnv() || {};
 
   // 合并模板和当前配置
   const newEnv = {
     ...currentEnv,
-    ...ENV_TEMPLATES[environment]
+    ...ENV_TEMPLATES[environment],
+    // 添加显式环境标识
+    SYBAU_ENV: environment
   };
 
   // 如果没有NEXTAUTH_SECRET，生成一个
@@ -134,15 +139,46 @@ function writeEnvConfig(environment) {
   ].join('\n');
 
   // 备份当前文件
-  if (fs.existsSync(envFile)) {
-    const backupFile = `${envFile}.backup`;
-    fs.copyFileSync(envFile, backupFile);
+  if (fs.existsSync(envLocalFile)) {
+    const backupFile = `${envLocalFile}.backup`;
+    fs.copyFileSync(envLocalFile, backupFile);
+  }
+  if (fs.existsSync(envCurrentFile)) {
+    const backupFile = `${envCurrentFile}.backup`;
+    fs.copyFileSync(envCurrentFile, backupFile);
   }
 
-  // 写入新配置
-  fs.writeFileSync(envFile, content);
+  // 同时写入两个配置文件
+  fs.writeFileSync(envLocalFile, content);
+  fs.writeFileSync(envCurrentFile, content);
+
+  console.log(`✅ 已更新配置文件：.env.local 和 .env.current`);
 
   return newEnv;
+}
+
+/**
+ * 读取指定的环境文件
+ */
+function readEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  const content = fs.readFileSync(filePath, 'utf8');
+  const env = {};
+
+  content.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        env[key.trim()] = valueParts.join('=').trim();
+      }
+    }
+  });
+
+  return env;
 }
 
 /**
@@ -308,7 +344,7 @@ function getEnvironmentConfig() {
 
   return {
     environment: current.environment,
-    baseUrl: env.NEXTAUTH_URL || (current.environment === 'production' ? 'https://sybaupicture.com' : 'http://localhost:3001'),
+    baseUrl: env.NEXTAUTH_URL || (current.environment === 'production' ? 'https://sybaupicture.com' : 'http://localhost:3003'),
     debug: env.DEBUG === 'true' || current.environment === 'development',
     database: {
       url: env.DATABASE_URL || ''

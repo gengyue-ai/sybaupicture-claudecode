@@ -380,7 +380,7 @@ export const fallbackTranslations = {
         }
       },
       footer: {
-        description: 'The world\'s first AI meme platform focused on Sybau Lazer Dim 700 style. Making viral funny content creation accessible to everyone.',
+        description: 'Professional AI image editing platform powered by Flux.1 Kontext technology. Transform any photo with intelligent watermark removal, background replacement, people removal, body optimization, and style conversion. Making professional-quality image editing accessible to everyone.',
         product: {
           title: 'Product',
           generator: 'AI Generator',
@@ -796,7 +796,7 @@ export const fallbackTranslations = {
         }
       },
       footer: {
-        description: '全球首个专注于Sybau风格的AI创意图片生成平台。让每个人都能轻松创作出病毒式传播的创意图片。',
+        description: '基于Flux.1 Kontext技术的专业AI图片编辑平台。智能去水印、背景替换、人物移除、身材优化、风格转换，让专业级图片编辑触手可及。',
         product: {
           title: '产品',
           generator: 'AI生成器',

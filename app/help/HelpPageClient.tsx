@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Search, HelpCircle, BookOpen, Zap, Shield, Settings, CreditCard, ImageIcon, ChevronDown, ChevronRight } from 'lucide-react'
+import { Search, HelpCircle, BookOpen, Zap, Shield, Settings, CreditCard, ImageIcon, ChevronDown, ChevronRight, Palette, Archive } from 'lucide-react'
 
 interface FAQItem {
   id: string
@@ -16,70 +16,138 @@ interface FAQItem {
 }
 
 const faqData: FAQItem[] = [
+  // Getting Started
   {
     id: '1',
     question: 'How does the AI image generator work?',
-    answer: 'Our AI uses advanced machine learning models inspired by Gen Z culture and the Sybau philosophy - Stay Young, Beautiful and Unique. Simply upload an image or enter text, select your preferred style, and our AI will transform it into a viral-worthy creative piece in seconds.',
+    answer: 'Our AI uses advanced machine learning models inspired by Gen Z culture and the Sybau philosophy - Stay Young, Beautiful and Unique. Choose between Text-to-Image mode (enter a description) or Image-to-Image mode (upload and transform), select your style, and get professional results in seconds.',
     category: 'getting-started'
   },
   {
     id: '2',
-    question: 'What image formats are supported?',
-    answer: 'We support all major image formats including JPG, PNG, GIF, and WebP. For best results, we recommend uploading high-quality images with good lighting and clear subjects.',
+    question: 'What\'s the difference between Text-to-Image and Image-to-Image modes?',
+    answer: 'Text-to-Image creates completely new images from your written description. Image-to-Image transforms your uploaded photos using AI - perfect for editing, style changes, or enhancements. Both modes support our 4 professional styles.',
     category: 'getting-started'
   },
   {
     id: '3',
-    question: 'How many images can I generate?',
-    answer: 'Free users can generate 3 images per month. Standard users get 50 images per month, and PRO users get 200 images per month with priority processing.',
-    category: 'pricing'
-  },
-  {
-    id: '4',
-    question: 'How do I cancel my subscription?',
-    answer: 'You can cancel your subscription anytime from your account settings. Go to Settings > Billing > Cancel Subscription. Your premium features will remain active until the end of your billing period.',
-    category: 'pricing'
-  },
-  {
-    id: '5',
-    question: 'Can I use generated images commercially?',
-    answer: 'Yes! All images generated with Sybau Picture can be used for commercial purposes. You retain full rights to your creations. However, please ensure your original uploaded images don\'t infringe on copyrights.',
-    category: 'usage'
-  },
-  {
-    id: '6',
-    question: 'My image generation failed. What should I do?',
-    answer: 'If generation fails, try: 1) Check your internet connection, 2) Ensure your image meets our guidelines (under 10MB, appropriate content), 3) Try a different image or lower intensity setting. If issues persist, contact support.',
-    category: 'troubleshooting'
-  },
-  {
-    id: '7',
-    question: 'How do I download my generated images?',
-    answer: 'After your image is generated, click the download button to save it to your device. Premium users can download in multiple resolutions including HD and 4K.',
+    question: 'What image formats are supported?',
+    answer: 'We support JPG, PNG, and WebP formats. Images should be under 5MB for optimal processing. Resolution between 512x512 and 2048x2048 pixels works best.',
     category: 'getting-started'
   },
   {
+    id: '4',
+    question: 'How do I download my generated images?',
+    answer: 'Click the download button after generation to save images to your device. All images are saved in high-quality JPG format. You can also access them later in "My Assets".',
+    category: 'getting-started'
+  },
+
+  // Templates & Modes
+  {
+    id: '5',
+    question: 'What are Templates and how do I use them?',
+    answer: 'Templates are pre-configured AI setups for specific tasks like watermark removal, body optimization, or background replacement. Click the template library button to browse 14 professional templates across 3 categories: Life Enhancement, Business Creation, and Creative Conversion.',
+    category: 'templates'
+  },
+  {
+    id: '6',
+    question: 'Which templates are available for free users?',
+    answer: 'Free users get access to 3 essential templates: Smart Watermark Removal, Body Optimization, and Tourist Removal. Standard users get 5 templates, while Pro users unlock all 14 professional templates.',
+    category: 'templates'
+  },
+  {
+    id: '7',
+    question: 'What are the different AI styles available?',
+    answer: 'We offer 4 professional styles: Classic (balanced aesthetic), Professional (refined business-ready), Exaggerated (bold and expressive), and Creative (imaginative and artistic). Free users get Classic and Professional, while paid users access all styles.',
+    category: 'templates'
+  },
+
+  // My Assets
+  {
     id: '8',
-    question: 'Is my data safe and private?',
-    answer: 'Absolutely. We use enterprise-grade encryption and don\'t store your uploaded images permanently. Generated images are only saved if you choose to add them to your gallery. Read our Privacy Policy for full details.',
-    category: 'privacy'
+    question: 'How do I manage my generated images?',
+    answer: 'Visit "My Assets" in your profile to view all generated images, organized by date. You can view, download, or delete images from your personal gallery. Images are automatically saved when you generate them.',
+    category: 'assets'
   },
   {
     id: '9',
-    question: 'Do you provide API access?',
-    answer: 'Currently, we do not provide API access. We focus on delivering a comprehensive web-based service experience. For batch processing needs, we recommend using our web interface.',
-    category: 'technical'
+    question: 'How long are my images stored?',
+    answer: 'Your generated images are stored permanently in your account unless you delete them. You have unlimited storage for your creations and can access them anytime from "My Assets".',
+    category: 'assets'
+  },
+
+  // Pricing & Plans
+  {
+    id: '10',
+    question: 'What are the current usage limits?',
+    answer: 'Free users: 3 images per month. Standard users: 60 images per month. Pro users: 180 images per month with priority processing. All plans include unlimited storage and no watermarks.',
+    category: 'pricing'
+  },
+  {
+    id: '11',
+    question: 'Do you add watermarks to generated images?',
+    answer: 'No! All plans, including the free tier, generate images without watermarks. You get clean, professional results ready for any use case.',
+    category: 'pricing'
+  },
+  {
+    id: '12',
+    question: 'How do I cancel my subscription?',
+    answer: 'You can cancel anytime from Settings > Billing > Cancel Subscription. Your premium features remain active until the end of your billing period, then you\'ll automatically switch to the free plan.',
+    category: 'pricing'
+  },
+
+  // Usage & Rights
+  {
+    id: '13',
+    question: 'Can I use generated images commercially?',
+    answer: 'Yes! You retain full commercial rights to all generated images. Use them for business, social media, marketing, or any commercial purpose. Just ensure your original uploaded images don\'t infringe on copyrights.',
+    category: 'usage'
+  },
+  {
+    id: '14',
+    question: 'What\'s the image quality and resolution?',
+    answer: 'All images are generated in high quality. Free users get 1024x1024px, Standard users get up to 1536x1536px, and Pro users get up to 2048x2048px resolution.',
+    category: 'usage'
+  },
+
+  // Troubleshooting
+  {
+    id: '15',
+    question: 'My image generation failed. What should I do?',
+    answer: 'Common solutions: 1) Check your internet connection, 2) Ensure image is under 5MB and appropriate content, 3) Try a different style or lower intensity, 4) Clear browser cache and retry. Contact support if issues persist.',
+    category: 'troubleshooting'
+  },
+  {
+    id: '16',
+    question: 'Why is generation taking longer than usual?',
+    answer: 'Generation typically takes 15-30 seconds. Delays can occur during high traffic periods. Pro users get priority processing for faster results. If it takes over 2 minutes, please refresh and try again.',
+    category: 'troubleshooting'
+  },
+
+  // Privacy & Security
+  {
+    id: '17',
+    question: 'Is my data safe and private?',
+    answer: 'Absolutely. We use enterprise-grade encryption and don\'t store uploaded images permanently unless you choose to save them. Generated images are only kept in your personal gallery. Read our Privacy Policy for complete details.',
+    category: 'privacy'
+  },
+  {
+    id: '18',
+    question: 'Do you train AI models on my images?',
+    answer: 'No, we do not use your uploaded or generated images to train our AI models. Your content remains private and is used solely for your image generation requests.',
+    category: 'privacy'
   }
 ]
 
 const categories = [
   { id: 'all', name: 'All Topics', icon: BookOpen },
   { id: 'getting-started', name: 'Getting Started', icon: Zap },
-  { id: 'pricing', name: 'Pricing & Billing', icon: CreditCard },
+  { id: 'templates', name: 'Templates & Modes', icon: Palette },
+  { id: 'assets', name: 'My Assets', icon: Archive },
+  { id: 'pricing', name: 'Pricing & Plans', icon: CreditCard },
   { id: 'usage', name: 'Usage & Rights', icon: ImageIcon },
   { id: 'troubleshooting', name: 'Troubleshooting', icon: Settings },
-  { id: 'privacy', name: 'Privacy & Security', icon: Shield },
-  { id: 'technical', name: 'Technical Support', icon: Settings }
+  { id: 'privacy', name: 'Privacy & Security', icon: Shield }
 ]
 
 export default function HelpPageClient() {

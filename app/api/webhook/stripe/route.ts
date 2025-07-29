@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { constructEvent, stripe } from '@/lib/stripe'
-import { prisma } from '@/lib/prisma'
+import { createPrismaClient } from '@/lib/prisma'
 import { updateUserPlan, createSubscription, PlanType } from '@/lib/subscription'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
+  // 🎯 创建独立的数据库连接，避免prepared statement冲突
+  const prisma = createPrismaClient()
+  
   // 检查Stripe是否配置
   if (!stripe) {
     console.warn('⚠️ Stripe not configured - webhook ignored')
@@ -27,6 +30,12 @@ export async function POST(request: NextRequest) {
 
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
     if (!webhookSecret) {
+      console.error('❌ Webhook密钥未配置:', {
+        NODE_ENV: process.env.NODE_ENV,
+        hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+        hasWebhookSecretProd: !!process.env.STRIPE_WEBHOOK_SECRET_PROD,
+        hasWebhookSecretDev: !!process.env.STRIPE_WEBHOOK_SECRET_DEV
+      })
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         { status: 500 }
@@ -34,7 +43,22 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证webhook签名
-    const event = constructEvent(body, signature, webhookSecret)
+    let event
+    try {
+      event = constructEvent(body, signature, webhookSecret)
+      console.log('✅ Webhook签名验证成功:', event.type)
+    } catch (error) {
+      console.error('❌ Webhook签名验证失败:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        hasSignature: !!signature,
+        hasWebhookSecret: !!webhookSecret,
+        bodyLength: body.length
+      })
+      return NextResponse.json(
+        { error: 'Webhook signature verification failed' },
+        { status: 400 }
+      )
+    }
 
     console.log('📧 Received Stripe webhook event:', event.type)
 
@@ -80,6 +104,7 @@ export async function POST(request: NextRequest) {
 
 // 处理结算完成事件
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const prisma = createPrismaClient()
   console.log('✅ Checkout completed for session:', session.id)
 
   if (!prisma) {
@@ -101,7 +126,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   try {
     // 确保用户存在
-    const user = await prisma.user.upsert({
+    const user = await prisma!.user.upsert({
       where: { email: customerEmail },
       update: {
         stripeCustomerId: session.customer as string,
@@ -123,6 +148,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
 // 处理订阅创建事件
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
+  const prisma = createPrismaClient()
   console.log('📊 Subscription created:', subscription.id)
 
   if (!prisma) {
@@ -131,7 +157,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   }
 
   const customerId = subscription.customer as string
-  const user = await prisma.user.findFirst({
+  const user = await prisma!.user.findFirst({
     where: { stripeCustomerId: customerId }
   })
 
@@ -183,6 +209,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
 // 处理订阅更新事件
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  const prisma = createPrismaClient()
   console.log('🔄 Subscription updated:', subscription.id)
 
   if (!prisma) {
@@ -190,7 +217,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     return
   }
 
-  const dbSubscription = await prisma.subscription.findUnique({
+  const dbSubscription = await prisma!.subscription.findUnique({
     where: { stripeSubscriptionId: subscription.id }
   })
 
@@ -201,7 +228,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
   // 更新订阅状态
   const stripeSubscription = subscription as any
-  await prisma.subscription.update({
+  await prisma!.subscription.update({
     where: { id: dbSubscription.id },
     data: {
       status: subscription.status,
@@ -221,6 +248,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
 // 处理订阅删除事件
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  const prisma = createPrismaClient()
   console.log('🗑️ Subscription deleted:', subscription.id)
 
   if (!prisma) {
@@ -228,7 +256,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     return
   }
 
-  const dbSubscription = await prisma.subscription.findUnique({
+  const dbSubscription = await prisma!.subscription.findUnique({
     where: { stripeSubscriptionId: subscription.id }
   })
 
@@ -238,7 +266,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   }
 
   // 更新订阅状态为已取消
-  await prisma.subscription.update({
+  await prisma!.subscription.update({
     where: { id: dbSubscription.id },
     data: {
       status: 'canceled',
@@ -254,6 +282,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 // 处理发票支付成功事件
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+  const prisma = createPrismaClient()
   console.log('💰 Invoice payment succeeded:', invoice.id)
 
   const stripeInvoice = invoice as any
@@ -267,7 +296,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     return
   }
 
-  const dbSubscription = await prisma.subscription.findUnique({
+  const dbSubscription = await prisma!.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId }
   })
 
@@ -277,7 +306,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   }
 
   // 更新订阅状态为活跃
-  await prisma.subscription.update({
+  await prisma!.subscription.update({
     where: { id: dbSubscription.id },
     data: {
       status: 'active',
@@ -291,6 +320,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
 // 处理发票支付失败事件
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  const prisma = createPrismaClient()
   console.log('❌ Invoice payment failed:', invoice.id)
 
   const stripeInvoice = invoice as any
@@ -304,7 +334,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     return
   }
 
-  const dbSubscription = await prisma.subscription.findUnique({
+  const dbSubscription = await prisma!.subscription.findUnique({
     where: { stripeSubscriptionId: subscriptionId }
   })
 
@@ -314,7 +344,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   }
 
   // 更新订阅状态为过期
-  await prisma.subscription.update({
+  await prisma!.subscription.update({
     where: { id: dbSubscription.id },
     data: {
       status: 'past_due'
