@@ -350,37 +350,19 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
               if (checkResponse.ok) {
                 const checkData = await checkResponse.json()
                 if (checkData.exists && !checkData.emailVerified) {
-                  // 邮箱未验证
-                  toast.error(currentLang === 'zh' ? '邮箱未验证，请查收验证邮件' : 'Email not verified, please check your verification email')
-                  setIsLoading(false)
+                  // 邮箱未验证 - 自动发送验证邮件
+                  try {
+                    fetch('/api/auth/verify-email', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: email.trim() })
+                    })
+                  } catch (error) {
+                    // 忽略发送错误，不影响用户体验
+                  }
                   
-                  setTimeout(() => {
-                    toast.info(
-                      currentLang === 'zh' 
-                        ? '没收到邮件？点击重新发送验证邮件' 
-                        : 'Did not receive email? Click to resend verification email',
-                      {
-                        duration: 8000,
-                        action: {
-                          label: currentLang === 'zh' ? '重新发送' : 'Resend',
-                          onClick: async () => {
-                            try {
-                              const resendResponse = await fetch('/api/auth/verify-email', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ email: email.trim() })
-                              })
-                              if (resendResponse.ok) {
-                                toast.success(currentLang === 'zh' ? '验证邮件已重新发送' : 'Verification email resent')
-                              }
-                            } catch (error) {
-                              toast.error(currentLang === 'zh' ? '重新发送失败' : 'Failed to resend')
-                            }
-                          }
-                        }
-                      }
-                    )
-                  }, 2000)
+                  setFormError('请检查您的邮箱')
+                  setIsLoading(false)
                   return
                 }
               }
@@ -581,8 +563,14 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
             {/* 错误信息显示区域 */}
             {formError && (
               <div className="text-center py-2">
-                <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                  {formError}
+                <div className={`text-sm rounded-md px-3 py-2 border ${
+                  formError === '请检查您的邮箱'
+                    ? 'text-blue-600 bg-blue-50 border-blue-200'
+                    : formError.split(':')[0] === '200'
+                    ? 'text-green-600 bg-green-50 border-green-200' 
+                    : 'text-red-600 bg-red-50 border-red-200'
+                }`}>
+                  {formError.split(':')[1] || formError}
                 </div>
               </div>
             )}
