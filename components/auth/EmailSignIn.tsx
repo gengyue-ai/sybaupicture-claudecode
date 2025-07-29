@@ -149,35 +149,36 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [currentMode, setCurrentMode] = useState(mode)
   const [showUserExistsGuide, setShowUserExistsGuide] = useState(false)
+  const [formError, setFormError] = useState('')
 
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!email.trim()) {
-      toast.error(t.emailRequired)
+      setFormError('400:请输入邮箱地址')
       return
     }
 
     // 简单的邮箱格式验证
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      toast.error(t.emailInvalid)
+      setFormError('400:请输入有效的邮箱地址')
       return
     }
 
     if (currentMode === 'signup' && !name.trim()) {
-      toast.error(t.nameRequired)
+      setFormError('400:请输入姓名')
       return
     }
 
     if (!password.trim()) {
-      toast.error(t.passwordRequired)
+      setFormError('400:请输入密码')
       return
     }
 
     if (password.length < 6) {
-      toast.error(t.passwordTooShort)
+      setFormError('400:密码至少需要6位')
       return
     }
 
@@ -235,17 +236,12 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
             console.log('🔍 检测到用户已存在:', { 
               status: registerResponse.status, 
               code: registerData.code, 
-              error: registerData.error,
-              showUserExistsGuide: showUserExistsGuide
+              error: registerData.error
             })
             
-            // 简洁的提示信息
-            toast.error(currentLang === 'zh' ? '该邮箱已注册，请直接登录' : 'This email is already registered, please sign in')
-            
-            // 显示登录引导并停止加载
-            setShowUserExistsGuide(true)
+            // 设置表单错误信息
+            setFormError('422:用户已存在')
             setIsLoading(false)
-            console.log('✅ 已设置showUserExistsGuide为true')
             return
           }
 
@@ -393,25 +389,17 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
             }
             
             // 如果不是邮箱验证问题，显示常规错误
-            toast.error(currentLang === 'zh' ? '邮箱或密码错误，请检查后重试' : 'Invalid email or password')
+            setFormError('422:邮箱或密码错误')
             setIsLoading(false)
           } else if (result.error === 'AccessDenied') {
-            toast.error(currentLang === 'zh' ? '账户被禁用，请联系客服' : 'Account disabled, please contact support')
+            setFormError('403:账户被禁用')
             setIsLoading(false)
           } else if (result.error === 'Configuration') {
-            toast.error(currentLang === 'zh' ? '登录服务配置错误，请稍后重试' : 'Login service error, please try again later')
+            setFormError('500:登录服务配置错误')
             setIsLoading(false)
           } else {
-            toast.error(t.loginFailed)
+            setFormError('422:登录失败')
             setIsLoading(false)
-          }
-
-          // 如果是邮箱不存在的情况，提示用户注册
-          if (result.error === 'CredentialsSignin' && currentMode === 'signin') {
-            setTimeout(() => {
-              const helpMessage = currentLang === 'zh' ? '如果您还没有账户，可以点击下方注册' : 'If you don\'t have an account, you can sign up below'
-              toast.info(helpMessage)
-            }, 5000)
           }
         } else {
           console.log('✅ 登录成功，准备跳转')
@@ -476,6 +464,7 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
     setName('')
     setPassword('')
     setShowUserExistsGuide(false) // 切换模式时重置用户存在提示
+    setFormError('') // 清除表单错误
   }
 
   return (
@@ -508,7 +497,10 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
                     id="name"
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      setName(e.target.value)
+                      setFormError('') // 输入时清除错误
+                    }}
                     placeholder={t.namePlaceholder}
                     className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-blue-500"
                     disabled={isLoading}
@@ -527,7 +519,10 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setFormError('') // 输入时清除错误
+                  }}
                   placeholder={t.emailPlaceholder}
                   className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-blue-500"
                   disabled={isLoading}
@@ -546,7 +541,10 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setFormError('') // 输入时清除错误
+                  }}
                   placeholder={t.passwordPlaceholder}
                   className="pr-10 h-10 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-blue-500"
                   disabled={isLoading}
@@ -577,6 +575,15 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
                 >
                   {currentLang === 'zh' ? '忘记密码？' : 'Forgot password?'}
                 </Link>
+              </div>
+            )}
+
+            {/* 错误信息显示区域 */}
+            {formError && (
+              <div className="text-center py-2">
+                <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                  {formError}
+                </div>
               </div>
             )}
 
