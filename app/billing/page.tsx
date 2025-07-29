@@ -69,11 +69,33 @@ export default function BillingPage() {
       setLoading(true)
 
       // 获取订阅信息
-      const subResponse = await fetch('/api/user/subscription')
+      const subResponse = await fetch('/api/subscription')
       if (subResponse.ok) {
         const subData = await subResponse.json()
-        if (subData.success) {
-          setSubscription(subData.data)
+        console.log('💎 订阅数据:', subData)
+        if (subData.user && subData.user.plan) {
+          setSubscription({
+            planName: subData.user.plan.name || 'free',
+            status: subData.subscription?.status || 'active',
+            currentPeriodEnd: subData.subscription?.currentPeriodEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            cancelAtPeriodEnd: subData.subscription?.cancelAtPeriodEnd || false,
+            priceId: subData.subscription?.stripePriceId || '',
+            amount: subData.user.plan?.price * 100 || 0, // 转换为分
+            currency: 'usd',
+            interval: subData.subscription?.billingCycle || 'monthly'
+          })
+        } else {
+          // 处理免费用户情况
+          setSubscription({
+            planName: 'free',
+            status: 'active',
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            cancelAtPeriodEnd: false,
+            priceId: '',
+            amount: 0,
+            currency: 'usd',
+            interval: 'monthly'
+          })
         }
       }
 
@@ -124,7 +146,14 @@ export default function BillingPage() {
           alert('创建账单管理会话失败 - 缺少重定向URL')
         }
       } else {
-        const errorData = await response.json().catch(() => ({ error: '未知错误' }))
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch (parseError) {
+          console.warn('⚠️ 响应JSON解析失败:', parseError)
+          errorData = { error: '服务器响应格式错误' }
+        }
+        
         console.error('❌ 创建门户会话失败:', {
           status: response.status,
           statusText: response.statusText,

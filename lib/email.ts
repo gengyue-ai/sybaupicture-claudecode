@@ -124,11 +124,12 @@ export async function sendVerificationEmail({
   const content = emailContent[locale]
 
   try {
-    console.log('📧 发送验证邮件:', { email, locale })
+    console.log('📧 发送验证邮件:', { email, locale, from: EMAIL_CONFIG.from })
     
     if (!process.env.RESEND_API_KEY) {
-      console.warn('⚠️ RESEND_API_KEY未配置，邮件发送跳过')
-      return { success: false, error: 'Email service not configured' }
+      console.error('❌ RESEND_API_KEY未配置，邮件发送失败')
+      console.error('💡 请在环境变量中设置: RESEND_API_KEY=re_Ymg1CPzA_QDVdCLPhrZNaqxdRms6ndiZE')
+      return { success: false, error: 'Email service not configured - missing RESEND_API_KEY' }
     }
 
     const resendInstance = getResendInstance()

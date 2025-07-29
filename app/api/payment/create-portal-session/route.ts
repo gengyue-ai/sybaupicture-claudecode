@@ -43,15 +43,35 @@ export async function POST(_request: NextRequest) {
     }
 
     if (!user.stripeCustomerId) {
-      console.error('❌ 用户缺少Stripe客户ID:', {
+      console.warn('⚠️ 用户缺少Stripe客户ID，尝试创建:', {
         userId: user.id,
         email: user.email,
         planId: user.planId
       })
-      return NextResponse.json(
-        { error: 'No Stripe customer ID found' },
-        { status: 404 }
-      )
+      
+      // 为免费用户创建Stripe客户记录
+      try {
+        const { createStripeCustomer } = await import('@/lib/stripe')
+        const customer = await createStripeCustomer(user.email, user.name || '')
+        
+        // 更新用户的Stripe客户ID
+        const { createPrismaClient } = await import('@/lib/prisma')
+        const prisma = createPrismaClient()
+        if (prisma) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { stripeCustomerId: customer.id }
+          })
+          user.stripeCustomerId = customer.id
+          console.log('✅ Stripe客户记录创建成功:', customer.id)
+        }
+      } catch (error) {
+        console.error('❌ 创建Stripe客户记录失败:', error)
+        return NextResponse.json(
+          { error: 'Failed to create customer record' },
+          { status: 500 }
+        )
+      }
     }
 
     // 创建客户门户会话

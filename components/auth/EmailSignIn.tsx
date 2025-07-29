@@ -440,14 +440,31 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
   }
 
   const handleGoogleSignIn = async () => {
+    // 防止重复点击
+    if (isGoogleLoading) {
+      console.log('🔄 Google登录已在进行中，忽略重复点击')
+      return
+    }
+
     setIsGoogleLoading(true)
+    console.log('🔐 开始Google登录流程')
 
     try {
-      await signIn('google', {
+      const result = await signIn('google', {
         callbackUrl: callbackUrl || '/',
+        redirect: false, // 防止自动重定向导致的双击问题
       })
+      
+      if (result?.error) {
+        console.error('❌ Google登录失败:', result.error)
+        toast.error(t.googleFailed)
+        setIsGoogleLoading(false)
+      } else if (result?.url) {
+        console.log('✅ Google登录成功，重定向到:', result.url)
+        window.location.href = result.url
+      }
     } catch (error) {
-      console.error('Google sign in error:', error)
+      console.error('❌ Google登录异常:', error)
       toast.error(t.googleFailed)
       setIsGoogleLoading(false)
     }

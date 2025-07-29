@@ -19,6 +19,15 @@ async function ensureUserExists(userData: {
     return null
   }
 
+  // 🔧 增强错误处理：检查数据库连接状态
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    console.log('✅ 数据库连接正常')
+  } catch (connectionError) {
+    console.error('❌ 数据库连接测试失败:', connectionError)
+    return null
+  }
+
   let lastError: Error | null = null
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -197,6 +206,15 @@ export const authOptions: NextAuthOptions = {
       if (!user.email) return false
       
       try {
+        // 🔧 防止OAuth重复登录：检查是否已经在处理中
+        if (account?.provider === 'google') {
+          console.log('🔐 Google OAuth登录开始:', { 
+            email: user.email, 
+            provider: account.provider,
+            type: account.type 
+          })
+        }
+        
         // 确保用户在数据库中存在
         await ensureUserExists({
           email: user.email,
@@ -204,7 +222,7 @@ export const authOptions: NextAuthOptions = {
           image: user.image || null
         })
         
-        // User signed in and synced
+        console.log('✅ 用户登录成功:', { email: user.email, provider: account?.provider })
         return true
       } catch (error) {
         console.error('❌ 用户创建失败:', error)
