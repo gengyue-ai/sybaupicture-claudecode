@@ -81,6 +81,15 @@ export async function POST(_request: NextRequest) {
       returnUrl: returnUrl
     })
     
+    // 确保stripeCustomerId不为null（前面的逻辑已经保证了这一点）
+    if (!user.stripeCustomerId) {
+      console.error('❌ Stripe客户ID仍然为null，这不应该发生')
+      return NextResponse.json(
+        { error: 'Internal error: missing customer ID' },
+        { status: 500 }
+      )
+    }
+    
     const portalSession = await createPortalSession(
       user.stripeCustomerId,
       returnUrl
