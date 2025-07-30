@@ -237,6 +237,29 @@ export default function BillingPage() {
                     </p>
                   </div>
                 )}
+                
+                {/* 付费用户的操作按钮 */}
+                <div className="border-t pt-4">
+                  <div className="flex justify-center gap-3">
+                    {/* 只有当前不是最高级别方案时才显示升级按钮 */}
+                    {subscription.planName !== 'pro' && subscription.planName !== 'premium' && (
+                      <Link href="/zh/pricing">
+                        <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
+                          <TrendingUp className="mr-2 h-4 w-4" />
+                          升级套餐
+                        </Button>
+                      </Link>
+                    )}
+                    <Button 
+                      onClick={handleManageBilling}
+                      disabled={managingBilling}
+                      variant="outline"
+                    >
+                      {managingBilling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Settings className="mr-2 h-4 w-4" />}
+                      管理账单
+                    </Button>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-center py-6">

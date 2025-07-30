@@ -290,17 +290,10 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
     return allModes // 显示全部3种风格
   }
   
-  // 检查模式是否锁定
+  // 检查模式是否锁定 - 解除锁定，所有用户都可以使用全部模版
   const isModeLocker = (mode: any) => {
-    if (mode.requiredPlan === 'free') return false
-    
-    if (!isSubscribed) return true
-    
-    const planHierarchy = { 'free': 0, 'standard': 1, 'pro': 2 }
-    const userPlanLevel = planHierarchy[subscriptionPlan as keyof typeof planHierarchy] || 0
-    const requiredLevel = planHierarchy[mode.requiredPlan as keyof typeof planHierarchy]
-    
-    return userPlanLevel < requiredLevel
+    // 返回false，表示所有模式都不锁定
+    return false
   }
 
   const availableModes = getAvailableModes()
@@ -754,63 +747,128 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
         
         {/* 底部控制条 - 蓝色主题优化布局 */}
         <div className="border-t border-blue-200 bg-blue-50 p-3">
-          <div className="flex items-center justify-between gap-4">
-            {/* 左侧：模板库按钮 */}
-            <div className="flex-shrink-0">
-              <button 
-                onClick={() => setShowTemplateLibrary(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
-              >
-                <div className="w-4 h-4 bg-blue-600 rounded flex items-center justify-center">
-                  <Target className="w-2.5 h-2.5 text-white" />
+          {/* 移动端和桌面端不同布局 */}
+          <div className="space-y-4">
+            {/* 移动端：垂直堆叠布局 */}
+            <div className="block md:hidden space-y-3">
+              {/* 模板库按钮 */}
+              <div className="flex justify-center">
+                <button 
+                  onClick={() => setShowTemplateLibrary(true)}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                >
+                  <div className="w-4 h-4 bg-blue-600 rounded flex items-center justify-center">
+                    <Target className="w-2.5 h-2.5 text-white" />
+                  </div>
+                  <span className="font-medium">{texts.templateLibrary || 'Template Library'}</span>
+                </button>
+              </div>
+              
+              {/* 风格选择 */}
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-blue-600 text-sm font-medium">{texts.style || 'Style'}</span>
+                <div className="flex gap-1 flex-wrap justify-center">
+                  {availableModes.map((mode) => (
+                    <button
+                      key={mode.id}
+                      onClick={() => setSelectedMode(mode.id)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                        selectedMode === mode.id
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300'
+                      }`}
+                    >
+                      {mode.name}
+                    </button>
+                  ))}
                 </div>
-                <span className="font-medium">{texts.templateLibrary || 'Template Library'}</span>
-              </button>
-            </div>
-            
-            {/* 中间：处理强度选择 - 紧凑布局 */}
-            <div className="flex items-center gap-2 flex-1 justify-center">
-              <span className="text-blue-600 text-sm font-medium">{texts.style || 'Style'}</span>
-              <div className="flex gap-1">
-                {availableModes.map((mode) => (
-                  <button
-                    key={mode.id}
-                    onClick={() => setSelectedMode(mode.id)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
-                      selectedMode === mode.id
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300'
-                    }`}
-                  >
-                    {mode.name}
-                  </button>
-                ))}
+              </div>
+              
+              {/* 生成按钮 - 移动端全宽 */}
+              <div className="w-full">
+                <Button
+                  onClick={handleGenerate}
+                  disabled={
+                    isGenerating ||
+                    (generationMode === 'text-to-image' && !textPrompt.trim()) ||
+                    (generationMode === 'image-to-image' && !file)
+                  }
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      {texts.generating || 'Generating...'}
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🎨</span>
+                      Generate
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
-            
-            {/* 右侧：Generate按钮 - 紧凑版本 */}
-            <div className="flex-shrink-0">
-              <Button
-                onClick={handleGenerate}
-                disabled={
-                  isGenerating ||
-                  (generationMode === 'text-to-image' && !textPrompt.trim()) ||
-                  (generationMode === 'image-to-image' && !file)
-                }
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center min-w-[120px]"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    {texts.generating || 'Generating...'}
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2">🎨</span>
-                    Generate
-                  </>
-                )}
-              </Button>
+
+            {/* 桌面端：水平布局 */}
+            <div className="hidden md:flex items-center justify-between gap-4">
+              {/* 左侧：模板库按钮 */}
+              <div className="flex-shrink-0">
+                <button 
+                  onClick={() => setShowTemplateLibrary(true)}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                >
+                  <div className="w-4 h-4 bg-blue-600 rounded flex items-center justify-center">
+                    <Target className="w-2.5 h-2.5 text-white" />
+                  </div>
+                  <span className="font-medium">{texts.templateLibrary || 'Template Library'}</span>
+                </button>
+              </div>
+              
+              {/* 中间：处理强度选择 - 紧凑布局 */}
+              <div className="flex items-center gap-2 flex-1 justify-center">
+                <span className="text-blue-600 text-sm font-medium">{texts.style || 'Style'}</span>
+                <div className="flex gap-1">
+                  {availableModes.map((mode) => (
+                    <button
+                      key={mode.id}
+                      onClick={() => setSelectedMode(mode.id)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                        selectedMode === mode.id
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300'
+                      }`}
+                    >
+                      {mode.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 右侧：Generate按钮 - 紧凑版本 */}
+              <div className="flex-shrink-0">
+                <Button
+                  onClick={handleGenerate}
+                  disabled={
+                    isGenerating ||
+                    (generationMode === 'text-to-image' && !textPrompt.trim()) ||
+                    (generationMode === 'image-to-image' && !file)
+                  }
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center min-w-[120px]"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      {texts.generating || 'Generating...'}
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🎨</span>
+                      Generate
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
