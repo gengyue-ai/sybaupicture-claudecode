@@ -216,6 +216,16 @@ export default function BillingPage() {
     return badges[planName as keyof typeof badges] || badges.free
   }
 
+  const getPlanQuota = (planName: string) => {
+    const quotas = {
+      free: 3,
+      standard: 60,
+      premium: 180,
+      pro: 180
+    }
+    return quotas[planName as keyof typeof quotas] || 3
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -265,6 +275,9 @@ export default function BillingPage() {
                     </Badge>
                     <div className="mt-2">
                       {getStatusBadge(subscription.status)}
+                    </div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      {getPlanQuota(subscription.planName)} images per month
                     </div>
                   </div>
                   <div className="text-right">
@@ -327,7 +340,8 @@ export default function BillingPage() {
             ) : (
               <div className="text-center py-6">
                 <Badge variant="secondary" className="mb-4">Free Plan</Badge>
-                <p className="text-gray-600 mb-4">You're currently on the free plan with basic features.</p>
+                <p className="text-gray-600 mb-2">You're currently on the free plan with basic features.</p>
+                <p className="text-sm text-gray-500 mb-4">3 images per month included</p>
                 <div className="flex justify-center gap-3">
                   <Link href="/pricing">
                     <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
@@ -371,18 +385,35 @@ export default function BillingPage() {
                       {usage.currentUsage} / {usage.limit === -1 ? '∞' : usage.limit}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full" 
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300" 
                       style={{ 
                         width: usage.limit === -1 ? '0%' : `${Math.min((usage.currentUsage / usage.limit) * 100, 100)}%` 
                       }}
                     ></div>
                   </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-gray-500">
+                      {usage.limit !== -1 ? `${usage.limit - usage.currentUsage} remaining` : 'Unlimited'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Resets {formatDate(usage.resetDate)}
+                    </span>
+                  </div>
                   {usage.limit !== -1 && usage.currentUsage >= usage.limit && (
-                    <p className="text-sm text-orange-600 mt-2">
-                      You've reached your monthly limit. Upgrade to create more images.
-                    </p>
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-orange-800">
+                        <strong>Monthly limit reached!</strong> Upgrade to create more images or wait until next month.
+                      </p>
+                    </div>
+                  )}
+                  {usage.limit !== -1 && usage.currentUsage >= usage.limit * 0.8 && usage.currentUsage < usage.limit && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Almost at limit!</strong> You have {usage.limit - usage.currentUsage} images left this month.
+                      </p>
+                    </div>
                   )}
                 </div>
               )}

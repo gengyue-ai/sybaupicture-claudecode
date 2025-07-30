@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createPrismaClient } from '@/lib/prisma'
 import { sendVerificationEmail } from '@/lib/email'
 import crypto from 'crypto'
+import { SignJWT } from 'jose'
 
 // 验证邮箱地址
 export async function GET(request: NextRequest) {
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
         id: true,
         email: true,
         name: true,
+        image: true,
         verificationToken: true,
         verificationTokenExpiry: true,
         emailVerified: true
@@ -66,19 +68,43 @@ export async function GET(request: NextRequest) {
     // 检查用户是否已经验证过
     if (user.emailVerified) {
       console.log('✅ 用户邮箱已验证:', email)
-      return NextResponse.json(
-        {
-          success: true,
-          message: '邮箱已验证',
-          code: 'ALREADY_VERIFIED',
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name
-          }
-        },
-        { status: 200 }
-      )
+      
+      try {
+        // 已验证用户也自动登录
+        const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || 'fallback-dev-secret')
+        
+        const payload = {
+          sub: user.id,
+          email: user.email,
+          name: user.name,
+          picture: user.image,
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+        }
+
+        const token = await new SignJWT(payload)
+          .setProtectedHeader({ alg: 'HS256' })
+          .setIssuedAt()
+          .setExpirationTime('30d')
+          .sign(secret)
+
+        const response = NextResponse.redirect(new URL('/', request.url))
+        
+        response.cookies.set('next-auth.session-token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60,
+          path: '/'
+        })
+
+        console.log('✅ 已验证用户自动登录')
+        return response
+
+      } catch (sessionError) {
+        console.error('❌ 已验证用户登录会话创建失败:', sessionError)
+        return NextResponse.redirect(new URL('/', request.url))
+      }
     }
 
     // 验证token
@@ -122,19 +148,48 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ 邮箱验证成功:', email)
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: '邮箱验证成功',
-        code: 'EMAIL_VERIFIED',
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name
-        }
-      },
-      { status: 200 }
-    )
+    try {
+      // 创建JWT token为用户自动登录
+      const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || 'fallback-dev-secret')
+      
+      // 构建JWT payload
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        name: user.name,
+        picture: user.image,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30天过期
+      }
+
+      // 创建JWT token
+      const token = await new SignJWT(payload)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('30d')
+        .sign(secret)
+
+      // 创建重定向响应到首页
+      const response = NextResponse.redirect(new URL('/', request.url))
+      
+      // 设置NextAuth session cookie
+      response.cookies.set('next-auth.session-token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 30 * 24 * 60 * 60, // 30天
+        path: '/'
+      })
+
+      console.log('✅ 已创建登录会话，用户将自动登录')
+      return response
+
+    } catch (sessionError) {
+      console.error('❌ 创建登录会话失败:', sessionError)
+      // 降级处理：重定向到登录页面
+      const loginUrl = `/auth/signin?verified=true&email=${encodeURIComponent(email)}`
+      return NextResponse.redirect(new URL(loginUrl, request.url))
+    }
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'

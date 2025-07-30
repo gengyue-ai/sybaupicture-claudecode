@@ -135,9 +135,19 @@ export default function BillingPage() {
     const badges = {
       free: { label: '免费', variant: 'secondary' as const },
       standard: { label: '标准', variant: 'default' as const },
-      premium: { label: '高级', variant: 'destructive' as const }
+      premium: { label: '专业', variant: 'destructive' as const }
     }
     return badges[planName as keyof typeof badges] || badges.free
+  }
+
+  const getPlanQuota = (planName: string) => {
+    const quotas = {
+      free: 3,
+      standard: 60,
+      premium: 180,
+      pro: 180
+    }
+    return quotas[planName as keyof typeof quotas] || 3
   }
 
   if (status === 'loading' || loading) {
@@ -190,6 +200,9 @@ export default function BillingPage() {
                     <div className="mt-2">
                       {getStatusBadge(subscription.status)}
                     </div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      每月{getPlanQuota(subscription.planName)}张图片
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold">
@@ -228,8 +241,15 @@ export default function BillingPage() {
             ) : (
               <div className="text-center py-6">
                 <Badge variant="secondary" className="mb-4">免费套餐</Badge>
-                <p className="text-gray-600 mb-4">您目前使用的是免费套餐，享有基础功能。</p>
+                <p className="text-gray-600 mb-2">您目前使用的是免费套餐，享有基础功能。</p>
+                <p className="text-sm text-gray-500 mb-4">每月3张图片</p>
                 <div className="flex justify-center gap-3">
+                  <Link href="/zh/pricing">
+                    <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      升级套餐
+                    </Button>
+                  </Link>
                   <Button 
                     onClick={handleManageBilling}
                     disabled={managingBilling}
@@ -266,18 +286,35 @@ export default function BillingPage() {
                       {usage.currentUsage} / {usage.limit === -1 ? '∞' : usage.limit}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full" 
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300" 
                       style={{ 
                         width: usage.limit === -1 ? '0%' : `${Math.min((usage.currentUsage / usage.limit) * 100, 100)}%` 
                       }}
                     ></div>
                   </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-gray-500">
+                      {usage.limit !== -1 ? `剩余${usage.limit - usage.currentUsage}张` : '无限制'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(usage.resetDate)}重置
+                    </span>
+                  </div>
                   {usage.limit !== -1 && usage.currentUsage >= usage.limit && (
-                    <p className="text-sm text-orange-600 mt-2">
-                      您已达到本月使用限额。升级套餐以生成更多图片。
-                    </p>
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-orange-800">
+                        <strong>已达到月度限额！</strong>升级套餐以生成更多图片或等待下月重置。
+                      </p>
+                    </div>
+                  )}
+                  {usage.limit !== -1 && usage.currentUsage >= usage.limit * 0.8 && usage.currentUsage < usage.limit && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-yellow-800">
+                        <strong>接近限额！</strong>本月还剩{usage.limit - usage.currentUsage}张图片。
+                      </p>
+                    </div>
                   )}
                 </div>
               )}

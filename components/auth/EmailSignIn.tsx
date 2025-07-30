@@ -314,13 +314,12 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
           toast.error(t.autoLoginFailed)
         } else {
           console.log('✅ 注册并登录成功，准备跳转')
-          toast.success(t.registerSuccess)
-          // 跳转
+          // 直接跳转，无需显示成功提示
           setTimeout(() => {
             if (typeof window !== 'undefined') {
               window.location.href = callbackUrl || '/'
             }
-          }, 1000)
+          }, 500)
         }
       } else {
         // 登录模式：使用credentials provider
@@ -385,13 +384,12 @@ export function EmailSignIn({ callbackUrl, mode = 'signin' }: EmailSignInProps) 
           }
         } else {
           console.log('✅ 登录成功，准备跳转')
-          toast.success(t.loginSuccess)
-          // 跳转
+          // 直接跳转，无需显示成功提示
           setTimeout(() => {
             if (typeof window !== 'undefined') {
               window.location.href = callbackUrl || '/'
             }
-          }, 1000)
+          }, 500)
         }
       }
     } catch (error: any) {

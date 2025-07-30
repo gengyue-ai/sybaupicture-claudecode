@@ -42,11 +42,14 @@ export default function AccountSettingsPage() {
 
   // 🔧 修复：页面加载时刷新session，确保获取最新的头像信息
   useEffect(() => {
-    if (status === 'authenticated') {
-      // 强制更新session以获取最新的用户信息（包括头像）
-      update()
+    if (status === 'authenticated' && session?.user) {
+      // 只在首次认证成功时更新一次
+      const shouldUpdate = !session.user.name || !session.user.email
+      if (shouldUpdate) {
+        update()
+      }
     }
-  }, [status, update])
+  }, [status]) // 移除update依赖，避免循环
 
   const handleSave = async () => {
     try {

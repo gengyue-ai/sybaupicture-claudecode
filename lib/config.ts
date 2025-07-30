@@ -47,7 +47,7 @@ export const config = {
   },
   
   database: {
-    url: process.env.DATABASE_URL!,
+    url: process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || '',
   },
   
   auth: {
@@ -94,27 +94,53 @@ export const config = {
   }
 }
 
-// 配置验证
+// 配置验证 - 增强生产环境检测，支持Supabase
 export function validateConfig() {
+  // 🎯 更新必需变量检查，支持Supabase数据库URL
+  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL
   const required = [
-    'DATABASE_URL',
     'NEXTAUTH_SECRET',
     'FAL_KEY',
   ]
   
+  console.log('🔍 验证环境配置:', {
+    环境: currentEnvironment,
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    数据库URL来源: process.env.DATABASE_URL ? 'DATABASE_URL' : 
+                  process.env.POSTGRES_PRISMA_URL ? 'POSTGRES_PRISMA_URL' : 
+                  process.env.POSTGRES_URL ? 'POSTGRES_URL' : '未找到'
+  })
+  
   const missing = required.filter(key => !process.env[key])
   
+  // 🔧 检查数据库URL（支持多种Supabase变量）
+  if (!dbUrl) {
+    missing.push('DATABASE_URL (或 POSTGRES_PRISMA_URL/POSTGRES_URL)')
+  }
+  
   if (missing.length > 0) {
+    console.error('❌ 缺少必需的环境变量:', missing)
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
   }
   
+  // 验证数据库URL格式
+  if (dbUrl && (!dbUrl.startsWith('postgresql://') && !dbUrl.startsWith('postgres://'))) {
+    console.warn('⚠️ 数据库URL格式可能不正确')
+  } else {
+    console.log('✅ 数据库URL格式正确')
+  }
+  
   // 验证Google OAuth配置
-  const googleClientId = process.env.GOOGLE_CLIENT_ID_PROD || process.env.GOOGLE_CLIENT_ID_DEV || process.env.GOOGLE_CLIENT_ID
+  const googleClientId = isProduction 
+    ? (process.env.GOOGLE_CLIENT_ID_PROD || process.env.GOOGLE_CLIENT_ID)
+    : (process.env.GOOGLE_CLIENT_ID_DEV || process.env.GOOGLE_CLIENT_ID)
     
   if (!googleClientId) {
-    console.warn('⚠️ Google OAuth not configured')
+    console.warn('⚠️ Google OAuth未配置')
   } else {
-    console.log('✅ Google OAuth configured')
+    console.log('✅ Google OAuth已配置')
   }
   
   // 验证Stripe配置
@@ -123,8 +149,19 @@ export function validateConfig() {
     : (process.env.STRIPE_SECRET_KEY_DEV || process.env.STRIPE_SECRET_KEY)
     
   if (!stripeKey) {
-    console.warn('⚠️ Stripe not configured')
+    console.warn('⚠️ Stripe未配置')
+  } else {
+    console.log('✅ Stripe已配置')
   }
+  
+  // 验证邮件服务配置
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('⚠️ 邮件服务未配置 (RESEND_API_KEY)')
+  } else {
+    console.log('✅ 邮件服务已配置')
+  }
+  
+  console.log('✅ 环境配置验证完成')
 }
 
 // 获取环境信息
