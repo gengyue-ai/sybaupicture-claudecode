@@ -92,12 +92,20 @@ export async function GET() {
       currentUsage
     })
 
+    // 计算重置日期（下个月1号）
+    const now = new Date()
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    
     return NextResponse.json({
-      isSubscribed: hasActiveSubscription,
-      subscriptionPlan: planName,
-      usageCount: currentUsage,
-      maxUsage: actualMaxUsage,
-      remainingUsage: Math.max(0, actualMaxUsage - currentUsage)
+      success: true,
+      data: {
+        currentUsage: currentUsage,
+        limit: actualMaxUsage,
+        resetDate: nextMonth.toISOString(),
+        isSubscribed: hasActiveSubscription,
+        subscriptionPlan: planName,
+        remainingUsage: Math.max(0, actualMaxUsage - currentUsage)
+      }
     })
   } catch (error) {
     console.error('Usage API error:', error)

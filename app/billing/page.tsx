@@ -20,7 +20,8 @@ import {
   Grid,
   Star,
   Check,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 

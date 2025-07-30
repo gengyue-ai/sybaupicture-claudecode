@@ -16,7 +16,8 @@ import {
   XCircle,
   Zap,
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 
