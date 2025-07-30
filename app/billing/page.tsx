@@ -102,12 +102,12 @@ export default function BillingPage() {
       if (usageResponse.ok) {
         const usageData = await usageResponse.json()
         console.log('📊 用量数据:', usageData)
-        // 修复：直接使用API返回的数据结构
-        if (usageData.usageCount !== undefined) {
+        // 修复：适配新的API格式 {success: true, data: {...}}
+        if (usageData.success && usageData.data) {
           setUsage({
-            currentUsage: usageData.usageCount,
-            limit: usageData.maxUsage,
-            resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
+            currentUsage: usageData.data.currentUsage,
+            limit: usageData.data.limit,
+            resetDate: usageData.data.resetDate
           })
         }
       }
