@@ -162,7 +162,26 @@ export async function POST(request: NextRequest) {
 
     // 创建或获取Stripe客户
     let stripeCustomerId = user.stripeCustomerId
-    if (!stripeCustomerId) {
+    let needsNewCustomer = false
+    
+    // 检查现有客户ID在当前环境是否有效
+    if (stripeCustomerId) {
+      try {
+        // 尝试获取客户信息来验证客户ID是否在当前环境中存在
+        await stripe.customers.retrieve(stripeCustomerId)
+        console.log('✅ 使用现有Stripe客户:', { customerId: stripeCustomerId })
+      } catch (error) {
+        console.log('⚠️ 现有Stripe客户ID在当前环境中不存在，将创建新客户:', { 
+          oldCustomerId: stripeCustomerId,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        })
+        needsNewCustomer = true
+      }
+    } else {
+      needsNewCustomer = true
+    }
+    
+    if (needsNewCustomer) {
       try {
         console.log('📝 创建Stripe客户:', { email: user.email, name: user.name })
         const customer = await createStripeCustomer(user.email, user.name || undefined)
@@ -185,8 +204,6 @@ export async function POST(request: NextRequest) {
           code: 'STRIPE_CUSTOMER_CREATION_FAILED'
         }, { status: 500 })
       }
-    } else {
-      console.log('✅ 使用现有Stripe客户:', { customerId: stripeCustomerId })
     }
 
     // 创建结算会话
