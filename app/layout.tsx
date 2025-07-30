@@ -43,13 +43,13 @@ export const metadata: Metadata = {
     siteName: 'Sybau Picture',
     images: [
       {
-        url: '/logo-600x600.svg',
-        width: 600,
-        height: 600,
+        url: '/logo.svg',
+        width: 120,
+        height: 120,
         alt: 'Sybau Picture Logo - AI Image Generator',
       },
       {
-        url: '/og-image.jpg',
+        url: '/logo.svg',
         width: 1200,
         height: 630,
         alt: 'Sybau Picture - AI Image Generator',
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Sybau Picture - FLUX Pro Picture Generator',
     description: 'Professional AI picture generator powered by FLUX Pro and Kontext engine. Transform images with Sybau style - 9 AI scenarios.',
-    images: ['/logo-600x600.svg'],
+    images: ['/logo.svg'],
     creator: '@SybauPicture',
   },
   robots: {
@@ -106,9 +106,9 @@ export default function RootLayout({
                 "logo": [
                   {
                     "@type": "ImageObject",
-                    "url": "https://sybaupicture.com/logo-600x600.svg",
-                    "width": 600,
-                    "height": 600,
+                    "url": "https://sybaupicture.com/logo.svg",
+                    "width": 120,
+                    "height": 120,
                     "caption": "Sybau FLUX Pro Picture Generator Logo"
                   }
                 ],

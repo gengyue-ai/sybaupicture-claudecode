@@ -96,7 +96,15 @@ export default function HelpPage() {
                 "name": "Which templates are available for free users?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Free users get access to 3 essential templates: Smart Watermark Removal, Body Optimization, and Tourist Removal. Standard users get 5 templates, while Pro users unlock all 14 professional templates."
+                  "text": "🎉 MAJOR UPDATE: All 14 professional templates are now FREE for all users! Choose from 3 categories: Life Enhancement (watermark removal, body optimization, tourist removal), Business Creation (e-commerce displays, background replacement, element integration), and Creative Conversion (style conversion, text editing, detail modification). No restrictions - enjoy full access to our FLUX Pro powered template library!"
+                }
+              },
+              {
+                "@type": "Question", 
+                "name": "What's new with the template system upgrade?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "🚀 MAJOR FEATURE UPGRADE: We've completely opened our template library! All 14 professional templates powered by FLUX Pro engine are now FREE for everyone. Experience Life Enhancement templates (smart editing), Business Creation templates (e-commerce ready), and Creative Conversion templates (artistic transformation). Each template includes optimized parameters for 15-second professional results. No more restrictions - create unlimited professional content!"
                 }
               },
               {
@@ -104,7 +112,7 @@ export default function HelpPage() {
                 "name": "What are the different AI styles available?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "We offer 4 professional styles: Classic (balanced aesthetic), Professional (refined business-ready), Exaggerated (bold and expressive), and Creative (imaginative and artistic). Free users get Classic and Professional, while paid users access all styles."
+                  "text": "We offer 4 professional AI styles: 🎨 Classic - Traditional balanced aesthetic for everyday use; 💼 Professional - Refined business-ready style for commercial projects; 🌟 Exaggerated/Expressive - Bold and dramatic style (Standard plan+); 🎭 Creative - Imaginative artistic style for unique expressions. Each style is optimized for different use cases and creative needs."
                 }
               },
               {
@@ -137,6 +145,14 @@ export default function HelpPage() {
                 "acceptedAnswer": {
                   "@type": "Answer",
                   "text": "Absolutely. We use enterprise-grade encryption and don't store uploaded images permanently unless you choose to save them. Generated images are only kept in your personal gallery. Read our Privacy Policy for complete details."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I get the best results with templates?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "🎯 For optimal template results: 1) Choose the right category - Life Enhancement for photo editing, Business Creation for commercial use, Creative Conversion for artistic effects; 2) Upload high-quality original images (JPG/PNG, under 5MB); 3) Templates auto-apply optimized FLUX Pro parameters for best results; 4) Combine with appropriate AI styles - Professional for business, Creative for artistic projects; 5) Use specific prompts that match your template's purpose for enhanced accuracy."
                 }
               }
             ]

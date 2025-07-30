@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           name: 'free',
           displayName: 'Free',
           price: 0,
-          maxImagesPerMonth: 1,
+          maxImagesPerMonth: 3,
           maxResolution: '1024x1024',
           hasWatermark: false,
           hasPriorityProcessing: false
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
       },
       usage: {
         currentMonth: currentUsage?.imagesGenerated || 0,
-        maxImages: currentPlan?.maxImagesPerMonth || 1,
-        remainingImages: Math.max(0, (currentPlan?.maxImagesPerMonth || 1) - (currentUsage?.imagesGenerated || 0))
+        maxImages: currentPlan?.maxImagesPerMonth || 3,
+        remainingImages: Math.max(0, (currentPlan?.maxImagesPerMonth || 3) - (currentUsage?.imagesGenerated || 0))
       }
     }
 

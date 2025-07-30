@@ -14,7 +14,7 @@ async function main() {
       price: 0,
       maxImagesPerMonth: 3,
       maxResolution: '1024x1024',
-      hasWatermark: true,
+      hasWatermark: false,
       hasPriorityProcessing: false,
       hasBatchProcessing: false,
       hasAdvancedFeatures: false,

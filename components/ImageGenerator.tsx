@@ -411,6 +411,11 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
 
       formData.append('style', selectedMode)
       formData.append('intensity', intensity.toString())
+      
+      // 传递模版ID以便API应用optimalSettings参数
+      if (selectedTemplate) {
+        formData.append('templateId', selectedTemplate.id)
+      }
 
       // 准备API请求
 
@@ -623,8 +628,8 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
             ) : (
               /* 图生图模式：左右分区 + 箭头指示 */
               <>
-                {/* 左侧：案例展示区 - 4栅格 */}
-                <div className="col-span-4">
+                {/* 左侧：案例展示区 - 响应式栅格 */}
+                <div className="col-span-12 md:col-span-4">
                   {generatedImage ? (
                     <div>
                       <div className="aspect-square bg-blue-50 rounded-lg overflow-hidden border border-blue-200">
@@ -650,9 +655,9 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
                               </p>
                             </div>
                             
-                            {/* Before/After 对比 - 蓝色主题 */}
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="aspect-square bg-blue-50 rounded-lg overflow-hidden relative border border-blue-200">
+                            {/* Before/After 对比 - 响应式布局优化 */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-2">
+                              <div className="aspect-video sm:aspect-square bg-blue-50 rounded-lg overflow-hidden relative border border-blue-200">
                                 <img src={displayTemplate.beforeImage} alt="Before" className="w-full h-full object-cover" />
                                 <div className="absolute top-2 left-2">
                                   <Badge className="bg-red-500 text-white text-xs px-2 py-1">
@@ -660,7 +665,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
                                   </Badge>
                                 </div>
                               </div>
-                              <div className="aspect-square bg-blue-50 rounded-lg overflow-hidden relative border border-blue-200">
+                              <div className="aspect-video sm:aspect-square bg-blue-50 rounded-lg overflow-hidden relative border border-blue-200">
                                 <img src={displayTemplate.afterImage} alt="After" className="w-full h-full object-cover" />
                                 <div className="absolute top-2 left-2">
                                   <Badge className="bg-green-500 text-white text-xs px-2 py-1">
@@ -674,17 +679,29 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
                       })()}
                     </div>
                   )}
+                  
+                  {/* 移动端分隔符 */}
+                  <div className="md:hidden mt-4 mb-4">
+                    <div className="flex items-center justify-center">
+                      <ArrowRight className="w-8 h-8 text-blue-500 rotate-90" />
+                    </div>
+                    <div className="text-center mt-2">
+                      <p className="text-xs text-blue-600 font-medium">
+                        {pathname.startsWith('/zh') ? '上传您的图片开始创作' : 'Upload your image to start'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* 中间：箭头指示 - 1栅格 */}
-                <div className="col-span-1 flex items-center justify-center">
+                {/* 中间：箭头指示 - 响应式隐藏 */}
+                <div className="hidden md:flex md:col-span-1 items-center justify-center">
                   <div className="flex items-center justify-center h-full">
                     <ArrowRight className="w-10 h-10 text-blue-500 animate-pulse stroke-2" />
                   </div>
                 </div>
 
-                {/* 右侧：操作区 - 7栅格 */}
-                <div className="col-span-7">
+                {/* 右侧：操作区 - 响应式栅格 */}
+                <div className="col-span-12 md:col-span-7">
                   <div className="space-y-3">
                     <div
                       className={`border-2 border-dashed rounded-lg h-52 text-center transition-all cursor-pointer group flex flex-col justify-center ${

@@ -10,12 +10,10 @@ import {
   CreditCard, 
   Calendar, 
   FileText, 
-  Settings,
   ExternalLink,
   CheckCircle,
   Clock,
   XCircle,
-  Loader2,
   Zap,
   ArrowRight,
   Crown,
@@ -49,7 +47,6 @@ export default function BillingPage() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
   const [usage, setUsage] = useState<UsageData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [managingBilling, setManagingBilling] = useState(false)
 
   // 重定向未登录用户
   useEffect(() => {
@@ -120,71 +117,6 @@ export default function BillingPage() {
     }
   }
 
-  const handleManageBilling = async () => {
-    try {
-      setManagingBilling(true)
-      console.log('🏗️ 创建客户门户会话...')
-      
-      const response = await fetch('/api/payment/create-portal-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      console.log('📊 门户会话API响应状态:', response.status)
-      
-      if (response.ok) {
-        const result = await response.json()
-        console.log('✅ 门户会话创建成功:', result)
-        
-        if (result.url) {
-          console.log('🔄 重定向到Stripe客户门户...')
-          window.location.href = result.url
-        } else {
-          console.error('❌ 响应中缺少门户URL')
-          alert('创建账单管理会话失败 - 缺少重定向URL')
-        }
-      } else {
-        let errorData
-        try {
-          errorData = await response.json()
-        } catch (parseError) {
-          console.warn('⚠️ 响应JSON解析失败:', parseError)
-          errorData = { error: '服务器响应格式错误' }
-        }
-        
-        console.error('❌ 创建门户会话失败:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData
-        })
-        
-        let errorMessage = '创建账单管理会话失败'
-        
-        switch (response.status) {
-          case 401:
-            errorMessage = '请先登录后再尝试管理账单'
-            break
-          case 404:
-            errorMessage = '未找到用户信息或Stripe客户记录'
-            break
-          case 500:
-            errorMessage = '服务器配置错误，请联系技术支持'
-            break
-          default:
-            errorMessage = `账单管理服务暂时不可用 (错误代码: ${response.status})`
-        }
-        
-        alert(errorMessage)
-      }
-    } catch (error) {
-      console.error('❌ 请求门户会话时发生错误:', error)
-      alert('网络错误：无法连接到账单管理服务，请稍后重试')
-    } finally {
-      setManagingBilling(false)
-    }
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -326,14 +258,6 @@ export default function BillingPage() {
                         </Button>
                       </Link>
                     )}
-                    <Button 
-                      onClick={handleManageBilling}
-                      disabled={managingBilling}
-                      variant="outline"
-                    >
-                      {managingBilling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Settings className="mr-2 h-4 w-4" />}
-                      Manage Billing
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -349,14 +273,6 @@ export default function BillingPage() {
                       Upgrade Plan
                     </Button>
                   </Link>
-                  <Button 
-                    onClick={handleManageBilling}
-                    disabled={managingBilling}
-                    variant="outline"
-                  >
-                    {managingBilling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Settings className="mr-2 h-4 w-4" />}
-                    Manage Billing
-                  </Button>
                 </div>
               </div>
             )}

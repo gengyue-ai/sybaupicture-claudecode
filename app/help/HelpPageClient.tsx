@@ -276,6 +276,43 @@ export default function HelpPageClient() {
             </div>
           </div>
         </div>
+
+        {/* Call-to-Action Section */}
+        <div className="mt-16 text-center">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border border-blue-100">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex justify-center mb-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Zap className="h-8 w-8 text-blue-600" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Ready to Create Amazing AI Images?
+              </h3>
+              <p className="text-gray-600 mb-6">
+                🎉 All 14 professional templates are FREE! Experience FLUX Pro powered generation with 4 AI styles. Start creating in seconds.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
+                  onClick={() => window.location.href = '/'}
+                >
+                  <ImageIcon className="mr-2 h-5 w-5" />
+                  Start Creating Now
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={() => window.location.href = '/gallery'}
+                >
+                  <Palette className="mr-2 h-5 w-5" />
+                  View Examples
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

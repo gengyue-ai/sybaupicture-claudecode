@@ -23,10 +23,10 @@ export const metadata: Metadata = {
     images: ['/og-gallery-flux.webp'],
   },
   alternates: {
-    canonical: 'https://sybaupicture.com/zh/gallery',
+    canonical: '/zh/gallery',
     languages: {
-      'en': 'https://sybaupicture.com/gallery',
-      'zh': 'https://sybaupicture.com/zh/gallery',
+      'en-US': '/gallery',
+      'zh-CN': '/zh/gallery',
     },
   },
 }

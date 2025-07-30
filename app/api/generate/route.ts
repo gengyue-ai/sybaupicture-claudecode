@@ -10,6 +10,7 @@ import {
   recordImageGeneration,
   getUserPlanFeatures
 } from '@/lib/subscription'
+import { getTemplateById } from '@/lib/templateData'
 
 // 配置 Fal AI 客户端的函数
 async function configureFalClient() {
@@ -168,6 +169,7 @@ export async function POST(request: NextRequest) {
     let imageUrl = ''
     let mode = 'text-to-image'
     let taskType = 'generate'
+    let templateId = ''
 
     if (contentType?.includes('multipart/form-data')) {
       // 🎯 Ultra-Think修复：增强FormData解析和错误处理
@@ -178,6 +180,7 @@ export async function POST(request: NextRequest) {
         const promptText = formData.get('prompt') as string
         taskType = formData.get('taskType') as string || 'generate'
         mode = formData.get('mode') as string || 'text-to-image'
+        templateId = formData.get('templateId') as string || ''
 
         console.log('📋 FormData解析结果:', {
           hasFile: !!file,
@@ -185,7 +188,8 @@ export async function POST(request: NextRequest) {
           fileSize: file?.size,
           fileType: file?.type,
           promptLength: promptText?.length || 0,
-          mode: mode
+          mode: mode,
+          templateId: templateId
         })
 
         // 🔧 增强文件验证
@@ -485,13 +489,29 @@ export async function POST(request: NextRequest) {
       // 图生图/编辑：使用官方推荐的 FLUX Kontext [pro] 模型
       // 专门用于"定向局部编辑和复杂变换"
       model = 'fal-ai/flux-pro/kontext'
+      
+      // 🎯 获取模版的optimalSettings参数
+      let templateSettings = null
+      if (templateId) {
+        const template = getTemplateById(templateId)
+        if (template) {
+          templateSettings = template.optimalSettings
+          console.log('✅ 应用模版参数:', {
+            templateId,
+            templateName: template.title.en,
+            settings: templateSettings
+          })
+        }
+      }
+      
+      // 使用模版参数或默认参数
       input = {
         prompt: enhancePrompt(prompt, true),
         image_url: imageUrl,
-        num_inference_steps: 50,    // 官方examples使用50步
-        guidance_scale: 3.5,        // 官方examples使用3.5
-        safety_tolerance: 2,        // 官方examples使用2
-        seed: 123456               // 固定seed确保可重现性
+        num_inference_steps: templateSettings?.num_inference_steps || 50,
+        guidance_scale: templateSettings?.guidance_scale || 3.5,
+        safety_tolerance: templateSettings?.safety_tolerance || 2,
+        seed: templateSettings?.seed || 123456
       }
     } else {
       // 文生图：使用官方验证的 FLUX.1 [dev] 模型  

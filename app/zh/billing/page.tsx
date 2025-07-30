@@ -10,12 +10,10 @@ import {
   CreditCard, 
   Calendar, 
   FileText, 
-  Settings,
   ExternalLink,
   CheckCircle,
   Clock,
   XCircle,
-  Loader2,
   Zap,
   ArrowRight,
   TrendingUp
@@ -45,7 +43,6 @@ export default function BillingPage() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
   const [usage, setUsage] = useState<UsageData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [managingBilling, setManagingBilling] = useState(false)
 
   // 重定向未登录用户
   useEffect(() => {
@@ -77,39 +74,25 @@ export default function BillingPage() {
       const usageResponse = await fetch('/api/user/usage')
       if (usageResponse.ok) {
         const usageData = await usageResponse.json()
+        console.log('✅ 用量数据获取成功:', usageData)
         if (usageData.success) {
           setUsage(usageData.data)
+        } else {
+          console.warn('⚠️ 用量数据获取失败:', usageData.error)
+          // 不设置默认数据，让UI依赖真实的API响应
         }
+      } else {
+        console.error('❌ 用量API请求失败:', usageResponse.status, usageResponse.statusText)
+        // 不设置默认数据，让UI显示数据获取失败的状态
       }
     } catch (error) {
       console.error('Error fetching billing data:', error)
+      // 不设置默认数据，让UI显示数据获取失败的状态
     } finally {
       setLoading(false)
     }
   }
 
-  const handleManageBilling = async () => {
-    try {
-      setManagingBilling(true)
-      const response = await fetch('/api/payment/create-portal-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const { url } = await response.json()
-        window.location.href = url
-      } else {
-        console.error('Failed to create portal session')
-      }
-    } catch (error) {
-      console.error('Error creating portal session:', error)
-    } finally {
-      setManagingBilling(false)
-    }
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
@@ -251,14 +234,6 @@ export default function BillingPage() {
                         </Button>
                       </Link>
                     )}
-                    <Button 
-                      onClick={handleManageBilling}
-                      disabled={managingBilling}
-                      variant="outline"
-                    >
-                      {managingBilling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Settings className="mr-2 h-4 w-4" />}
-                      管理账单
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -274,14 +249,6 @@ export default function BillingPage() {
                       升级套餐
                     </Button>
                   </Link>
-                  <Button 
-                    onClick={handleManageBilling}
-                    disabled={managingBilling}
-                    variant="outline"
-                  >
-                    {managingBilling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Settings className="mr-2 h-4 w-4" />}
-                    管理账单
-                  </Button>
                 </div>
               </div>
             )}
@@ -302,7 +269,7 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-4">
-              {usage && (
+              {usage ? (
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium">本月已生成图片</span>
@@ -340,6 +307,14 @@ export default function BillingPage() {
                       </p>
                     </div>
                   )}
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-700">
+                      <strong>正在获取用量信息...</strong>如果持续显示此消息，请刷新页面或联系客服。
+                    </p>
+                  </div>
                 </div>
               )}
               

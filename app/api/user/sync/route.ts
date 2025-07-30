@@ -104,7 +104,7 @@ export async function POST() {
               description: 'Free plan with 1 image per month',
               price: 0,
               yearlyPrice: 0,
-              maxImagesPerMonth: 1,
+              maxImagesPerMonth: 3,
               maxResolution: '1024x1024',
               hasWatermark: false,
               hasPriorityProcessing: false,
@@ -213,7 +213,7 @@ export async function POST() {
               description: 'Free plan with 1 image per month',
               price: 0,
               yearlyPrice: 0,
-              maxImagesPerMonth: 1,
+              maxImagesPerMonth: 3,
               maxResolution: '1024x1024',
               hasWatermark: false,
               hasPriorityProcessing: false,
@@ -350,7 +350,7 @@ export async function POST() {
       
       const isSubscribed = !!activeSubscription
       const planName = currentPlan?.name || 'free'
-      const maxUsage = currentPlan?.maxImagesPerMonth || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1)
+      const maxUsage = currentPlan?.maxImagesPerMonth || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 3)
 
       // 3. 获取当月使用量
       const currentMonth = new Date().getMonth() + 1

@@ -141,11 +141,11 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
             subscriptionStatus: isSubscribed ? 'active' : 'inactive',
             subscriptionPlan: planName,
             usageCount: usageData.usageCount || 0,
-            maxUsage: usageData.maxUsage || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+            maxUsage: usageData.maxUsage || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 3),
             stripeCustomerId: usageData.stripeCustomerId || null,
             planFeatures: {
               hasWatermark: !isSubscribed,
-              maxImagesPerMonth: usageData.maxUsage || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+              maxImagesPerMonth: usageData.maxUsage || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 3),
               maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
               hasPriorityProcessing: isSubscribed && planName !== 'free'
             },
@@ -183,11 +183,11 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
               subscriptionStatus: subscription?.status || 'inactive',
               subscriptionPlan: planName,
               usageCount: subscriptionData.usage?.current || 0,
-              maxUsage: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+              maxUsage: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 3),
               stripeCustomerId: subscription?.stripeCustomerId || subscriptionData.user?.stripeCustomerId || null,
               planFeatures: {
                 hasWatermark: !isActive,
-                maxImagesPerMonth: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 1),
+                maxImagesPerMonth: subscriptionData.usage?.max || (planName === 'standard' ? 60 : planName === 'pro' ? 180 : 3),
                 maxResolution: planName === 'pro' ? '2048x2048' : planName === 'standard' ? '1536x1536' : '1024x1024',
                 hasPriorityProcessing: isActive && planName !== 'free'
               },
@@ -222,11 +222,11 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
                 subscriptionStatus: syncData.user.subscriptionStatus || 'inactive',
                 subscriptionPlan: syncData.user.subscriptionPlan || 'free',
                 usageCount: syncData.user.usageCount || 0,
-                maxUsage: syncData.user.maxUsage || 1,
+                maxUsage: syncData.user.maxUsage || 3,
                 stripeCustomerId: syncData.user.stripeCustomerId || null,
                 planFeatures: {
                   hasWatermark: !syncData.user.isSubscribed,
-                  maxImagesPerMonth: syncData.user.maxUsage || 1,
+                  maxImagesPerMonth: syncData.user.maxUsage || 3,
                   maxResolution: '1024x1024',
                   hasPriorityProcessing: syncData.user.isSubscribed
                 },
@@ -340,7 +340,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         hasInitialized: false
       })
     }
-  }, [status, session?.user?.email, syncState.hasInitialized, backgroundSync])
+  }, [status, session?.user?.email, syncState.hasInitialized])
 
   // 手动刷新数据
   const refreshData = useCallback(async () => {
