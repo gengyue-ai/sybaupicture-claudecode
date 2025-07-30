@@ -28,13 +28,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+    // 🔧 修复：使用环境管理系统的webhook密钥配置
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.includes('vercel.app')
+    const webhookSecret = isProduction 
+      ? (process.env.STRIPE_WEBHOOK_SECRET_PROD || process.env.STRIPE_WEBHOOK_SECRET)
+      : (process.env.STRIPE_WEBHOOK_SECRET_DEV || process.env.STRIPE_WEBHOOK_SECRET)
+    
     if (!webhookSecret) {
       console.error('❌ Webhook密钥未配置:', {
+        isProduction,
         NODE_ENV: process.env.NODE_ENV,
+        NEXTAUTH_URL: process.env.NEXTAUTH_URL,
         hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
         hasWebhookSecretProd: !!process.env.STRIPE_WEBHOOK_SECRET_PROD,
-        hasWebhookSecretDev: !!process.env.STRIPE_WEBHOOK_SECRET_DEV
+        hasWebhookSecretDev: !!process.env.STRIPE_WEBHOOK_SECRET_DEV,
+        expectedKey: isProduction ? 'STRIPE_WEBHOOK_SECRET_PROD' : 'STRIPE_WEBHOOK_SECRET_DEV'
       })
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
