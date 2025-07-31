@@ -397,31 +397,14 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
   }, [profile, refreshData])
 
   // 更新用量计数
+  // 🔥 修复双重计数：移除用量更新功能，只保留数据刷新
+  // 使用量更新应该只在后端图片生成流程中进行，前端只负责刷新显示最新数据
   const updateUsageCount = useCallback(async () => {
-    if (!profile) return
-
-    try {
-      const response = await fetch('/api/user/usage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        
-        // 更新本地缓存的用量
-        setProfile(prev => prev ? {
-          ...prev,
-          usageCount: data.usageCount || prev.usageCount + 1,
-          lastSyncTime: Date.now()
-        } : null)
-        
-        console.log('✅ 用量更新成功:', data.usageCount)
-      }
-    } catch (error) {
-      console.error('❌ 更新用量失败:', error)
-    }
-  }, [profile])
+    // 已废弃：不再直接更新使用量，避免双重计数
+    // 图片生成成功后应该调用refreshData()来同步最新使用量
+    console.warn('⚠️ updateUsageCount已废弃，请使用refreshData()来同步最新使用量')
+    await refreshData()
+  }, [refreshData])
 
   // 便捷访问属性
   const isSubscribed = profile?.isSubscribed || false

@@ -433,8 +433,9 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
         setGeneratedImage(data.imageUrl)
         setError(null)
         
-        // 🎯 更新用量计数
-        await updateUsageCount()
+        // 🔥 修复双重计数：后端已在generate API中自动更新使用量，前端无需重复调用
+        // 只需刷新用户数据以同步最新的使用量显示
+        await refreshData()
       } else {
         // Image generation failed
         setError(data.error || data.details || 'Failed to generate image. Please try again.')

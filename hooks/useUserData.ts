@@ -188,25 +188,14 @@ export function useUserData() {
     return { allowed: true }
   }, [userData, syncUserData])
 
-  // 🎯 更新用量计数
+  // 🔥 修复双重计数：移除用量更新功能，只保留数据刷新
+  // 使用量更新应该只在后端图片生成流程中进行，前端只负责刷新显示最新数据
   const updateUsageCount = useCallback(async () => {
-    if (!userData) return
-
-    try {
-      const response = await fetch('/api/user/usage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setUserData(prev => prev ? { ...prev, usageCount: data.usageCount } : null)
-        console.log('✅ 用量更新成功:', data.usageCount)
-      }
-    } catch (err) {
-      console.error('❌ 更新用量失败:', err)
-    }
-  }, [userData])
+    // 已废弃：不再直接更新使用量，避免双重计数
+    // 图片生成成功后应该调用syncUserData()来同步最新使用量
+    console.warn('⚠️ updateUsageCount已废弃，请使用syncUserData()来同步最新使用量')
+    await syncUserData()
+  }, [syncUserData])
 
   // 🎯 获取当前有效的用户数据
   const getEffectiveUserData = useCallback(() => {

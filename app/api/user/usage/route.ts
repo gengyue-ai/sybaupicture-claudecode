@@ -113,71 +113,14 @@ export async function GET() {
   }
 }
 
+// 🔥 修复双重计数：移除POST方法，防止前端重复更新使用量
+// 使用量更新应该只在后端的图片生成流程中通过recordImageGeneration函数进行
+// 这个API现在只提供GET方法来查询使用量，不再允许直接增加使用量
+
 export async function POST() {
-  try {
-    // 🎯 创建独立的数据库连接，避免prepared statement冲突
-    const prisma = createPrismaClient()
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    if (!prisma) {
-      return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
-    }
-
-    const currentMonth = new Date().getMonth() + 1
-    const currentYear = new Date().getFullYear()
-
-    // 查询用户ID
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true }
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    // 增加用户使用量
-    const updatedUsage = await prisma.userUsage.upsert({
-      where: {
-        userId_month_year: {
-          userId: user.id,
-          month: currentMonth,
-          year: currentYear
-        }
-      },
-      update: {
-        imagesGenerated: {
-          increment: 1
-        },
-        updatedAt: new Date()
-      },
-      create: {
-        userId: user.id,
-        month: currentMonth,
-        year: currentYear,
-        imagesGenerated: 1
-      }
-    })
-
-    console.log('✅ 用量更新成功:', {
-      userId: user.id,
-      month: currentMonth,
-      year: currentYear,
-      newUsageCount: updatedUsage.imagesGenerated
-    })
-
-    return NextResponse.json({
-      success: true,
-      usageCount: updatedUsage.imagesGenerated,
-      month: currentMonth,
-      year: currentYear
-    })
-  } catch (error) {
-    console.error('❌ 更新用量失败:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+  // 🚫 禁用POST方法，防止双重计数
+  return NextResponse.json({ 
+    error: 'Usage increment should only be done through image generation API. This endpoint has been disabled to prevent double counting.',
+    code: 'USAGE_UPDATE_DISABLED'
+  }, { status: 405 }) // Method Not Allowed
 }
