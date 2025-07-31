@@ -23,7 +23,7 @@ const applicationScenarios = [
       {
         beforeImg: '/images/examples/watermark-before.webp',
         afterImg: '/images/examples/watermark-after.webp',
-        prompt: { zh: '去除图片中的水印，保持背景完整', en: 'Remove watermark, keep background intact' }
+        prompt: { zh: '移除所有水印和文字覆盖层，保持人物和背景完全不变', en: 'Remove watermark, keep background intact' }
       }
     ],
     features: [

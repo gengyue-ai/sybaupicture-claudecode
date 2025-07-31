@@ -33,7 +33,7 @@ export const templateData: Record<string, TemplateData> = {
     description: { zh: '一键去除各种复杂水印，保持背景完整', en: 'Remove any complex watermarks with one click' },
     beforeImage: '/images/examples/watermark-before.webp',
     afterImage: '/images/examples/watermark-after.webp',
-    prompt: { zh: '移除水印', en: 'remove all watermarks and text overlays, completely clean image' },
+    prompt: { zh: '移除所有水印和文字覆盖层，保持人物和背景完全不变', en: 'remove all watermarks and text overlays, completely clean image' },
     recommendedMode: 'image-to-image',
     aiModel: 'flux-pro/kontext',
     optimalSettings: {
@@ -56,7 +56,7 @@ export const templateData: Record<string, TemplateData> = {
     description: { zh: '瘦脸/瘦腿/减肚子/增肌，自然无痕', en: 'Face slimming/leg slimming/belly reduction/muscle enhancement, natural and seamless' },
     beforeImage: '/images/examples/body-before.webp',
     afterImage: '/images/examples/body-after.webp',
-    prompt: { zh: '优化身材比例', en: 'Optimize body proportions' },
+    prompt: { zh: '优化身材比例，保持面部特征完全不变', en: 'Optimize body proportions' },
     recommendedMode: 'image-to-image',
     aiModel: 'flux-pro/kontext',
     optimalSettings: {
@@ -99,7 +99,7 @@ export const templateData: Record<string, TemplateData> = {
     description: { zh: '一键生成专业产品展示图', en: 'Generate professional product images with one click' },
     beforeImage: '/images/examples/product-before.webp',
     afterImage: '/images/examples/product-after.webp',
-    prompt: { zh: '改善产品展示背景', en: 'Improve product display background' },
+    prompt: { zh: '改善产品展示背景，保持产品本身完全不变', en: 'Improve product display background' },
     recommendedMode: 'image-to-image',
     aiModel: 'flux-pro/kontext',
     optimalSettings: {
@@ -164,7 +164,7 @@ export const templateData: Record<string, TemplateData> = {
     beforeImage: '/images/examples/style-before.webp',
     afterImage: '/images/examples/style-after.webp',
     prompt: { 
-      zh: '转换为动漫风格，保持人物特征', 
+      zh: '转换为动漫艺术风格，保持人物身份特征不变', 
       en: 'Convert to anime art style while maintaining character identity' 
     },
     recommendedMode: 'image-to-image',
@@ -187,7 +187,7 @@ export const templateData: Record<string, TemplateData> = {
     description: { zh: '自由修改海报文字，支持任意字体', en: 'Modify poster text freely, support any fonts' },
     beforeImage: '/images/examples/text-before.webp',
     afterImage: '/images/examples/text-after.webp',
-    prompt: { zh: '修改文字内容', en: 'Modify text content' },
+    prompt: { zh: '修改文字内容，保持其他元素完全不变', en: 'Modify text content' },
     recommendedMode: 'image-to-image',
     aiModel: 'flux-pro/kontext',
     optimalSettings: {
