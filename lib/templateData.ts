@@ -307,7 +307,7 @@ export const templateData: Record<string, TemplateData> = {
     recommendedMode: 'image-to-image',
     aiModel: 'flux-pro/kontext',
     optimalSettings: { 
-      style: 'professional', 
+      style: 'classic', 
       intensity: 2,
       num_inference_steps: 50,
       guidance_scale: 3.5,
