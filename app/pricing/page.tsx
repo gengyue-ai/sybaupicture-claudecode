@@ -351,7 +351,7 @@ export default function PricingPage() {
                     variant={userPlan === plan.id ? 'outline' : plan.buttonVariant}
                     size="lg"
                     onClick={() => handlePlanClick(plan.id)}
-                    disabled={userPlan === plan.id || paymentLoading !== null}
+                    disabled={userPlan === plan.id || paymentLoading === plan.id}
                   >
                     {paymentLoading === plan.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {getButtonText(plan.id)}
