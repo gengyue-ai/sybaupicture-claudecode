@@ -309,6 +309,7 @@ export const authOptions: NextAuthOptions = {
         // 添加套餐信息到session
         ;(session.user as any).planId = token.planId || 'free'
         ;(session.user as any).subscriptionPlan = token.subscriptionPlan || 'free'
+        ;(session.user as any).planName = token.subscriptionPlan || 'free' // 兼容Navbar.tsx中的planName字段
         ;(session.user as any).isSubscribed = token.isSubscribed || false
         
         // Session plan info loaded
