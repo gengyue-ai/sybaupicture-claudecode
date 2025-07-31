@@ -1,0 +1,21 @@
+# Funding and Sponsorship Configuration
+
+# 🌟 Support Sybau Picture Development
+# Your support helps us continue improving this AI image generation platform!
+
+# Custom funding links - Direct to our platform
+custom:
+  - "https://sybaupicture.com/pricing"
+  - "https://sybaupicture.com/zh/pricing"
+
+# GitHub Sponsors (if enabled in the future)
+# github: gengyue-ai
+
+# Alternative funding platforms (examples for future use)
+# patreon: sybaupicture
+# open_collective: sybaupicture
+# ko_fi: sybaupicture
+# tidelift: npm/sybau-picture
+
+# Business contact for enterprise sponsorship
+# Contact: support@sybaupicture.com

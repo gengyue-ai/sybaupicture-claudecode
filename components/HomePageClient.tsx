@@ -657,7 +657,7 @@ export default function HomePageClient() {
 
           <div className="max-w-6xl mx-auto">
             <ImageGenerator
-              texts={{
+                texts={{
                 uploadTitle: getText('generator.uploadTitle', 'Upload Image or Enter Text'),
                 uploadDescription: getText('generator.uploadDescription', 'Drag and drop an image or enter creative text'),
                 uploadPlaceholder: getText('generator.uploadPlaceholder', 'Select an image or enter your creative idea'),

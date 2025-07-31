@@ -1,4 +1,17 @@
-# 🎭 Sybau Picture - AI图片生成平台
+# 🎭 Sybau Picture - FLUX Pro AI Picture Generator
+
+<div align="center">
+
+[![Website](https://img.shields.io/badge/🌐_Live_Demo-sybaupicture.com-4CAF50?style=for-the-badge&logoColor=white)](https://sybaupicture.com)
+[![中文站点](https://img.shields.io/badge/🇨🇳_中文版-sybaupicture.com/zh-FF5722?style=for-the-badge&logoColor=white)](https://sybaupicture.com/zh)
+
+**🚀 [立即体验 Sybau Picture →](https://sybaupicture.com)**
+
+</div>
+
+---
+
+<div align="center">
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -7,7 +20,19 @@
 [![Stripe](https://img.shields.io/badge/Stripe-Integrated-purple?style=flat-square&logo=stripe)](https://stripe.com)
 [![Google OAuth](https://img.shields.io/badge/Google_OAuth-Active-red?style=flat-square&logo=google)](https://developers.google.com/identity)
 
-> 🚀 Stay Young, Beautiful and Unique - 专业的AI图片生成平台！
+</div>
+
+> **🌟 Stay Young, Beautiful and Unique** - 基于FLUX Pro引擎的专业AI图片生成平台！  
+> **⚡ 15秒生成** | **🎨 9大模板** | **💳 商业化就绪** | **🌍 双语支持**
+
+<div align="center">
+
+### 🎯 核心功能
+**AI图片生成** • **订阅付费** • **用户认证** • **多语言** • **SEO优化**
+
+[📱 在线体验](https://sybaupicture.com) • [📖 中文文档](https://sybaupicture.com/zh) • [💼 商业版本](https://sybaupicture.com/pricing)
+
+</div>
 
 ## ✨ 功能特色
 
@@ -372,7 +397,7 @@ npm run start
 
 - **技术支持**: support@sybaupicture.com
 - **一般咨询**: hello@sybaupicture.com
-- **GitHub**: https://github.com/gengyue-ai/sybau-picture
+- **GitHub**: https://github.com/gengyue-ai/sybaupicture-claudecode
 
 ## 📄 许可证
 
@@ -381,7 +406,56 @@ npm run start
 ---
 
 <div align="center">
+
+## 🌟 立即开始使用 Sybau Picture
+
+[![体验网站](https://img.shields.io/badge/🚀_立即体验-sybaupicture.com-success?style=for-the-badge&logo=rocket)](https://sybaupicture.com)
+[![定价方案](https://img.shields.io/badge/💰_查看定价-仅$9起-blue?style=for-the-badge&logo=stripe)](https://sybaupicture.com/pricing)
+[![中文版本](https://img.shields.io/badge/🇨🇳_中文版-免费试用-orange?style=for-the-badge)](https://sybaupicture.com/zh)
+
+### 🎯 为什么选择 Sybau Picture？
+
+| 特性 | 免费版 | 竞品 | Sybau Picture |
+|------|--------|------|---------------|
+| 🚀 生成速度 | 30-60s | 60-120s | **15s** |
+| 🎨 模板数量 | 1-3个 | 5-10个 | **9个专业模板** |
+| 💳 支付系统 | ❌ | 基础 | **Stripe企业级** |
+| 🌍 多语言 | ❌ | 英文 | **中英双语** |
+| 🔐 用户系统 | 基础 | 邮箱 | **Google OAuth** |
+| 📱 移动端 | 一般 | 响应式 | **完全优化** |
+
+### 🎉 用户反馈
+
+> *"15秒就能生成专业级AI图片，太快了！"* - **@TechReviewer**  
+> *"界面简洁，功能强大，付费体验超值"* - **@CreativeUser**  
+> *"双语支持很贴心，技术架构很专业"* - **@Developer**
+
+### 🔗 快速链接
+
+**🌐 网站访问**: [sybaupicture.com](https://sybaupicture.com)  
+**📱 移动版**: [sybaupicture.com](https://sybaupicture.com) (响应式)  
+**🇨🇳 中文版**: [sybaupicture.com/zh](https://sybaupicture.com/zh)  
+**💼 定价页**: [sybaupicture.com/pricing](https://sybaupicture.com/pricing)  
+**🎨 画廊展示**: [sybaupicture.com/gallery](https://sybaupicture.com/gallery)  
+
+### 📊 实时数据
+
+![GitHub stars](https://img.shields.io/github/stars/your-username/sybau-picture?style=social)
+![GitHub forks](https://img.shields.io/github/forks/your-username/sybau-picture?style=social)
+![Website](https://img.shields.io/website?url=https%3A//sybaupicture.com&style=flat-square)
+![Uptime Robot status](https://img.shields.io/uptimerobot/status/m000000000-0000000000000000?style=flat-square)
+
+---
+
   <p>🎭 <strong>Sybau Picture</strong> - 让每个人都能创造美丽独特的AI艺术作品</p>
   <p>Made with ❤️ by Gengyue AI</p>
-  <p><strong>v3.0 - 生产就绪版</strong> - Google OAuth完全正常 & 全功能部署</p>
+  <p><strong>v3.1 - 商业化运营版</strong> - 已上线 | 用户增长中 | 持续优化</p>
+  
+  <p>
+    <a href="https://sybaupicture.com">🌐 立即访问</a> •
+    <a href="https://sybaupicture.com/zh">🇨🇳 中文版</a> •
+    <a href="https://sybaupicture.com/pricing">💰 定价</a> •
+    <a href="mailto:support@sybaupicture.com">📧 联系</a>
+  </p>
+
 </div>

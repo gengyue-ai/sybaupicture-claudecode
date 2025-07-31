@@ -9,6 +9,9 @@ import { Providers } from '@/components/providers'
 import BackgroundUserSync from '@/components/BackgroundUserSync'
 import { AuthStateHandler } from '@/components/AuthStateHandler'
 import { GooglePageAds } from '@/components/GoogleAds'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -168,6 +171,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <GoogleAnalytics />
         <GooglePageAds />
         <Providers>
           <AuthStateHandler />
@@ -182,6 +186,8 @@ export default function RootLayout({
           <Toaster />
           <SonnerToaster />
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

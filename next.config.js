@@ -184,6 +184,10 @@ const nextConfig = {
     CUSTOM_KEY: 'sybau-picture-v1',
   },
   poweredByHeader: false, // 隐藏X-Powered-By头部
+  // 解决特定页面的预渲染问题，不影响核心商业功能
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
 }
 
 module.exports = nextConfig
