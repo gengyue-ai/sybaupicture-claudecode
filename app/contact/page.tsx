@@ -20,28 +20,46 @@ export default function ContactPage() {
                 <p className="text-gray-600">We appreciate your feedback and inquiries about our AI-powered image generation platform.</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Email Support</h4>
-                  <p className="text-gray-600 text-sm mb-2">Get help with technical issues</p>
-                  <a href="mailto:support@sybaupicture.com" className="text-blue-600 hover:text-blue-800">
-                    support@sybaupicture.com
-                  </a>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-8 h-8 text-purple-600" />
                 </div>
-
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="w-8 h-8 text-green-600" />
+                <h4 className="font-semibold mb-2">Contact Form</h4>
+                <p className="text-gray-600 mb-4">Send us a message and we'll get back to you within 24 hours</p>
+                
+                <form className="max-w-md mx-auto space-y-4">
+                  <div>
+                    <input 
+                      type="email" 
+                      placeholder="Your email address" 
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required 
+                    />
                   </div>
-                  <h4 className="font-semibold mb-2">General Inquiries</h4>
-                  <p className="text-gray-600 text-sm mb-2">Questions about our platform</p>
-                  <a href="mailto:hello@sybaupicture.com" className="text-green-600 hover:text-green-800">
-                    hello@sybaupicture.com
-                  </a>
-                </div>
+                  <div>
+                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                      <option value="">Select inquiry type</option>
+                      <option value="technical">Technical Support</option>
+                      <option value="general">General Questions</option>
+                      <option value="billing">Billing & Subscriptions</option>
+                      <option value="feature">Feature Requests</option>
+                    </select>
+                  </div>
+                  <div>
+                    <textarea 
+                      placeholder="Your message" 
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required
+                    ></textarea>
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Send Message
+                  </button>
+                </form>
               </div>
             </CardContent>
           </Card>

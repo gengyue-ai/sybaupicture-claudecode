@@ -289,7 +289,7 @@ We thank all our contributors who have helped make Sybau Picture better!
 ### 🆘 Getting Help
 - **Documentation**: [GitHub Wiki](https://github.com/gengyue-ai/sybaupicture-claudecode/wiki)
 - **Issues**: [GitHub Issues](https://github.com/gengyue-ai/sybaupicture-claudecode/issues)
-- **Email**: support@sybaupicture.com
+- **Website**: [Contact Us](https://sybaupicture.com/contact)
 - **Live Chat**: Available on [sybaupicture.com](https://sybaupicture.com)
 
 ### 💬 Community

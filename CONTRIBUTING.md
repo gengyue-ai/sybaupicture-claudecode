@@ -396,7 +396,7 @@ sybau-picture/
 ### 🚨 Security Reporting
 If you discover security vulnerabilities:
 1. **Do not** open public issues
-2. **Email**: security@sybaupicture.com
+2. **Contact**: [Security Contact](https://sybaupicture.com/contact)
 3. **Include**: Detailed reproduction steps
 4. **Response**: We'll respond within 48 hours
 
@@ -523,7 +523,7 @@ We recognize contributors in multiple ways:
 ### 💬 Communication Channels
 - **GitHub Issues**: Bug reports and feature requests
 - **GitHub Discussions**: General questions and ideas
-- **Email**: development@sybaupicture.com
+- **Website**: [Contact Us](https://sybaupicture.com/contact)
 - **Discord**: [Join our community](https://discord.gg/sybaupicture) (coming soon)
 
 ### 📚 Resources
@@ -573,7 +573,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 ### 🚨 Reporting Issues
 If you experience or witness unacceptable behavior:
-- **Email**: conduct@sybaupicture.com
+- **Contact**: [Report Issues](https://sybaupicture.com/contact)
 - **Confidential**: All reports handled confidentially
 - **Response**: We'll respond within 24 hours
 
