@@ -157,9 +157,13 @@ export async function POST(request: NextRequest) {
         canGenerate = true
       }
     } catch (usageError) {
-      console.warn('⚠️ 用量检查失败，允许生成（提供更好用户体验）:', usageError)
-      // 用量检查失败时仍允许生成，避免因数据库问题影响用户体验
-      canGenerate = true
+      console.error('❌ 用量检查失败，拒绝生成以防超限:', usageError)
+      // 🔒 安全修复：用量检查失败时拒绝生成，防止超限使用
+      return NextResponse.json({
+        success: false,
+        error: 'Usage check failed. Please try again later or contact support.',
+        code: 'USAGE_CHECK_FAILED'
+      }, { status: 503 })
     }
 
     const contentType = request.headers.get('content-type')

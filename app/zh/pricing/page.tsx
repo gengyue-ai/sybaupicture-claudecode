@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Check, X, Star, Sparkles, Zap, Crown, Shield, Users, Rocket } from 'lucide-react'
+import { Check, X, Star, Sparkles, Zap, Crown, Shield, Users, Rocket, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -110,7 +110,8 @@ const faqs = [
 export default function ZHPricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
   const [userPlan, setUserPlan] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [userDataLoading, setUserDataLoading] = useState(true)
+  const [paymentLoading, setPaymentLoading] = useState<string | null>(null)
   const { data: session, status } = useSession()
   const pricingPlans = getPricingPlans(isAnnual)
   const router = useRouter()
@@ -135,7 +136,7 @@ export default function ZHPricingPage() {
       } else if (status === 'unauthenticated') {
         setUserPlan(null) // 未登录用户
       }
-      setLoading(false)
+      setUserDataLoading(false)
     }
 
     if (status !== 'loading') {
@@ -145,7 +146,7 @@ export default function ZHPricingPage() {
 
   // 🔑 动态更新套餐按钮文本
   const getButtonText = (planId: string) => {
-    if (loading || status === 'loading') return '加载中...'
+    if (userDataLoading || status === 'loading') return '加载中...'
     
     if (userPlan === planId) {
       return '当前套餐'
@@ -164,6 +165,12 @@ export default function ZHPricingPage() {
   }
 
   const handlePlanClick = async (planId: string) => {
+    // 防止重复点击 - 如果已有支付在进行中
+    if (paymentLoading !== null) {
+      console.log('🔄 支付已在进行中，忽略重复点击')
+      return
+    }
+
     if (planId === 'free') {
       // 免费版：如果未登录引导登录，已登录跳转到中文主页
       if (!session) {
@@ -176,8 +183,6 @@ export default function ZHPricingPage() {
 
     // 🚨 优先检查用户是否已登录 - 这是最重要的
     if (status === 'loading') {
-      // 如果session还在加载中，显示加载状态
-      setLoading(true)
       return
     }
 
@@ -195,7 +200,7 @@ export default function ZHPricingPage() {
     }
 
     // 用户已登录且未拥有此套餐，进入购买流程
-    setLoading(true)
+    setPaymentLoading(planId)
     try {
       const response = await fetch('/api/payment/create-checkout-session', {
         method: 'POST',
@@ -222,7 +227,7 @@ export default function ZHPricingPage() {
       console.error('支付错误:', error)
       alert(error instanceof Error ? error.message : '创建支付会话失败，请稍后再试')
     } finally {
-      setLoading(false)
+      setPaymentLoading(null)
     }
   }
 
@@ -315,8 +320,9 @@ export default function ZHPricingPage() {
                     variant={userPlan === plan.id ? 'outline' : plan.buttonVariant}
                     size="lg"
                     onClick={() => handlePlanClick(plan.id)}
-                    disabled={userPlan === plan.id || loading}
+                    disabled={userPlan === plan.id || paymentLoading !== null}
                   >
+                    {paymentLoading === plan.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {getButtonText(plan.id)}
                   </Button>
 

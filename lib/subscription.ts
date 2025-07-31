@@ -375,15 +375,14 @@ export async function canUserGenerateImage(userId: string): Promise<{
       code: (error as any)?.code
     })
     
-    // 错误时使用保守的免费套餐限制
-    const maxUsage = DEFAULT_PLANS.free.maxImagesPerMonth
-    console.warn(`⚠️ 降级到免费套餐限制:`, { userId, maxUsage })
+    // 🔒 安全修复：数据库错误时拒绝生成，防止超限使用
+    console.warn(`🚫 数据库错误，拒绝生成以防超限:`, { userId })
     
     return {
-      canGenerate: true,
-      currentUsage: 0,
-      maxUsage: maxUsage,
-      remainingUsage: maxUsage
+      canGenerate: false,
+      currentUsage: 999, // 显示高用量以表明系统问题
+      maxUsage: 3,
+      remainingUsage: 0
     }
   }
 }
