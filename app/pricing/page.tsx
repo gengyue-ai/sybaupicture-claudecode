@@ -111,7 +111,8 @@ const faqs = [
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
   const [userPlan, setUserPlan] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [userDataLoading, setUserDataLoading] = useState(true)
+  const [paymentLoading, setPaymentLoading] = useState<string | null>(null)
   const { data: session, status } = useSession()
   const pricingPlans = getPricingPlans(isAnnual)
   const router = useRouter()
@@ -136,7 +137,7 @@ export default function PricingPage() {
       } else if (status === 'unauthenticated') {
         setUserPlan(null) // Unauthenticated user
       }
-      setLoading(false)
+      setUserDataLoading(false)
     }
 
     if (status !== 'loading') {
@@ -146,7 +147,7 @@ export default function PricingPage() {
 
   // Dynamic button text based on user plan
   const getButtonText = (planId: string) => {
-    if (loading || status === 'loading') return 'Loading...'
+    if (userDataLoading || status === 'loading') return 'Loading...'
     
     if (userPlan === planId) {
       return 'Current Plan'
@@ -165,6 +166,12 @@ export default function PricingPage() {
   }
 
   const handlePlanClick = async (planId: string) => {
+    // 防止重复点击 - 如果已有支付在进行中
+    if (paymentLoading !== null) {
+      console.log('🔄 支付已在进行中，忽略重复点击')
+      return
+    }
+
     if (planId === 'free') {
       // Free plan: redirect to sign in if not logged in, otherwise go to home
       if (!session) {
@@ -177,7 +184,6 @@ export default function PricingPage() {
 
     // Check if user is logged in first
     if (status === 'loading') {
-      setLoading(true)
       return
     }
 
@@ -203,7 +209,7 @@ export default function PricingPage() {
     }
 
     // User is logged in and doesn't have this plan, proceed to checkout
-    setLoading(true)
+    setPaymentLoading(planId)
     try {
       const response = await fetch('/api/payment/create-checkout-session', {
         method: 'POST',
@@ -253,7 +259,7 @@ export default function PricingPage() {
         variant: "destructive"
       })
     } finally {
-      setLoading(false)
+      setPaymentLoading(null)
     }
   }
 
@@ -345,9 +351,9 @@ export default function PricingPage() {
                     variant={userPlan === plan.id ? 'outline' : plan.buttonVariant}
                     size="lg"
                     onClick={() => handlePlanClick(plan.id)}
-                    disabled={userPlan === plan.id || loading}
+                    disabled={userPlan === plan.id || paymentLoading !== null}
                   >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {paymentLoading === plan.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {getButtonText(plan.id)}
                   </Button>
 
