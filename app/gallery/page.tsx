@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import GalleryClient from '@/components/GalleryClient'
 
 export const metadata: Metadata = {
-  title: 'FLUX Engine Application Gallery - 9 Professional AI Image Editing Scenarios | Sybau Picture',
+  title: 'FLUX Pro AI Gallery - Sybau Picture Examples',
   description: 'Explore 9 professional AI image editing scenarios powered by FLUX Pro engine. From smart watermark removal to style conversion - 12 billion parameters, 15-second generation.',
   keywords: [
     'FLUX engine', 'AI image editing', 'watermark removal', 'background replacement', 'style conversion', 

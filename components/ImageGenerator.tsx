@@ -610,10 +610,10 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
         <div className="p-4">
 
           {/* 条件渲染：文生图全宽 vs 图生图分区 */}
-          <div className="grid grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             {generationMode === 'text-to-image' ? (
               /* 文生图模式：全宽大输入框 */
-              <div className="col-span-12">
+              <div className="col-span-1 lg:col-span-12">
                 <div className="space-y-3">
                   <Textarea
                     placeholder={texts.textPromptPlaceholder || 'Please describe what you want to generate, focus on the subject, for example: a brown dolphin with curled tail, cartoon style'}
@@ -630,7 +630,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
               /* 图生图模式：左右分区 + 箭头指示 */
               <>
                 {/* 左侧：案例展示区 - 响应式栅格 */}
-                <div className="col-span-12 md:col-span-4">
+                <div className="col-span-1 lg:col-span-4">
                   {generatedImage ? (
                     <div>
                       <div className="aspect-square bg-blue-50 rounded-lg overflow-hidden border border-blue-200">
@@ -695,14 +695,14 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
                 </div>
 
                 {/* 中间：箭头指示 - 响应式隐藏 */}
-                <div className="hidden md:flex md:col-span-1 items-center justify-center">
+                <div className="hidden lg:flex lg:col-span-1 items-center justify-center">
                   <div className="flex items-center justify-center h-full">
                     <ArrowRight className="w-10 h-10 text-blue-500 animate-pulse stroke-2" />
                   </div>
                 </div>
 
                 {/* 右侧：操作区 - 响应式栅格 */}
-                <div className="col-span-12 md:col-span-7">
+                <div className="col-span-1 lg:col-span-7">
                   <div className="space-y-3">
                     <div
                       className={`border-2 border-dashed rounded-lg h-52 text-center transition-all cursor-pointer group flex flex-col justify-center ${
@@ -768,7 +768,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
           {/* 移动端和桌面端不同布局 */}
           <div className="space-y-4">
             {/* 移动端：垂直堆叠布局 */}
-            <div className="block md:hidden space-y-3">
+            <div className="block lg:hidden space-y-3">
               {/* 模板库按钮 */}
               <div className="flex justify-center">
                 <button 
@@ -829,7 +829,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
             </div>
 
             {/* 桌面端：水平布局 */}
-            <div className="hidden md:flex items-center justify-between gap-4">
+            <div className="hidden lg:flex items-center justify-between gap-4">
               {/* 左侧：模板库按钮 */}
               <div className="flex-shrink-0">
                 <button 
@@ -872,7 +872,7 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
                     (generationMode === 'text-to-image' && !textPrompt.trim()) ||
                     (generationMode === 'image-to-image' && !file)
                   }
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center min-w-[120px]"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center sm:min-w-[120px]"
                 >
                   {isGenerating ? (
                     <>

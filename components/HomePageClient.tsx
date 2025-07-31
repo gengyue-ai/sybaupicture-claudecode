@@ -523,7 +523,7 @@ export default function HomePageClient() {
         <div className="absolute inset-0 bg-gradient-to-r from-purple-400/10 via-pink-300/10 to-cyan-400/10"></div>
 
         <div className="relative container mx-auto px-4 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
             {/* Left Content */}
             <div className="text-left">
               {/* FLUX Engine Badge */}
@@ -558,16 +558,16 @@ export default function HomePageClient() {
               </p>
 
               {/* Key Features */}
-              <div className="flex flex-wrap gap-4 mb-8">
+              <div className="flex flex-wrap gap-2 sm:gap-4 mb-8">
                 {[
                   { icon: <Star className="w-4 h-4" />, text: getText('home.flux.param12b', '12B Parameters') },
                   { icon: <Rocket className="w-4 h-4" />, text: getText('home.benefits.speed', '15s Generation') },
                   { icon: <Heart className="w-4 h-4" />, text: getText('home.benefits.scenarios', '9 Scenarios') },
                   { icon: <TrendingUp className="w-4 h-4" />, text: getText('home.benefits.quality', 'Pro Quality') }
                 ].map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md">
+                  <div key={index} className="flex items-center gap-1.5 sm:gap-2 bg-white/90 backdrop-blur-sm rounded-full px-2.5 sm:px-3 py-1.5 shadow-md flex-shrink-0">
                     <div className="text-purple-600">{feature.icon}</div>
-                    <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+                    <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">{feature.text}</span>
                   </div>
                 ))}
               </div>
@@ -581,11 +581,11 @@ export default function HomePageClient() {
                       generatorElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
                     }
                   }}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-center"
                 >
                   {getText('home.cta.startCreating', 'Start Creating Now')}
                 </button>
-                <div className="text-sm text-gray-500 py-4">
+                <div className="text-sm text-gray-500 py-3 sm:py-4 text-center sm:text-left w-full sm:w-auto">
                   {getText('home.socialProof', 'Trusted by creators worldwide')}
                 </div>
               </div>
@@ -655,7 +655,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <ImageGenerator
                 texts={{
                 uploadTitle: getText('generator.uploadTitle', 'Upload Image or Enter Text'),
@@ -748,7 +748,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-5xl mx-auto">
             {/* Technical Parameters */}
             <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
@@ -784,7 +784,7 @@ export default function HomePageClient() {
           </div>
 
           {/* Additional Features */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto mt-12">
             <div className="flex items-start space-x-4 p-6 bg-white/80 backdrop-blur-sm rounded-xl">
               <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                 <Star className="w-6 h-6" />
@@ -845,7 +845,7 @@ export default function HomePageClient() {
 
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="grid md:grid-cols-2 divide-x divide-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x divide-gray-200">
                 <div className="p-8">
                   <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">{getText('home.comparison.traditional', 'Traditional Photo Editing')}</h3>
                   <div className="space-y-4">
@@ -907,7 +907,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-4xl mx-auto">
             {[
               {
                 step: '1',
@@ -955,7 +955,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
             {[
               {
                 icon: <Sparkles className="w-8 h-8" />,
@@ -1018,7 +1018,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto">
             {[
               {
                 title: getText('home.usecases.social', 'Social Media Influencers'),
@@ -1067,7 +1067,7 @@ export default function HomePageClient() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-4xl mx-auto">
             <div className="text-center p-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl">
               <div className="text-3xl font-bold text-purple-600 mb-2">{getText('home.community.stats.users', '1.2M+')}</div>
               <div className="text-gray-600">{getText('home.community.stats.users.label', 'Active Users')}</div>

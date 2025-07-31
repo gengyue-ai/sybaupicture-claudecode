@@ -3,7 +3,7 @@ import HomePageClient from '@/components/HomePageClient'
 
 export const metadata: Metadata = {
   title: 'Sybau FLUX Pro图像生成器 | Kontext AI图片编辑器 - 专业AI图像生成',
-  description: 'Sybau基于FLUX Pro/Kontext AI的专业图像生成器。120亿参数模型，9大应用场景，15秒生成，轻松实现专业级AI图片编辑。',
+  description: 'Sybau基于FLUX Pro/Kontext AI的专业图像生成器。120亿参数模型，支持水印去除、身材优化、风格转换等9大应用场景，15秒快速生成，商业级品质输出，轻松实现专业级AI图片编辑和创作。',
   keywords: ['Sybau', '图像生成器', 'FLUX Pro', 'Kontext AI', 'AI图片编辑', 'flux-pro/kontext', '专业AI编辑', 'AI图像生成', 'sybau图像生成器'],
   alternates: {
     canonical: '/zh',

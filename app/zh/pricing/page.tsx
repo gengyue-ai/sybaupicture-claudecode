@@ -363,46 +363,46 @@ export default function ZHPricingPage() {
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">套餐功能对比</h2>
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
+              <table className="w-full min-w-[600px]">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">功能</th>
-                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">免费版</th>
-                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">标准版</th>
-                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">专业版</th>
+                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500">功能</th>
+                    <th className="px-3 sm:px-6 py-4 text-center text-sm font-medium text-gray-500">免费版</th>
+                    <th className="px-3 sm:px-6 py-4 text-center text-sm font-medium text-gray-500">标准版</th>
+                    <th className="px-3 sm:px-6 py-4 text-center text-sm font-medium text-gray-500">专业版</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900">每月图片数</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">体验配额</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">60张</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">180张</td>
+                    <td className="px-3 sm:px-6 py-4 text-sm text-gray-900">每月图片数</td>
+                    <td className="px-3 sm:px-6 py-4 text-center text-sm text-gray-600">体验配额</td>
+                    <td className="px-3 sm:px-6 py-4 text-center text-sm text-gray-600">60张</td>
+                    <td className="px-3 sm:px-6 py-4 text-center text-sm text-gray-600">180张</td>
                   </tr>
                   <tr className="bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">最大分辨率</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">1024x1024</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">2048x2048</td>
-                    <td className="px-6 py-4 text-center text-sm text-gray-600">4096x4096</td>
+                    <td className="px-3 sm:px-6 py-4 text-sm text-gray-900">最大分辨率</td>
+                    <td className="px-3 sm:px-6 py-4 text-center text-sm text-gray-600">1024x1024</td>
+                    <td className="px-3 sm:px-6 py-4 text-center text-sm text-gray-600">2048x2048</td>
+                    <td className="px-3 sm:px-6 py-4 text-center text-sm text-gray-600">4096x4096</td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900">所有模版访问</td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-sm text-gray-900">所有模版访问</td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                   </tr>
                   <tr className="bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">所有Sybau风格</td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-sm text-gray-900">所有Sybau风格</td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 text-sm text-gray-900">优先处理</td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-sm text-gray-900">优先处理</td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                    <td className="px-3 sm:px-6 py-4 text-center"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
                   </tr>
 
                 </tbody>

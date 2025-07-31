@@ -2,8 +2,8 @@ import { Metadata } from 'next'
 import HomePageClient from '@/components/HomePageClient'
 
 export const metadata: Metadata = {
-  title: 'Sybau Picture - FLUX Pro AI Picture Generator | Professional Image Creation',
-  description: 'Professional AI picture generator powered by FLUX Pro and Kontext engine. Create stunning images with 9 specialized templates - watermark removal, body optimization, style conversion. 15s generation, commercial quality.',
+  title: 'FLUX Pro Picture Generator - Sybau AI Editor',
+  description: 'Professional AI picture generator powered by FLUX Pro engine. 9 specialized templates, 15s generation, commercial quality. Create stunning images with watermark removal and style conversion.',
   keywords: ['FLUX Pro', 'AI picture generator', 'Kontext AI', 'Sybau Picture', 'AI image editor', 'flux-pro/kontext', 'professional AI editing', 'watermark removal', 'body optimization', 'style conversion', 'background replacement'],
   openGraph: {
     title: 'Sybau Picture - FLUX Pro AI Picture Generator',

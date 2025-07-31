@@ -16,7 +16,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sybau Picture - FLUX Pro AI Picture Generator | Kontext Engine Powered',
+  title: 'Sybau FLUX Pro AI Picture Generator',
   description: 'Professional AI picture generator powered by FLUX Pro and Kontext engine. Transform images with Sybau style - 9 AI scenarios, 15s generation, commercial quality results.',
   keywords: ['FLUX Pro', 'Kontext AI', 'picture generator', 'Sybau', 'AI image editor', 'flux-pro/kontext', 'professional AI editing', 'AI picture generation', 'flux pro picture generator', 'sybau picture generator'],
   authors: [{ name: 'Sybau Picture Team' }],
