@@ -181,14 +181,33 @@ Always use the smart environment management:
 4. Run production build: `npm run build`
 5. Test critical flows (auth, payment, image generation)
 
-### Deployment Commands
+### Standard Deployment Process (2025-07-31 更新)
+
+**🚨 重要：避免版本混乱，必须使用标准部署流程**
+
+#### 推荐部署方式 (新增)
 ```bash
-# Standard Vercel deployment
+# 使用部署管理器 (推荐) - 包含完整的检查和验证流程
+node scripts/deploy-manager.js
+
+# 手动健康检查
+node scripts/health-check.js
+```
+
+#### 传统部署方式 (仅紧急情况)
+```bash
+# 标准Vercel部署 - 仅在紧急情况下使用
 vercel --prod
 
-# With deployment script
-./deploy-to-production.sh
+# 旧的部署脚本 (已废弃)
+# ./deploy-to-production.sh
 ```
+
+#### 部署前必须检查清单
+1. **代码质量检查**: `npm run type-check && npm run lint`
+2. **构建测试**: `npm run build`
+3. **Git状态清理**: 确保没有未提交的重要更改
+4. **环境配置**: `node scripts/smart-env.js 状态`
 
 ## Common Issues & Solutions
 
@@ -233,7 +252,101 @@ The application supports both English and Chinese:
 - **`scripts/check-stripe-config.js`**: Stripe configuration validation
 - **`scripts/git-security-fix.js`**: Git security hardening
 - **`scripts/update-ai-memory.js`**: AI context and memory management
+- **`scripts/deploy-manager.js`**: 🆕 **[2025-07-31]** 统一部署管理器，包含预检查、部署、验证全流程
+- **`scripts/health-check.js`**: 🆕 **[2025-07-31]** 系统健康状态检查和监控
 
 ### Configuration Management
 - **`lib/config.ts`**: Centralized configuration with environment-specific fallbacks
 - **`config/env.template`**: Complete environment variable reference and documentation
+
+## 🚀 标准部署和版本管理规范 (2025-07-31 新增)
+
+### 版本混乱问题总结
+2025年7月31日，项目遇到部署版本错乱问题：
+- 早上修复的功能在生产环境中失效
+- 多次失败部署导致版本不一致
+- 缺乏部署验证机制导致问题发现延迟
+- 没有标准的回滚和追踪机制
+
+### 新的部署流程规范
+
+#### 1. 强制使用部署管理器
+```bash
+# ✅ 正确的部署方式
+node scripts/deploy-manager.js
+
+# ❌ 禁止直接使用 (除非紧急情况)
+vercel --prod
+```
+
+#### 2. 部署管理器功能
+- **预部署检查**: 自动执行类型检查、代码检查、构建测试
+- **版本标记**: 自动生成包含日期和功能描述的Git标签
+- **部署验证**: 部署后自动验证系统健康状态
+- **部署日志**: 详细记录每次部署的变更和验证结果
+- **失败处理**: 部署失败时提供明确的错误信息和建议
+
+#### 3. Git工作流规范
+```bash
+# 功能开发分支命名
+git checkout -b feature/fix-user-plan-display-2025-07-31
+git checkout -b hotfix/payment-button-issue-2025-07-31
+
+# 提交消息格式 (必须遵循)
+git commit -m "feat: [2025-07-31] 修复用户套餐显示问题"
+git commit -m "fix: [2025-07-31] 修复支付按钮重复调用"
+git commit -m "deploy: [2025-07-31] 修复用户认证和支付功能"
+```
+
+#### 4. 部署后验证检查
+每次部署后必须验证：
+- **健康检查通过**: `node scripts/health-check.js`
+- **关键用户功能**: 40863666@qq.com 用户套餐显示正确
+- **支付流程**: 标准版和专业版按钮功能正常
+- **图片生成**: AI图片生成功能正常运行
+- **认证流程**: Google OAuth登录正常
+
+#### 5. 回滚机制
+```bash
+# 查看部署历史和标签
+git tag -l "deploy-*" --sort=-version:refname | head -10
+
+# 快速回滚到上一个稳定版本
+git checkout <上一个稳定标签>
+vercel --prod  # 仅在回滚时允许直接使用
+
+# 确认回滚成功
+node scripts/health-check.js
+```
+
+#### 6. 部署日志追踪
+所有部署记录保存在 `docs/deployment-log.md`，包含：
+- 部署时间和描述
+- Git提交信息和分支
+- 预部署检查结果
+- 验证测试结果
+- 手动验证清单状态
+
+### 防止版本混乱的关键措施
+
+1. **单一部署入口**: 所有生产部署必须通过 `deploy-manager.js`
+2. **自动标记**: 每次部署自动创建带时间戳的Git标签
+3. **强制验证**: 部署后自动执行健康检查和功能验证
+4. **详细日志**: 完整记录每次部署的前后状态
+5. **快速回滚**: 出现问题时能立即回滚到稳定版本
+
+### API健康检查端点
+- **`/api/health`**: 系统健康状态检查
+  - 数据库连接状态
+  - 关键服务配置检查
+  - 第三方服务集成状态
+  - 系统性能指标
+
+### 紧急情况处理
+当遇到类似2025-07-31的版本混乱时：
+1. 立即停止所有新的部署操作
+2. 使用 `git tag -l "deploy-*"` 查看最近的稳定版本
+3. 回滚到最后一个已验证的稳定版本
+4. 执行健康检查确认回滚成功
+5. 分析问题原因，更新防护措施
+6. 重新进行修复，使用标准部署流程
