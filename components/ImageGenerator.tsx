@@ -961,31 +961,32 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Object.values(templateData).map((template) => {
-                  const isAccessible = availableTemplates.includes(template.id)
-                  const isLocked = !isAccessible
+                  // 优化显示逻辑：所有用户都能看到模板案例，只是功能权限不同
+                  const isAccessible = session && availableTemplates.includes(template.id)
+                  const needsLogin = !session
+                  
+                  const handleTemplateClick = () => {
+                    if (needsLogin) {
+                      // 未登录用户：引导登录
+                      const currentLang = pathname.startsWith('/zh') ? 'zh' : 'en'
+                      const signInPath = currentLang === 'zh' ? '/zh/auth/signin' : '/auth/signin'
+                      window.location.href = signInPath + '?callbackUrl=' + encodeURIComponent(window.location.pathname)
+                    } else if (isAccessible) {
+                      // 已登录且有权限：直接使用
+                      handleTemplateSelect(template)
+                    } else {
+                      // 已登录但无权限：引导升级
+                      window.location.href = '/billing'
+                    }
+                  }
                   
                   return (
                     <div
                       key={template.id}
-                      className={`bg-gray-50 rounded-xl overflow-hidden transition-all group relative ${
-                        isLocked 
-                          ? 'opacity-60 cursor-not-allowed' 
-                          : 'hover:shadow-lg cursor-pointer'
-                      }`}
-                      onClick={() => isAccessible ? handleTemplateSelect(template) : null}
+                      className="bg-gray-50 rounded-xl overflow-hidden transition-all group relative hover:shadow-lg cursor-pointer"
+                      onClick={handleTemplateClick}
                     >
-                      {/* 锁定遮罩 */}
-                      {isLocked && (
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 rounded-xl">
-                          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 text-center">
-                            <Lock className="w-6 h-6 text-gray-600 mx-auto mb-1" />
-                            <p className="text-xs text-gray-600 font-medium">{texts.needUpgrade || 'Upgrade Required'}</p>
-                            <Link href="/billing" className="text-xs text-blue-600 hover:underline">
-                              {texts.upgradeNow || 'Upgrade Now'}
-                            </Link>
-                          </div>
-                        </div>
-                      )}
+                      {/* 移除锁定遮罩，所有用户都能看到案例 */}
                     {/* Before/After 预览 */}
                     <div className="aspect-video bg-white p-2">
                       <BeforeAfterSlider
@@ -1016,9 +1017,36 @@ export default function ImageGenerator({ texts }: ImageGeneratorProps) {
                       <h4 className="font-semibold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">
                         {template.title[pathname.startsWith('/zh') ? 'zh' : 'en']}
                       </h4>
-                      <p className="text-sm text-gray-600 line-clamp-2">
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                         {template.description[pathname.startsWith('/zh') ? 'zh' : 'en']}
                       </p>
+                      
+                      {/* 状态指示器 */}
+                      <div className="flex items-center justify-between">
+                        {needsLogin ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                            <span className="text-xs text-orange-600 font-medium">
+                              {pathname.startsWith('/zh') ? '登录后使用' : 'Login to Use'}
+                            </span>
+                          </div>
+                        ) : isAccessible ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-green-600 font-medium">
+                              {pathname.startsWith('/zh') ? '可直接使用' : 'Ready to Use'}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-xs text-blue-600 font-medium">
+                              {pathname.startsWith('/zh') ? '升级解锁' : 'Upgrade to Unlock'}
+                            </span>
+                          </div>
+                        )}
+                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                      </div>
                     </div>
                   </div>
                   )

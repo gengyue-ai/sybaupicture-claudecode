@@ -27,7 +27,7 @@ const FOOTER_LINKS = {
 }
 
 const SOCIAL_LINKS = [
-  { name: 'GitHub', icon: Github, href: 'https://github.com/gengyue-ai/sybaupicture' },
+  { name: 'GitHub', icon: Github, href: 'https://github.com/gengyue-ai/sybaupicture-claudecode' },
   { name: 'X', icon: X, href: 'https://x.com/SybauPicture' },
   { name: 'Email', icon: Mail, href: 'mailto:support@sybaupicture.com' }
 ]
