@@ -17,6 +17,8 @@ export interface TemplateData {
     guidance_scale?: number
     safety_tolerance?: number
     seed?: number
+    width?: number
+    height?: number
   }
   processingTime: { zh: string; en: string }
 }

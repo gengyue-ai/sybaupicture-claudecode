@@ -116,7 +116,7 @@ export async function createCheckoutSession({
   cancelUrl,
   userId
 }: {
-  customerId: string
+  customerId?: string
   priceId: string
   successUrl: string
   cancelUrl: string

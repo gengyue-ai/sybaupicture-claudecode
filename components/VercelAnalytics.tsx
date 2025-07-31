@@ -129,8 +129,8 @@ export function usePerformanceMonitoring() {
               dns_time: navEntry.domainLookupEnd - navEntry.domainLookupStart,
               connect_time: navEntry.connectEnd - navEntry.connectStart,
               response_time: navEntry.responseEnd - navEntry.responseStart,
-              dom_load_time: navEntry.domContentLoadedEventEnd - navEntry.navigationStart,
-              page_load_time: navEntry.loadEventEnd - navEntry.navigationStart,
+              dom_load_time: navEntry.domContentLoadedEventEnd - navEntry.fetchStart,
+              page_load_time: navEntry.loadEventEnd - navEntry.fetchStart,
               timestamp: new Date().toISOString()
             })
           }

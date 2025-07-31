@@ -287,8 +287,6 @@ vercel --prod
 - **失败处理**: 部署失败时提供明确的错误信息和建议
 
 #### 3. Git工作流规范
-```bash
-# 功能开发分支命名
 git checkout -b feature/fix-user-plan-display-2025-07-31
 git checkout -b hotfix/payment-button-issue-2025-07-31
 

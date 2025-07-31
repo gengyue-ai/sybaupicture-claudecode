@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
       })
       
       const checkoutSession = await createCheckoutSession({
-        customerId: stripeCustomerId,
+        customerId: stripeCustomerId || undefined,
         priceId,
         successUrl: `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${baseUrl}/pricing`,

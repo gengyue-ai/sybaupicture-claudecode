@@ -72,7 +72,7 @@ function checkAuthConfig() {
 // 检查支付配置
 function checkPaymentConfig() {
   return {
-    stripe: Boolean(config.stripe.secretKey && config.stripe.publishableKey)
+    stripe: Boolean(config.stripe.secretKey && config.stripe.publicKey)
   }
 }
 
@@ -85,9 +85,10 @@ function checkAIConfig() {
 
 // 检查环境配置
 function checkEnvironment() {
+  const nodeEnv = process.env.NODE_ENV || 'development'
   return {
-    node_env: process.env.NODE_ENV || 'unknown',
-    deployment_env: config.environment.current
+    node_env: nodeEnv,
+    deployment_env: (nodeEnv === 'production' ? 'production' : 'development') as 'development' | 'production'
   }
 }
 
@@ -144,7 +145,7 @@ export async function GET(request: NextRequest) {
       version: process.env.npm_package_version || '1.0.0',
       uptime: process.uptime(),
       checks: {
-        database: dbCheck.status,
+        database: dbCheck.status as 'connected' | 'disconnected' | 'error',
         auth: authCheck,
         payment: paymentCheck,
         ai: aiCheck,
