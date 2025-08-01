@@ -397,8 +397,8 @@ npm run start
 
 ## 📧 联系我们
 
-- **技术支持**: support@sybaupicture.com
-- **一般咨询**: hello@sybaupicture.com
+- **技术支持**: [联系我们](https://sybaupicture.com/contact)
+- **一般咨询**: [联系我们](https://sybaupicture.com/contact)
 - **GitHub**: https://github.com/gengyue-ai/sybaupicture-claudecode
 
 ## 📄 许可证
@@ -457,7 +457,7 @@ npm run start
     <a href="https://sybaupicture.com">🌐 立即访问</a> •
     <a href="https://sybaupicture.com/zh">🇨🇳 中文版</a> •
     <a href="https://sybaupicture.com/pricing">💰 定价</a> •
-    <a href="mailto:support@sybaupicture.com">📧 联系</a>
+    <a href="/contact">📧 联系</a>
   </p>
 
 </div>
