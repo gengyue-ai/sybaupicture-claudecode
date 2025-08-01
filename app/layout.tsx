@@ -91,9 +91,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Favicon */}
+        {/* Favicon - 强制使用SVG，避免ICO缓存问题 */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/logo-icon.svg" />
+        <meta name="msapplication-config" content="none" />
         
         {/* 结构化数据 - Organization & SoftwareApplication */}
         <script

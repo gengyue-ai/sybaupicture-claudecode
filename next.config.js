@@ -106,6 +106,12 @@ const nextConfig = {
         source: '/zh/generator',
         destination: '/zh',
         permanent: true
+      },
+      // 强制favicon使用SVG格式，避免显示Vercel默认logo
+      {
+        source: '/favicon.ico',
+        destination: '/favicon.svg',
+        permanent: false
       }
     ]
   },
