@@ -1,9 +1,27 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { HelpCircle, Search, Mail } from 'lucide-react'
 import Link from 'next/link'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '技术支持 - Sybau Picture | AI图片生成器帮助中心',
+  description: '获得Sybau Picture AI图片生成器的技术支持。查找常见问题答案，联系客服，学习如何创建精美的AI生成图片。',
+  keywords: ['技术支持', '客服中心', '帮助', 'AI图片生成器', 'Sybau Picture', '常见问题', '故障排除'],
+  openGraph: {
+    title: '技术支持 - Sybau Picture',
+    description: '获得Sybau Picture AI图片生成器的技术支持和帮助。',
+    url: 'https://sybaupicture.com/zh/support',
+    locale: 'zh_CN',
+  },
+  alternates: {
+    canonical: '/zh/support',
+    languages: {
+      'en-US': '/support',
+      'zh-CN': '/zh/support',
+    },
+  },
+}
 
 export default function ZHSupportPage() {
   const faqs = [

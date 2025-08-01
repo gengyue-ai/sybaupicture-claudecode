@@ -1,7 +1,24 @@
-'use client'
-
 import { Card, CardContent } from '@/components/ui/card'
 import { Mail, MessageSquare } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Contact Us - Sybau Picture | Get in Touch with Our AI Team',
+  description: 'Contact Sybau Picture team for support, feedback, or questions about our AI image generator. Send us a message and get a response within 24 hours.',
+  keywords: ['contact', 'support', 'customer service', 'AI image generator', 'Sybau Picture', 'help', 'feedback'],
+  openGraph: {
+    title: 'Contact Us - Sybau Picture',
+    description: 'Get in touch with Sybau Picture team for support and questions about our AI image generator.',
+    url: 'https://sybaupicture.com/contact',
+  },
+  alternates: {
+    canonical: '/contact',
+    languages: {
+      'en-US': '/contact',
+      'zh-CN': '/zh/contact',
+    },
+  },
+}
 
 export default function ContactPage() {
   return (

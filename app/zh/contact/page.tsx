@@ -1,7 +1,25 @@
-'use client'
-
 import { Card, CardContent } from '@/components/ui/card'
 import { Mail, MessageSquare } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '联系我们 - Sybau Picture | AI图片生成器客服',
+  description: '联系Sybau Picture团队获取AI图片生成器的支持、反馈或咨询。发送消息，我们会在24小时内回复您。',
+  keywords: ['联系我们', '客服', '技术支持', 'AI图片生成器', 'Sybau Picture', '帮助', '反馈'],
+  openGraph: {
+    title: '联系我们 - Sybau Picture',
+    description: '联系Sybau Picture团队获取AI图片生成器的支持和咨询。',
+    url: 'https://sybaupicture.com/zh/contact',
+    locale: 'zh_CN',
+  },
+  alternates: {
+    canonical: '/zh/contact',
+    languages: {
+      'en-US': '/contact',
+      'zh-CN': '/zh/contact',
+    },
+  },
+}
 
 export default function ZHContactPage() {
   return (

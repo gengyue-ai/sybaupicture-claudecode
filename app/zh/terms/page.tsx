@@ -1,8 +1,26 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { FileText, Shield, Users, Gavel, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '服务条款 - Sybau Picture | AI图片生成器使用协议',
+  description: '阅读Sybau Picture的服务条款。了解使用我们AI图片生成平台时的权利和责任。',
+  keywords: ['服务条款', '法律条款', '用户协议', 'AI图片生成器', 'Sybau Picture'],
+  openGraph: {
+    title: '服务条款 - Sybau Picture',
+    description: '阅读Sybau Picture AI图片生成平台的服务条款。',
+    url: 'https://sybaupicture.com/zh/terms',
+    locale: 'zh_CN',
+  },
+  alternates: {
+    canonical: '/zh/terms',
+    languages: {
+      'en-US': '/terms',
+      'zh-CN': '/zh/terms',
+    },
+  },
+}
 
 export default function ZHTermsPage() {
   const termsSections = [

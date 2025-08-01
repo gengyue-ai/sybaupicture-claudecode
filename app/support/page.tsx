@@ -1,9 +1,26 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { HelpCircle, Search, Mail } from 'lucide-react'
 import Link from 'next/link'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Support Center - Sybau Picture | Get Help with AI Image Generator',
+  description: 'Get help with Sybau Picture AI image generator. Find answers to common questions, contact support, and learn how to create amazing AI-generated images.',
+  keywords: ['support', 'help center', 'customer service', 'AI image generator', 'Sybau Picture', 'FAQ', 'troubleshooting'],
+  openGraph: {
+    title: 'Support Center - Sybau Picture',
+    description: 'Get help with Sybau Picture AI image generator. Find answers and contact support.',
+    url: 'https://sybaupicture.com/support',
+  },
+  alternates: {
+    canonical: '/support',
+    languages: {
+      'en-US': '/support',
+      'zh-CN': '/zh/support',
+    },
+  },
+}
 
 export default function SupportPage() {
   const faqs = [
