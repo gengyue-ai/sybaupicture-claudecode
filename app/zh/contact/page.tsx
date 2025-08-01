@@ -23,28 +23,46 @@ export default function ZHContactPage() {
                 <p className="text-gray-600">我们非常感谢您对我们AI驱动图像生成平台的反馈和咨询。</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">邮箱支持</h4>
-                  <p className="text-gray-600 text-sm mb-2">获取技术问题帮助</p>
-                  <a href="mailto:support@sybaupicture.com" className="text-blue-600 hover:text-blue-800">
-                    support@sybaupicture.com
-                  </a>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-8 h-8 text-purple-600" />
                 </div>
-
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="w-8 h-8 text-green-600" />
+                <h4 className="font-semibold mb-2">联系表单</h4>
+                <p className="text-gray-600 mb-4">发送消息给我们，我们将在24小时内回复您</p>
+                
+                <form className="max-w-md mx-auto space-y-4">
+                  <div>
+                    <input 
+                      type="email" 
+                      placeholder="您的邮箱地址" 
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required 
+                    />
                   </div>
-                  <h4 className="font-semibold mb-2">一般咨询</h4>
-                  <p className="text-gray-600 text-sm mb-2">关于我们平台的问题</p>
-                  <a href="mailto:hello@sybaupicture.com" className="text-green-600 hover:text-green-800">
-                    hello@sybaupicture.com
-                  </a>
-                </div>
+                  <div>
+                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                      <option value="">选择咨询类型</option>
+                      <option value="technical">技术支持</option>
+                      <option value="general">一般问题</option>
+                      <option value="billing">计费和订阅</option>
+                      <option value="feature">功能建议</option>
+                    </select>
+                  </div>
+                  <div>
+                    <textarea 
+                      placeholder="您的消息" 
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required
+                    ></textarea>
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    发送消息
+                  </button>
+                </form>
               </div>
             </CardContent>
           </Card>
