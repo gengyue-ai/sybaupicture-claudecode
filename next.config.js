@@ -56,10 +56,15 @@ const nextConfig = {
       },
 
     ],
-    formats: ['image/webp', 'image/avif'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    // 移动端激进优化 - 针对LCP 4.18s问题
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [320, 420, 640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 24, 32, 48, 64, 96, 128, 256, 384, 512],
+    minimumCacheTTL: 31536000, // 1年缓存
+    quality: 80, // 移动端优先的质量平衡
+    // 移动端更激进的优化
+    loader: 'default',
+    unoptimized: false,
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },

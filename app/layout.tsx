@@ -15,6 +15,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ResourcePreloader } from '@/components/performance/ResourcePreloader'
 import { CriticalCSS } from '@/components/performance/CriticalCSS'
 import { WebVitalsTracker, PerformanceOptimizer } from '@/components/performance/WebVitalsTracker'
+import { MobileLCPOptimizer, MobileLCPPreloader } from '@/components/performance/MobileLCPOptimizer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -104,10 +105,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* 预加载LCP关键图片 - 提升首屏加载速度 */}
-        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-before.webp" fetchPriority="high" />
-        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-after.webp" fetchPriority="high" />
-        <link rel="preload" as="image" href="/logo.svg" />
+        {/* 移动端优先的LCP关键图片预加载 */}
+        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-before.webp" fetchPriority="high" media="(max-width: 768px)" />
+        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-after.webp" fetchPriority="high" media="(max-width: 768px)" />
+        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-before.webp" fetchPriority="high" media="(min-width: 769px)" />
+        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-after.webp" fetchPriority="high" media="(min-width: 769px)" />
+        <link rel="preload" as="image" href="/logo.svg" fetchPriority="high" />
         
         {/* 预加载关键字体 */}
         <link rel="preload" href="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
@@ -228,6 +231,10 @@ export default function RootLayout({
         <SpeedInsights />
         <WebVitalsTracker />
         <PerformanceOptimizer />
+        
+        {/* 移动端LCP专项优化 */}
+        <MobileLCPOptimizer />
+        <MobileLCPPreloader />
       </body>
     </html>
   )

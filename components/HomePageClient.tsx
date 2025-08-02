@@ -16,14 +16,24 @@ import {
   LazyFeaturesSection 
 } from '@/components/home/LazyHomeComponents'
 
-// 懒加载重型组件 - 首屏渲染完成后再加载
+// 移动端优化的懒加载 - 根据设备性能调整加载时机
 const ImageGenerator = lazy(() => {
   return new Promise((resolve) => {
-    // 等待首屏LCP完成后再加载
     if (typeof window !== 'undefined') {
-      requestIdleCallback(() => {
+      // 平衡性能和用户体验的延迟时间
+      const isMobile = window.innerWidth <= 768
+      const delay = isMobile ? 2500 : 2000
+      
+      const loadComponent = () => {
         import('@/components/ImageGenerator').then(resolve)
-      }, { timeout: 3000 })
+      }
+      
+      if (isMobile) {
+        // 移动端使用setTimeout而不是requestIdleCallback（性能更好）
+        setTimeout(loadComponent, delay)
+      } else {
+        requestIdleCallback(loadComponent, { timeout: delay })
+      }
     } else {
       import('@/components/ImageGenerator').then(resolve)
     }
@@ -32,11 +42,14 @@ const ImageGenerator = lazy(() => {
 
 const UnifiedScenarioShowcase = lazy(() => {
   return new Promise((resolve) => {
-    // 延迟更久加载showcase
     if (typeof window !== 'undefined') {
+      // 合理的延迟加载时间
+      const isMobile = window.innerWidth <= 768
+      const delay = isMobile ? 3500 : 3000
+      
       setTimeout(() => {
         import('@/components/UnifiedScenarioShowcase').then(resolve)
-      }, 3000)
+      }, delay)
     } else {
       import('@/components/UnifiedScenarioShowcase').then(resolve)
     }
