@@ -12,6 +12,9 @@ import { GooglePageAds } from '@/components/GoogleAds'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { ResourcePreloader } from '@/components/performance/ResourcePreloader'
+import { CriticalCSS } from '@/components/performance/CriticalCSS'
+import { WebVitalsTracker, PerformanceOptimizer } from '@/components/performance/WebVitalsTracker'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -91,11 +94,41 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* 关键CSS内联 - 首屏渲染优化 */}
+        <CriticalCSS />
+        
+        {/* DNS预解析和预连接 */}
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        <link rel="dns-prefetch" href="//fal.media" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* 预加载LCP关键图片 - 提升首屏加载速度 */}
+        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-before.webp" fetchPriority="high" />
+        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-after.webp" fetchPriority="high" />
+        <link rel="preload" as="image" href="/logo.svg" />
+        
+        {/* 预加载关键字体 */}
+        <link rel="preload" href="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        
+        {/* Google AdSense - 必须在head中，符合Google要求 */}
+        <script 
+          async 
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1000714999006921"
+          crossOrigin="anonymous"
+        />
+        
+        {/* Google Analytics - 异步延迟加载避免阻塞渲染 */}
+        
         {/* Favicon - 强制使用SVG，避免ICO缓存问题 */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/logo-icon.svg" />
         <meta name="msapplication-config" content="none" />
+        
+        {/* 视口优化 */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         
         {/* 结构化数据 - Organization & SoftwareApplication */}
         <script
@@ -173,11 +206,8 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <GoogleAnalytics />
-        <GooglePageAds />
         <Providers>
           <AuthStateHandler />
-          <BackgroundUserSync />
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1 pt-16">
@@ -187,9 +217,17 @@ export default function RootLayout({
           </div>
           <Toaster />
           <SonnerToaster />
+          
+          {/* 延迟加载的非关键组件 */}
+          <BackgroundUserSync />
+          <GoogleAnalytics />
         </Providers>
+        
+        {/* 延迟加载的分析脚本 */}
         <Analytics />
         <SpeedInsights />
+        <WebVitalsTracker />
+        <PerformanceOptimizer />
       </body>
     </html>
   )

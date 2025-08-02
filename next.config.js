@@ -7,6 +7,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // 性能优化配置
+  compress: true,
+  swcMinify: true,
   images: {
     remotePatterns: [
       {
@@ -54,6 +57,11 @@ const nextConfig = {
 
     ],
     formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   async rewrites() {
     return [
@@ -118,7 +126,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // 安全头部
+        // 安全头部和性能优化
         source: '/(.*)',
         headers: [
           {
@@ -136,12 +144,56 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
           }
         ]
       },
       {
         // 缓存静态资源
         source: '/assets/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        // 缓存图片资源
+        source: '/images/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        // 缓存字体文件
+        source: '/fonts/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        // 缓存静态JS文件
+        source: '/static/js/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        // 缓存静态CSS文件
+        source: '/static/css/(.*)',
         headers: [
           {
             key: 'Cache-Control',
@@ -184,15 +236,43 @@ const nextConfig = {
       })
     }
 
+    // 性能优化：代码分割
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              enforce: true,
+            },
+          },
+        },
+      }
+    }
+
     return config
   },
   env: {
     CUSTOM_KEY: 'sybau-picture-v1',
   },
   poweredByHeader: false, // 隐藏X-Powered-By头部
-  // 解决特定页面的预渲染问题，不影响核心商业功能
+  // 实验性功能 - 性能优化
   experimental: {
     missingSuspenseWithCSRBailout: false,
+    optimizeCss: true,
+    gzipSize: true,
+    scrollRestoration: true,
+    // 启用并发特性
+    serverComponentsExternalPackages: ['sharp'],
   },
 }
 
