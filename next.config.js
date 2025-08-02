@@ -61,10 +61,7 @@ const nextConfig = {
     deviceSizes: [320, 420, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 24, 32, 48, 64, 96, 128, 256, 384, 512],
     minimumCacheTTL: 31536000, // 1年缓存
-    quality: 80, // 移动端优先的质量平衡
-    // 移动端更激进的优化
-    loader: 'default',
-    unoptimized: false,
+    // 移动端更激进的优化 (quality参数在Next.js中不支持全局设置)
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
