@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { createPrismaClient } from '@/lib/prisma'
 
+// 强制动态渲染，因为我们使用了headers
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const prisma = createPrismaClient()
