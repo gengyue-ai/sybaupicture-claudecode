@@ -268,7 +268,8 @@ const nextConfig = {
   // 实验性功能 - 性能优化
   experimental: {
     missingSuspenseWithCSRBailout: false,
-    optimizeCss: true,
+    // 暂时关闭optimizeCss避免critters依赖问题
+    // optimizeCss: true,
     gzipSize: true,
     scrollRestoration: true,
     // 启用并发特性
