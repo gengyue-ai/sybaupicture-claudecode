@@ -16,6 +16,8 @@ import { ResourcePreloader } from '@/components/performance/ResourcePreloader'
 import { CriticalCSS } from '@/components/performance/CriticalCSS'
 import { WebVitalsTracker, PerformanceOptimizer } from '@/components/performance/WebVitalsTracker'
 import { MobileLCPOptimizer, MobileLCPPreloader } from '@/components/performance/MobileLCPOptimizer'
+import CanonicalURL from '@/components/CanonicalURL'
+import MultiLanguageMeta from '@/components/MultiLanguageMeta'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -211,6 +213,8 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <AuthStateHandler />
+          <CanonicalURL />
+          <MultiLanguageMeta />
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1 pt-16">

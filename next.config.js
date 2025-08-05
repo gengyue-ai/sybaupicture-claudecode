@@ -96,6 +96,31 @@ const nextConfig = {
       //   destination: 'https://sybaupicture.com/:path*',
       //   permanent: true,
       // },
+      
+      // SEO修复：处理查询参数页面重定向到规范URL
+      {
+        source: '/',
+        has: [
+          {
+            type: 'query',
+            key: 'ref'
+          }
+        ],
+        destination: '/',
+        permanent: true
+      },
+      {
+        source: '/zh',
+        has: [
+          {
+            type: 'query',
+            key: 'ref'
+          }
+        ],
+        destination: '/zh',
+        permanent: true
+      },
+      
       // 重定向旧URL到首页
       {
         source: '/old-generator',
