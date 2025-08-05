@@ -678,7 +678,111 @@
   animation: gradient 15s ease infinite;
 }
 
-/* 响应式设计 */
+/* 移动端性能优化 - 专项提升Core Web Vitals */
+@layer utilities {
+  @media (max-width: 768px) {
+    /* 🎯 移动端动画优化 - 减少GPU压力提升性能 */
+    .animate-blob, .animate-float, .animate-gradient,
+    .card-hover-effect, .btn-hover-effect, .animate-shimmer,
+    .animate-glow, .wave-animation, .particle-effect {
+      animation: none !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    
+    /* 🚀 图片加载性能优化 - contain-intrinsic-size避免CLS */
+    .responsive-image, img {
+      content-visibility: auto;
+      contain-intrinsic-size: 300px 200px;
+      image-rendering: optimizeQuality;
+    }
+    
+    /* 📱 移动端卡片优化 - 减少复杂视觉效果 */
+    .modern-card, .glassmorphism, .neumorphism {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+      backdrop-filter: none !important;
+      border-radius: 12px !important;
+    }
+    
+    /* ⚡ 字体渲染优化 - 提升文本渲染性能 */
+    * {
+      text-rendering: optimizeSpeed !important;
+      -webkit-font-smoothing: antialiased !important;
+      -moz-osx-font-smoothing: grayscale !important;
+    }
+    
+    /* 🎨 渐变简化 - 减少CPU占用 */
+    .sybau-gradient, .animated-background,
+    .modern-btn, .modern-badge {
+      background: #667eea !important;
+    }
+    
+    /* 📏 布局稳定性优化 - 防止CLS */
+    .upload-area {
+      min-height: 200px;
+      contain: layout style paint;
+    }
+    
+    /* 🔍 移除不必要的变换效果 */
+    .image-hover-effect, .social-icon {
+      transform: none !important;
+      transition: none !important;
+    }
+    
+    /* 💾 内存优化 - 移除复杂伪元素 */
+    .btn-hover-effect::before,
+    .modern-btn::before,
+    .particle-effect::before {
+      display: none !important;
+    }
+    
+    /* 🎯 关键按钮优化保持交互 */
+    .btn-glow {
+      box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2) !important;
+    }
+    
+    /* 📱 移动端滚动优化 */
+    body {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: auto !important;
+    }
+    
+    /* 🎮 移动端交互优化 - 保持必要的用户体验 */
+    .modern-input:focus {
+      box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.3) !important;
+      transform: none !important;
+    }
+    
+    /* 📊 统计卡片移动端优化 */
+    .grid.grid-cols-2.md\\:grid-cols-5 {
+      gap: 0.75rem !important;
+    }
+    
+    /* 🖼️ 图片网格移动端优化 */
+    .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4 {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.5rem !important;
+    }
+    
+    /* 📱 移动端字体大小优化 */
+    h1 { font-size: 1.75rem !important; }
+    h2 { font-size: 1.5rem !important; }
+    h3 { font-size: 1.25rem !important; }
+    
+    /* ⚡ 减少重排重绘 */
+    .container {
+      contain: layout style paint;
+    }
+    
+    /* 🎯 Critical above-the-fold优化 */
+    .hero-section, .main-content {
+      contain: layout style paint;
+      content-visibility: auto;
+    }
+  }
+}
+
+/* 响应式设计兼容 */
 @media (max-width: 768px) {
   .blob-animation {
     display: none;

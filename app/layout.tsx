@@ -14,10 +14,6 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ResourcePreloader } from '@/components/performance/ResourcePreloader'
 import { CriticalCSS } from '@/components/performance/CriticalCSS'
-import { WebVitalsTracker, PerformanceOptimizer } from '@/components/performance/WebVitalsTracker'
-import { MobileLCPOptimizer, MobileLCPPreloader } from '@/components/performance/MobileLCPOptimizer'
-import CanonicalURL from '@/components/CanonicalURL'
-import MultiLanguageMeta from '@/components/MultiLanguageMeta'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -100,18 +96,13 @@ export default function RootLayout({
         {/* 关键CSS内联 - 首屏渲染优化 */}
         <CriticalCSS />
         
-        {/* DNS预解析和预连接 */}
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-        <link rel="dns-prefetch" href="//fal.media" />
+        {/* DNS预解析和预连接 - 优化顺序 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//fal.media" />
         
-        {/* 移动端优先的LCP关键图片预加载 */}
-        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-before.webp" fetchPriority="high" media="(max-width: 768px)" />
-        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-after.webp" fetchPriority="high" media="(max-width: 768px)" />
-        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-before.webp" fetchPriority="high" media="(min-width: 769px)" />
-        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-after.webp" fetchPriority="high" media="(min-width: 769px)" />
+        {/* LCP关键图片预加载 - 只预加载before图片避免竞争 */}
+        <link rel="preload" as="image" href="/images/hero-showcase/hero-removal-before.webp" fetchPriority="high" />
         <link rel="preload" as="image" href="/logo.svg" fetchPriority="high" />
         
         {/* 预加载关键字体 */}
@@ -213,8 +204,6 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <AuthStateHandler />
-          <CanonicalURL />
-          <MultiLanguageMeta />
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1 pt-16">
@@ -233,12 +222,6 @@ export default function RootLayout({
         {/* 延迟加载的分析脚本 */}
         <Analytics />
         <SpeedInsights />
-        <WebVitalsTracker />
-        <PerformanceOptimizer />
-        
-        {/* 移动端LCP专项优化 */}
-        <MobileLCPOptimizer />
-        <MobileLCPPreloader />
       </body>
     </html>
   )

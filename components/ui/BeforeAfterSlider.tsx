@@ -104,13 +104,12 @@ export function BeforeAfterSlider({
           alt={afterAlt}
           fill
           className="object-cover"
-          sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, (max-width: 1200px) 800px, ${width}px"
-          priority={true}
-          fetchPriority="high"
-          loading="eager"
+          sizes="(max-width: 480px) 320px, (max-width: 768px) 480px, (max-width: 1200px) 640px, 800px"
+          priority={false}
+          loading="lazy"
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknywtUnYh2AaBJb2VbhU+sKfqqGtBWG3JJxQdBSXp4aKbHAjjBTj7Bh+8ATqP/Z"
-          quality={85}
+          quality={75}
         />
         {/* After Label */}
         <div className="absolute top-4 right-4 z-10">
@@ -130,13 +129,13 @@ export function BeforeAfterSlider({
           alt={beforeAlt}
           fill
           className="object-cover"
-          sizes="(max-width: 480px) 320px, (max-width: 768px) 640px, (max-width: 1200px) 800px, ${width}px"
+          sizes="(max-width: 480px) 320px, (max-width: 768px) 480px, (max-width: 1200px) 640px, 800px"
           priority={true}
           fetchPriority="high"
           loading="eager"
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwGIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknywtUnYh2AaBJb2VbhU+sKfqqGtBWG3JJxQdBSXp4aKbHAjjBTj7Bh+8ATqP/Z"
-          quality={85}
+          quality={80}
         />
         {/* Before Label */}
         <div className="absolute top-4 left-4 z-10">
