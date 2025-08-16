@@ -10,10 +10,11 @@ export const metadata: Metadata = {
     url: 'https://sybaupicture.com/pricing',
   },
   alternates: {
-    canonical: '/pricing',
+    canonical: 'https://sybaupicture.com/pricing', // 绝对URL
     languages: {
-      'en-US': '/pricing',
-      'zh-CN': '/zh/pricing',
+      'en-US': 'https://sybaupicture.com/pricing',
+      'zh-CN': 'https://sybaupicture.com/zh/pricing',
+      'x-default': 'https://sybaupicture.com/pricing'
     },
   },
 }

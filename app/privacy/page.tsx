@@ -13,10 +13,11 @@ export const metadata: Metadata = {
     url: 'https://sybaupicture.com/privacy',
   },
   alternates: {
-    canonical: '/privacy',
+    canonical: 'https://sybaupicture.com/privacy', // 绝对URL
     languages: {
-      'en-US': '/privacy',
-      'zh-CN': '/zh/privacy',
+      'en-US': 'https://sybaupicture.com/privacy',
+      'zh-CN': 'https://sybaupicture.com/zh/privacy',
+      'x-default': 'https://sybaupicture.com/privacy'
     },
   },
 }

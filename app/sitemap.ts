@@ -44,25 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     },
-    // 新增页面 - 用户相关
-    {
-      url: `${SITE_URL}/profile/assets`,
-      lastModified: lastModified,
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/billing`,
-      lastModified: lastModified,
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/history`,
-      lastModified: lastModified,
-      changeFrequency: 'weekly' as const,
-      priority: 0.5,
-    },
+    // 移除用户私人页面 - 这些页面应该在robots.txt中被禁止索引
     // 法律页面
     {
       url: `${SITE_URL}/privacy`,
@@ -93,14 +75,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       })
 
-      // 重要页面多语言版本（包含用户相关页面）
-      const i18nPages = ['gallery', 'pricing', 'help', 'support', 'contact', 'privacy', 'terms', 'profile/assets', 'billing']
+      // 重要页面多语言版本（移除用户私人页面）
+      const i18nPages = ['gallery', 'pricing', 'help', 'support', 'contact', 'privacy', 'terms']
       i18nPages.forEach(page => {
         const priority = page === 'gallery' ? 0.7 :
           page === 'pricing' ? 0.8 :
             ['help', 'support'].includes(page) ? 0.5 :
-              ['profile/assets', 'billing'].includes(page) ? 0.6 :
-                ['contact'].includes(page) ? 0.4 : 0.3
+              ['contact'].includes(page) ? 0.4 : 0.3
 
         sitemap.push({
           url: `${SITE_URL}/${lang}/${page}`,

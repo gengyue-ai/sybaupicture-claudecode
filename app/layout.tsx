@@ -8,12 +8,12 @@ import Footer from '@/components/Footer'
 import { Providers } from '@/components/providers'
 import BackgroundUserSync from '@/components/BackgroundUserSync'
 import { AuthStateHandler } from '@/components/AuthStateHandler'
-import { GooglePageAds } from '@/components/GoogleAds'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ResourcePreloader } from '@/components/performance/ResourcePreloader'
 import { CriticalCSS } from '@/components/performance/CriticalCSS'
+import { AsyncCSS } from '@/components/performance/AsyncCSS'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -32,10 +32,11 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://sybaupicture.com'),
   alternates: {
-    canonical: '/',
+    canonical: 'https://sybaupicture.com/', // 绝对URL
     languages: {
-      'en-US': '/',
-      'zh-CN': '/zh',
+      'en-US': 'https://sybaupicture.com/',
+      'zh-CN': 'https://sybaupicture.com/zh',
+      'x-default': 'https://sybaupicture.com/'
     },
   },
   verification: {
@@ -108,7 +109,7 @@ export default function RootLayout({
         {/* 预加载关键字体 */}
         <link rel="preload" href="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         
-        {/* Google AdSense - 必须在head中，符合Google要求 */}
+        {/* Google AdSense - 标准配置，符合Google要求 */}
         <script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1000714999006921"
@@ -222,6 +223,9 @@ export default function RootLayout({
         {/* 延迟加载的分析脚本 */}
         <Analytics />
         <SpeedInsights />
+        
+        {/* 安全的性能优化组件 */}
+        <AsyncCSS />
       </body>
     </html>
   )

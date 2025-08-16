@@ -6,11 +6,16 @@ export const metadata: Metadata = {
   description: 'Sybau基于FLUX Pro/Kontext AI的专业图像生成器。120亿参数模型，支持水印去除、身材优化、风格转换等9大应用场景，15秒快速生成，商业级品质输出，轻松实现专业级AI图片编辑和创作。',
   keywords: ['Sybau', '图像生成器', 'FLUX Pro', 'Kontext AI', 'AI图片编辑', 'flux-pro/kontext', '专业AI编辑', 'AI图像生成', 'sybau图像生成器'],
   alternates: {
-    canonical: '/zh',
+    canonical: 'https://sybaupicture.com/', // 指向英文主版本
     languages: {
-      'en-US': '/',
-      'zh-CN': '/zh',
+      'en-US': 'https://sybaupicture.com/',
+      'zh-CN': 'https://sybaupicture.com/zh',
+      'x-default': 'https://sybaupicture.com/'
     },
+  },
+  robots: {
+    index: false, // 避免重复索引，让英文版作为主版本
+    follow: true,
   },
   openGraph: {
     title: 'Sybau FLUX Pro图像生成器 | Kontext AI专业编辑',

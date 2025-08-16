@@ -13,10 +13,11 @@ export const metadata: Metadata = {
     url: 'https://sybaupicture.com/terms',
   },
   alternates: {
-    canonical: '/terms',
+    canonical: 'https://sybaupicture.com/terms', // 绝对URL
     languages: {
-      'en-US': '/terms',
-      'zh-CN': '/zh/terms',
+      'en-US': 'https://sybaupicture.com/terms',
+      'zh-CN': 'https://sybaupicture.com/zh/terms',
+      'x-default': 'https://sybaupicture.com/terms'
     },
   },
 }

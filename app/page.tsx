@@ -24,10 +24,11 @@ export const metadata: Metadata = {
     images: ['https://sybaupicture.com/og-image.jpg'],
   },
   alternates: {
-    canonical: '/',
+    canonical: 'https://sybaupicture.com/', // 绝对URL
     languages: {
-      'en-US': '/',
-      'zh-CN': '/zh',
+      'en-US': 'https://sybaupicture.com/',
+      'zh-CN': 'https://sybaupicture.com/zh',
+      'x-default': 'https://sybaupicture.com/'
     },
   },
 }

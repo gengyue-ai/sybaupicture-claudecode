@@ -11,10 +11,11 @@ export const metadata: Metadata = {
     url: 'https://sybaupicture.com/contact',
   },
   alternates: {
-    canonical: '/contact',
+    canonical: 'https://sybaupicture.com/contact', // 绝对URL
     languages: {
-      'en-US': '/contact',
-      'zh-CN': '/zh/contact',
+      'en-US': 'https://sybaupicture.com/contact',
+      'zh-CN': 'https://sybaupicture.com/zh/contact',
+      'x-default': 'https://sybaupicture.com/contact'
     },
   },
 }

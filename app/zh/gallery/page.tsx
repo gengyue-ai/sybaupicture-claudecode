@@ -23,11 +23,16 @@ export const metadata: Metadata = {
     images: ['/og-gallery-flux.webp'],
   },
   alternates: {
-    canonical: '/zh/gallery',
+    canonical: 'https://sybaupicture.com/gallery', // 指向英文主版本
     languages: {
-      'en-US': '/gallery',
-      'zh-CN': '/zh/gallery',
+      'en-US': 'https://sybaupicture.com/gallery',
+      'zh-CN': 'https://sybaupicture.com/zh/gallery',
+      'x-default': 'https://sybaupicture.com/gallery'
     },
+  },
+  robots: {
+    index: false, // 避免重复索引，让英文版作为主版本
+    follow: true,
   },
 }
 

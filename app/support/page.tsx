@@ -14,10 +14,11 @@ export const metadata: Metadata = {
     url: 'https://sybaupicture.com/support',
   },
   alternates: {
-    canonical: '/support',
+    canonical: 'https://sybaupicture.com/support', // 绝对URL
     languages: {
-      'en-US': '/support',
-      'zh-CN': '/zh/support',
+      'en-US': 'https://sybaupicture.com/support',
+      'zh-CN': 'https://sybaupicture.com/zh/support',
+      'x-default': 'https://sybaupicture.com/support'
     },
   },
 }

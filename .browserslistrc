@@ -1,0 +1,16 @@
+# 现代浏览器配置 - 移除14KB不必要polyfill
+# 支持95%现代浏览器，移除已原生支持的ES6+特性
+
+# 生产环境 - 现代浏览器优先
+>= 0.5%
+last 2 versions
+not dead
+not IE 11
+not chrome < 91
+not firefox < 90  
+not safari < 14
+not ios_saf < 14
+
+# 移除过时浏览器支持以减少polyfill
+not android < 5
+not samsung < 10

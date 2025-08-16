@@ -97,29 +97,7 @@ const nextConfig = {
       //   permanent: true,
       // },
       
-      // SEO修复：处理查询参数页面重定向到规范URL
-      {
-        source: '/',
-        has: [
-          {
-            type: 'query',
-            key: 'ref'
-          }
-        ],
-        destination: '/',
-        permanent: true
-      },
-      {
-        source: '/zh',
-        has: [
-          {
-            type: 'query',
-            key: 'ref'
-          }
-        ],
-        destination: '/zh',
-        permanent: true
-      },
+      // 移除有问题的查询参数重定向 - 保留流量来源追踪
       
       // 重定向旧URL到首页
       {
@@ -292,15 +270,17 @@ const nextConfig = {
     CUSTOM_KEY: 'sybau-picture-v1',
   },
   poweredByHeader: false, // 隐藏X-Powered-By头部
-  // 实验性功能 - 性能优化
+  // 实验性功能 - 安全性能优化
   experimental: {
     missingSuspenseWithCSRBailout: false,
-    // 暂时关闭optimizeCss避免critters依赖问题
-    // optimizeCss: true,
+    // 启用CSS优化 - 减少渲染阻塞
+    optimizeCss: true,
     gzipSize: true,
     scrollRestoration: true,
-    // 启用并发特性
+    // 启用并发特性和现代JS优化
     serverComponentsExternalPackages: ['sharp'],
+    // 启用SWC minification优化bundle大小
+    swcMinify: true,
   },
 }
 

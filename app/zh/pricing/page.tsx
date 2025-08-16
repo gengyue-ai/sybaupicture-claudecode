@@ -12,11 +12,16 @@ export const metadata: Metadata = {
     locale: 'zh_CN',
   },
   alternates: {
-    canonical: '/zh/pricing',
+    canonical: 'https://sybaupicture.com/pricing', // 指向英文主版本
     languages: {
-      'en-US': '/pricing',
-      'zh-CN': '/zh/pricing',
+      'en-US': 'https://sybaupicture.com/pricing',
+      'zh-CN': 'https://sybaupicture.com/zh/pricing',
+      'x-default': 'https://sybaupicture.com/pricing'
     },
+  },
+  robots: {
+    index: false, // 避免重复索引，让英文版作为主版本
+    follow: true,
   },
 }
 
