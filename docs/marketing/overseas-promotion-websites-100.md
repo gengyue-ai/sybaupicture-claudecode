@@ -21,9 +21,9 @@
 
 | 序号 | 网站名称 | 域名 | 用户群体匹配度 | 特色介绍 |
 |------|----------|------|----------------|----------|
-| 1 | **Product Hunt** | producthunt.com | ⭐⭐⭐⭐⭐ | 全球最大科技产品发布平台，每日精选最佳新产品，AI类别专区活跃 |
-| 2 | **BetaList** | betalist.com | ⭐⭐⭐⭐⭐ | 早期产品发布社区，1M+潜在用户，快速审批(1-2天) |
-| 3 | **Indiehackers** | indiehackers.com | ⭐⭐⭐⭐⭐ | 独立开发者社区，收入透明，策略分享，付费产品友好 |
+| 1 | **BetaList** | betalist.com | ⭐⭐⭐⭐⭐ | 早期产品发布社区，1M+潜在用户，快速审批(1-2天) |
+| 2 | **Indiehackers** | indiehackers.com | ⭐⭐⭐⭐⭐ | 独立开发者社区，收入透明，策略分享，付费产品友好 |
+| 3 | **Hacker News** | news.ycombinator.com | ⭐⭐⭐⭐ | 技术社区，高质量用户群体，适合技术产品推广 |
 | 4 | **Hacker News** | news.ycombinator.com | ⭐⭐⭐⭐⭐ | 科技圈顶级社区，高质量用户，AI话题热度高 |
 | 5 | **AngelList** | angel.co | ⭐⭐⭐⭐ | 创业公司展示平台，投资人关注，商业化产品优势 |
 | 6 | **StartupStash** | startupstash.com | ⭐⭐⭐⭐ | 创业工具聚合平台，DR67高权重，工具分类详细 |
