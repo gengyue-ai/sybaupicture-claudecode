@@ -348,3 +348,4 @@ node scripts/health-check.js
 4. 执行健康检查确认回滚成功
 5. 分析问题原因，更新防护措施
 6. 重新进行修复，使用标准部署流程
+- to memorize
