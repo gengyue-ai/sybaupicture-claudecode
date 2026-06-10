@@ -79,6 +79,27 @@ const nextConfig = {
       {
         source: '/ai-meme-maker',
         destination: '/'
+      },
+      // gallery二级域名重写
+      {
+        source: '/gallery-subdomain',
+        destination: '/gallery-subdomain',
+        has: [
+          {
+            type: 'host',
+            value: 'gallery.sybaupicture.com'
+          }
+        ]
+      },
+      {
+        source: '/(.*)',
+        destination: '/gallery-subdomain',
+        has: [
+          {
+            type: 'host',
+            value: 'gallery.sybaupicture.com'
+          }
+        ]
       }
     ]
   },

@@ -29,13 +29,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 🎯 处理gallery二级域名 - 重写到独立页面
-  if (hostname.includes('gallery.sybaupicture.com')) {
-    // 重写URL到gallery-subdomain独立页面
-    const url = request.nextUrl.clone()
-    url.pathname = '/gallery-subdomain'
-    return NextResponse.rewrite(url)
-  }
+  // gallery二级域名由next.config.js的rewrites处理
+  // 这里不再重复处理
 
   const currentLocale = getCurrentLocale(pathname)
 
