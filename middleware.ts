@@ -29,19 +29,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 🎯 处理gallery二级域名 - 将 gallery.sybaupicture.com 重写到 /gallery
-  // 使用includes检查，以防有端口号
+  // 🎯 处理gallery二级域名 - 重写到独立页面
   if (hostname.includes('gallery.sybaupicture.com')) {
-    console.log('🎯 检测到gallery二级域名，hostname:', hostname, 'pathname:', pathname)
-    // 重写URL到gallery页面
+    // 重写URL到gallery-subdomain独立页面
     const url = request.nextUrl.clone()
-    // 根路径 / 重定向到 /gallery，其他路径加上 /gallery 前缀
-    if (pathname === '/' || pathname === '') {
-      url.pathname = '/gallery'
-    } else {
-      url.pathname = '/gallery'
-    }
-    console.log('🔄 rewrite到:', url.pathname)
+    url.pathname = '/gallery-subdomain'
     return NextResponse.rewrite(url)
   }
 
