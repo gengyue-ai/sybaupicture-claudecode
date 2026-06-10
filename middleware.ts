@@ -14,6 +14,7 @@ function getCurrentLocale(pathname: string): string | null {
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const hostname = request.nextUrl.hostname
 
   // 跳过API路由、静态文件和Next.js内部路由
   if (
@@ -26,6 +27,14 @@ export function middleware(request: NextRequest) {
     pathname.includes('.') && !pathname.startsWith('/zh/') && !pathname.startsWith('/en/')
   ) {
     return NextResponse.next()
+  }
+
+  // 🎯 处理gallery二级域名 - 将 gallery.sybaupicture.com 重写到 /gallery
+  if (hostname === 'gallery.sybaupicture.com' || hostname === 'gallery.sybaupicture.com.') {
+    // 重写URL到gallery页面，保持原始路径
+    const url = request.nextUrl.clone()
+    url.pathname = '/gallery' + pathname
+    return NextResponse.rewrite(url)
   }
 
   const currentLocale = getCurrentLocale(pathname)
