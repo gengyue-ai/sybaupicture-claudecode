@@ -15,6 +15,7 @@ import {
   LazyHowItWorksSection, 
   LazyFeaturesSection 
 } from '@/components/home/LazyHomeComponents'
+import { DouAd } from '@/components/AdUnit'
 
 // 移动端优化的懒加载 - 根据设备性能调整加载时机
 const ImageGenerator = lazy(() => {
@@ -391,6 +392,13 @@ export default function HomePageClient() {
         </div>
       </section>
 
+      {/* 广告位 ① - Generator Section 之后，最高流量断点 */}
+      <div className="bg-white py-4">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <DouAd className="min-h-[90px] flex items-center justify-center" />
+        </div>
+      </div>
+
       {/* FLUX Engine Features Section - Lazy Loaded */}
       <LazyFluxEngineSection currentLang={currentLang} />
 
@@ -573,6 +581,13 @@ export default function HomePageClient() {
           </div>
         </div>
       </section>
+
+      {/* 广告位 ② - Features Section 之后，白色→渐变视觉断点 */}
+      <div className="bg-white pb-4">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <DouAd className="min-h-[90px] flex items-center justify-center" />
+        </div>
+      </div>
 
       {/* Use Cases Section */}
       <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">

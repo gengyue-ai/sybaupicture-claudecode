@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { DouAd } from '@/components/AdUnit'
 import { TrendingUp, Heart, Download, Share2, Eye, Star, Sparkles, Zap, Award, Clock, Rocket, Shield, Users, Check, ArrowRight, Play } from 'lucide-react'
 
 // FLUX引擎9大应用场景数据
@@ -413,8 +414,9 @@ export default function GalleryClient() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredScenarios.map((scenario) => (
-              <Card key={scenario.id} className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-white border border-gray-200 rounded-xl group">
+            {filteredScenarios.flatMap((scenario, index) => {
+              const cards = [
+                <Card key={scenario.id} className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-white border border-gray-200 rounded-xl group">
                 <div className="relative">
                   {/* Before/After 对比展示 - 优化版本 */}
                   <div className="grid grid-cols-2 gap-1 h-72">
@@ -525,7 +527,19 @@ export default function GalleryClient() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ];
+              
+              // 广告位 ③ - 9场景网格第3个卡片后（第一行结束），自然中断点
+              if (index === 2 && filteredScenarios.length > 3) {
+                cards.push(
+                  <div key="ad-gallery-mid" className="flex items-center justify-center min-h-[250px]">
+                    <DouAd className="w-full" />
+                  </div>
+                );
+              }
+              
+              return cards;
+            })}
           </div>
         </div>
 

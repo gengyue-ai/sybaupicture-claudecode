@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/hooks/useTranslation'
+import { DouAd } from '@/components/AdUnit'
 import { Sparkles, Github, Mail, Globe, Star, Rocket, X } from 'lucide-react'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
@@ -63,7 +64,15 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <>
+      {/* 广告位 ④ - Footer 上方，全站可见 */}
+      <div className="bg-white border-t border-gray-100">
+        <div className="container mx-auto px-4 py-6 max-w-5xl">
+          <DouAd className="min-h-[90px] flex items-center justify-center" />
+        </div>
+      </div>
+
+      <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-16">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
@@ -243,5 +252,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </>
   )
 }
