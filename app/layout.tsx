@@ -14,6 +14,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ResourcePreloader } from '@/components/performance/ResourcePreloader'
 import { CriticalCSS } from '@/components/performance/CriticalCSS'
 import { AsyncCSS } from '@/components/performance/AsyncCSS'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -108,13 +109,6 @@ export default function RootLayout({
         
         {/* 预加载关键字体 */}
         <link rel="preload" href="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        
-        {/* Google AdSense - 标准配置，符合Google要求 */}
-        <script 
-          async 
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1000714999006921"
-          crossOrigin="anonymous"
-        />
         
         {/* Google Analytics - 异步延迟加载避免阻塞渲染 */}
         
@@ -226,6 +220,14 @@ export default function RootLayout({
         
         {/* 安全的性能优化组件 */}
         <AsyncCSS />
+        
+        {/* Google AdSense - 懒加载避免阻塞首屏渲染 */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1000714999006921"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   )

@@ -47,7 +47,8 @@ export default function LanguageSwitcher({
     if (targetLang === currentLang) return
     
     const newUrl = generateLanguageUrl(pathname, targetLang)
-    router.push(newUrl)
+    // 使用 window.location.href 触发完整页面加载，避免 RSC 导航无限递归
+    window.location.href = newUrl
     setIsOpen(false)
   }
 

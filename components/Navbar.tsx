@@ -149,7 +149,8 @@ export default function Navbar() {
     }
 
     console.log('新语言:', newLang, '新路径:', newPath)
-    router.push(newPath)
+    // 使用完整页面跳转，避免 RSC 导航导致的无限递归
+    window.location.href = newPath
   }
 
   const getNavLink = (path: string) => {

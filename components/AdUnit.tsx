@@ -27,29 +27,37 @@ export function AdUnit({
   const pushed = useRef(false)
 
   useEffect(() => {
-    if (adRef.current && !pushed.current) {
-      try {
-        const win = window as any
-        if (win.adsbygoogle) {
-          win.adsbygoogle.push({})
-          pushed.current = true
-        } else {
-          // 如果adsbygoogle未加载，等待加载后再push
-          const observer = new MutationObserver(() => {
-            if (win.adsbygoogle && !pushed.current) {
-              win.adsbygoogle.push({})
-              pushed.current = true
-              observer.disconnect()
-            }
-          })
-          observer.observe(document.body, { childList: true, subtree: true })
-          // 超时兜底
-          setTimeout(() => observer.disconnect(), 10000)
-        }
-      } catch (e) {
-        console.error(`AdSense push error${adName ? ` (${adName})` : ''}:`, e)
+    if (!adRef.current || pushed.current) return
+
+    const tryPush = () => {
+      const win = window as any
+      // 确保 adsbygoogle 数组存在
+      if (!win.adsbygoogle) {
+        win.adsbygoogle = []
       }
+      // 确保 push 方法存在（Google SDK 加载后才会设置）
+      if (typeof win.adsbygoogle.push === 'function') {
+        win.adsbygoogle.push({})
+        pushed.current = true
+        return true
+      }
+      return false
     }
+
+    // 立即尝试
+    if (tryPush()) return
+
+    // 如果 SDK 还没加载，设置轮询等待
+    let attempts = 0
+    const maxAttempts = 50
+    const interval = setInterval(() => {
+      attempts++
+      if (tryPush() || attempts >= maxAttempts) {
+        clearInterval(interval)
+      }
+    }, 200)
+
+    return () => clearInterval(interval)
   }, [adName])
 
   return (

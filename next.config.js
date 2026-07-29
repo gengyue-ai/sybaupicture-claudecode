@@ -294,8 +294,7 @@ const nextConfig = {
   // 实验性功能 - 安全性能优化
   experimental: {
     missingSuspenseWithCSRBailout: false,
-    // 启用CSS优化 - 减少渲染阻塞
-    optimizeCss: true,
+    // 关闭 CSS 优化避免 critters 导致的 RSC 错误
     gzipSize: true,
     scrollRestoration: true,
     // 启用并发特性和现代JS优化

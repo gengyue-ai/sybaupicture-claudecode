@@ -63,8 +63,8 @@ const nextConfig: NextConfig = {
   },
 
   // 实验性功能 - 性能优化
+  // optimizeCss: 关闭以避免 critters 导致的 RSC 错误
   experimental: {
-    optimizeCss: true,
     gzipSize: true,
   },
 
